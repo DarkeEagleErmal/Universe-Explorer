@@ -355,41 +355,946 @@ scene.add(
 
 function createPlanetTexture(
     baseColor,
-    variation = 0.25
+    variation = 0.25,
+    objectName = ""
 ) {
 
     const canvas =
-        document.createElement(
-            "canvas"
-        );
+        document.createElement("canvas");
 
-    canvas.width = 1024;
-    canvas.height = 512;
+    canvas.width = 2048;
+    canvas.height = 1024;
 
     const ctx =
-        canvas.getContext(
-            "2d"
-        );
+        canvas.getContext("2d");
 
     const color =
-        new THREE.Color(
-            baseColor
-        );
+        new THREE.Color(baseColor);
 
     const r =
-        Math.floor(
-            color.r * 255
-        );
+        Math.floor(color.r * 255);
 
     const g =
-        Math.floor(
-            color.g * 255
-        );
+        Math.floor(color.g * 255);
 
     const b =
-        Math.floor(
-            color.b * 255
+        Math.floor(color.b * 255);
+
+
+    // ========================================================
+    // BASE
+    // ========================================================
+
+    ctx.fillStyle =
+        `rgb(${r},${g},${b})`;
+
+    ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+
+    // ========================================================
+    // SUN
+    // ========================================================
+
+    if (objectName === "Sun") {
+
+        ctx.fillStyle = "#e87918";
+
+        ctx.fillRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
         );
+
+        for (let i = 0; i < 1800; i++) {
+
+            const x =
+                Math.random() * canvas.width;
+
+            const y =
+                Math.random() * canvas.height;
+
+            const radius =
+                3 + Math.random() * 35;
+
+            const gradient =
+                ctx.createRadialGradient(
+                    x,
+                    y,
+                    0,
+                    x,
+                    y,
+                    radius
+                );
+
+            gradient.addColorStop(
+                0,
+                "rgba(255,245,160,0.8)"
+            );
+
+            gradient.addColorStop(
+                0.4,
+                "rgba(255,170,40,0.45)"
+            );
+
+            gradient.addColorStop(
+                1,
+                "rgba(120,20,0,0)"
+            );
+
+            ctx.fillStyle = gradient;
+
+            ctx.beginPath();
+
+            ctx.arc(
+                x,
+                y,
+                radius,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+        }
+
+        // Sunspots
+        for (let i = 0; i < 35; i++) {
+
+            const x =
+                Math.random() * canvas.width;
+
+            const y =
+                Math.random() * canvas.height;
+
+            const radius =
+                4 + Math.random() * 18;
+
+            ctx.fillStyle =
+                "rgba(90,25,0,0.45)";
+
+            ctx.beginPath();
+
+            ctx.arc(
+                x,
+                y,
+                radius,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+        }
+    }
+
+
+    // ========================================================
+    // MERCURY
+    // ========================================================
+
+    else if (objectName === "Mercury") {
+
+        ctx.fillStyle = "#77736d";
+
+        ctx.fillRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+        for (let i = 0; i < 500; i++) {
+
+            const x =
+                Math.random() * canvas.width;
+
+            const y =
+                Math.random() * canvas.height;
+
+            const radius =
+                2 + Math.random() * 18;
+
+            ctx.fillStyle =
+                `rgba(
+                    ${Math.random() > 0.5 ? 35 : 220},
+                    ${Math.random() > 0.5 ? 35 : 220},
+                    ${Math.random() > 0.5 ? 35 : 220},
+                    ${0.15 + Math.random() * 0.35}
+                )`;
+
+            ctx.beginPath();
+
+            ctx.arc(
+                x,
+                y,
+                radius,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+
+            ctx.strokeStyle =
+                "rgba(20,20,20,0.3)";
+
+            ctx.lineWidth = 2;
+
+            ctx.stroke();
+        }
+    }
+
+
+    // ========================================================
+    // VENUS
+    // ========================================================
+
+    else if (objectName === "Venus") {
+
+        ctx.fillStyle = "#d8b36a";
+
+        ctx.fillRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+        for (let i = 0; i < 90; i++) {
+
+            const y =
+                Math.random() * canvas.height;
+
+            const height =
+                10 + Math.random() * 45;
+
+            ctx.fillStyle =
+                `rgba(
+                    255,
+                    ${180 + Math.random() * 50},
+                    100,
+                    ${0.08 + Math.random() * 0.18}
+                )`;
+
+            ctx.fillRect(
+                0,
+                y,
+                canvas.width,
+                height
+            );
+        }
+
+        // Cloud streaks
+        for (let i = 0; i < 100; i++) {
+
+            const y =
+                Math.random() * canvas.height;
+
+            ctx.strokeStyle =
+                "rgba(255,240,190,0.2)";
+
+            ctx.lineWidth =
+                5 + Math.random() * 20;
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                0,
+                y
+            );
+
+            ctx.bezierCurveTo(
+                canvas.width * 0.3,
+                y - 30,
+                canvas.width * 0.7,
+                y + 30,
+                canvas.width,
+                y
+            );
+
+            ctx.stroke();
+        }
+    }
+
+
+    // ========================================================
+    // EARTH
+    // ========================================================
+
+    else if (objectName === "Earth") {
+
+        ctx.fillStyle = "#1765a8";
+
+        ctx.fillRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+        // Oceans
+        for (let i = 0; i < 120; i++) {
+
+            const x =
+                Math.random() * canvas.width;
+
+            const y =
+                Math.random() * canvas.height;
+
+            const radius =
+                30 + Math.random() * 100;
+
+            ctx.fillStyle =
+                `rgba(
+                    10,
+                    ${80 + Math.random() * 80},
+                    170,
+                    0.35
+                )`;
+
+            ctx.beginPath();
+
+            ctx.arc(
+                x,
+                y,
+                radius,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+        }
+
+        // Continents
+        for (let i = 0; i < 85; i++) {
+
+            const x =
+                Math.random() * canvas.width;
+
+            const y =
+                Math.random() * canvas.height;
+
+            const radius =
+                15 + Math.random() * 80;
+
+            ctx.fillStyle =
+                Math.random() > 0.25
+                    ? "rgba(50,125,55,0.8)"
+                    : "rgba(120,95,45,0.75)";
+
+            ctx.beginPath();
+
+            ctx.ellipse(
+                x,
+                y,
+                radius * 1.5,
+                radius,
+                Math.random() * Math.PI,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+        }
+
+        // Clouds
+        for (let i = 0; i < 180; i++) {
+
+            const x =
+                Math.random() * canvas.width;
+
+            const y =
+                Math.random() * canvas.height;
+
+            const radius =
+                8 + Math.random() * 35;
+
+            ctx.fillStyle =
+                `rgba(
+                    255,
+                    255,
+                    255,
+                    ${0.08 + Math.random() * 0.25}
+                )`;
+
+            ctx.beginPath();
+
+            ctx.ellipse(
+                x,
+                y,
+                radius * 2,
+                radius * 0.45,
+                Math.random(),
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+        }
+
+        // Polar ice
+        ctx.fillStyle =
+            "rgba(255,255,255,0.75)";
+
+        ctx.fillRect(
+            0,
+            0,
+            canvas.width,
+            18
+        );
+
+        ctx.fillRect(
+            0,
+            canvas.height - 18,
+            canvas.width,
+            18
+        );
+    }
+
+
+    // ========================================================
+    // MARS
+    // ========================================================
+
+    else if (objectName === "Mars") {
+
+        ctx.fillStyle = "#a9432f";
+
+        ctx.fillRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+        for (let i = 0; i < 500; i++) {
+
+            const x =
+                Math.random() * canvas.width;
+
+            const y =
+                Math.random() * canvas.height;
+
+            const radius =
+                3 + Math.random() * 35;
+
+            ctx.fillStyle =
+                Math.random() > 0.5
+                    ? "rgba(65,30,20,0.25)"
+                    : "rgba(230,100,55,0.25)";
+
+            ctx.beginPath();
+
+            ctx.arc(
+                x,
+                y,
+                radius,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+        }
+
+        // Polar caps
+        ctx.fillStyle =
+            "rgba(245,235,220,0.75)";
+
+        ctx.fillRect(
+            0,
+            0,
+            canvas.width,
+            25
+        );
+
+        ctx.fillRect(
+            0,
+            canvas.height - 25,
+            canvas.width,
+            25
+        );
+    }
+
+
+    // ========================================================
+    // JUPITER
+    // ========================================================
+
+    else if (objectName === "Jupiter") {
+
+        ctx.fillStyle = "#c59b70";
+
+        ctx.fillRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+        // Horizontal atmospheric bands
+        for (let y = 0; y < canvas.height; y += 35) {
+
+            const band =
+                Math.random();
+
+            ctx.fillStyle =
+                band > 0.5
+                    ? "rgba(110,65,40,0.25)"
+                    : "rgba(255,230,180,0.25)";
+
+            ctx.fillRect(
+                0,
+                y,
+                canvas.width,
+                18 + Math.random() * 25
+            );
+        }
+
+        // Storms
+        for (let i = 0; i < 30; i++) {
+
+            const x =
+                Math.random() * canvas.width;
+
+            const y =
+                Math.random() * canvas.height;
+
+            ctx.fillStyle =
+                "rgba(130,65,45,0.35)";
+
+            ctx.beginPath();
+
+            ctx.ellipse(
+                x,
+                y,
+                25 + Math.random() * 70,
+                10 + Math.random() * 25,
+                0,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+        }
+
+        // Great Red Spot
+        ctx.fillStyle =
+            "rgba(170,75,55,0.75)";
+
+        ctx.beginPath();
+
+        ctx.ellipse(
+            canvas.width * 0.68,
+            canvas.height * 0.62,
+            85,
+            40,
+            0,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+    }
+
+
+    // ========================================================
+    // SATURN
+    // ========================================================
+
+    else if (objectName === "Saturn") {
+
+        ctx.fillStyle = "#d6bd82";
+
+        ctx.fillRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+        for (let y = 0; y < canvas.height; y += 28) {
+
+            ctx.fillStyle =
+                Math.random() > 0.5
+                    ? "rgba(120,90,50,0.18)"
+                    : "rgba(255,240,190,0.22)";
+
+            ctx.fillRect(
+                0,
+                y,
+                canvas.width,
+                10 + Math.random() * 18
+            );
+        }
+    }
+
+
+    // ========================================================
+    // URANUS
+    // ========================================================
+
+    else if (objectName === "Uranus") {
+
+        ctx.fillStyle = "#73c9cf";
+
+        ctx.fillRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+        for (let y = 0; y < canvas.height; y += 70) {
+
+            ctx.fillStyle =
+                "rgba(210,255,255,0.12)";
+
+            ctx.fillRect(
+                0,
+                y,
+                canvas.width,
+                25
+            );
+        }
+    }
+
+
+    // ========================================================
+    // NEPTUNE
+    // ========================================================
+
+    else if (objectName === "Neptune") {
+
+        ctx.fillStyle = "#315dcc";
+
+        ctx.fillRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+        for (let y = 0; y < canvas.height; y += 45) {
+
+            ctx.fillStyle =
+                Math.random() > 0.5
+                    ? "rgba(10,30,100,0.22)"
+                    : "rgba(100,150,255,0.16)";
+
+            ctx.fillRect(
+                0,
+                y,
+                canvas.width,
+                18 + Math.random() * 15
+            );
+        }
+
+        // Storms
+        for (let i = 0; i < 25; i++) {
+
+            const x =
+                Math.random() * canvas.width;
+
+            const y =
+                Math.random() * canvas.height;
+
+            ctx.fillStyle =
+                "rgba(15,35,100,0.35)";
+
+            ctx.beginPath();
+
+            ctx.ellipse(
+                x,
+                y,
+                30 + Math.random() * 50,
+                10 + Math.random() * 20,
+                0,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+        }
+    }
+
+
+    // ========================================================
+    // MOON
+    // ========================================================
+
+    else if (objectName === "Moon") {
+
+        ctx.fillStyle = "#999999";
+
+        ctx.fillRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+        for (let i = 0; i < 650; i++) {
+
+            const x =
+                Math.random() * canvas.width;
+
+            const y =
+                Math.random() * canvas.height;
+
+            const radius =
+                2 + Math.random() * 20;
+
+            ctx.fillStyle =
+                "rgba(45,45,45,0.3)";
+
+            ctx.beginPath();
+
+            ctx.arc(
+                x,
+                y,
+                radius,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+
+            ctx.strokeStyle =
+                "rgba(220,220,220,0.25)";
+
+            ctx.stroke();
+        }
+    }
+
+
+    // ========================================================
+    // PLUTO
+    // ========================================================
+
+    else if (objectName === "Pluto") {
+
+        ctx.fillStyle = "#9c806d";
+
+        ctx.fillRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+        // Pale heart-shaped region
+        ctx.fillStyle =
+            "rgba(235,220,195,0.7)";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            canvas.width * 0.46,
+            canvas.height * 0.5,
+            150,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.arc(
+            canvas.width * 0.57,
+            canvas.height * 0.5,
+            150,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+
+        for (let i = 0; i < 120; i++) {
+
+            const x =
+                Math.random() * canvas.width;
+
+            const y =
+                Math.random() * canvas.height;
+
+            ctx.fillStyle =
+                "rgba(70,55,45,0.2)";
+
+            ctx.beginPath();
+
+            ctx.arc(
+                x,
+                y,
+                5 + Math.random() * 20,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+        }
+    }
+
+
+    // ========================================================
+    // SIRIUS
+    // ========================================================
+
+    else if (objectName === "Sirius") {
+
+        ctx.fillStyle = "#dcecff";
+
+        ctx.fillRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+        for (let i = 0; i < 500; i++) {
+
+            const x =
+                Math.random() * canvas.width;
+
+            const y =
+                Math.random() * canvas.height;
+
+            const radius =
+                2 + Math.random() * 25;
+
+            const gradient =
+                ctx.createRadialGradient(
+                    x,
+                    y,
+                    0,
+                    x,
+                    y,
+                    radius
+                );
+
+            gradient.addColorStop(
+                0,
+                "rgba(255,255,255,0.9)"
+            );
+
+            gradient.addColorStop(
+                1,
+                "rgba(120,180,255,0)"
+            );
+
+            ctx.fillStyle = gradient;
+
+            ctx.beginPath();
+
+            ctx.arc(
+                x,
+                y,
+                radius,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+        }
+    }
+
+
+    // ========================================================
+    // GENERIC OBJECTS
+    // ========================================================
+
+    else {
+
+        for (let i = 0; i < 1200; i++) {
+
+            const x =
+                Math.random() * canvas.width;
+
+            const y =
+                Math.random() * canvas.height;
+
+            const radius =
+                1 + Math.random() * 20;
+
+            const brightness =
+                (
+                    Math.random() - 0.5
+                ) *
+                variation *
+                255;
+
+            const rr =
+                Math.max(
+                    0,
+                    Math.min(
+                        255,
+                        r + brightness
+                    )
+                );
+
+            const gg =
+                Math.max(
+                    0,
+                    Math.min(
+                        255,
+                        g + brightness
+                    )
+                );
+
+            const bb =
+                Math.max(
+                    0,
+                    Math.min(
+                        255,
+                        b + brightness
+                    )
+                );
+
+            ctx.fillStyle =
+                `rgba(
+                    ${rr},
+                    ${gg},
+                    ${bb},
+                    ${0.08 + Math.random() * 0.2}
+                )`;
+
+            ctx.beginPath();
+
+            ctx.arc(
+                x,
+                y,
+                radius,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+        }
+    }
+
+
+    // ========================================================
+    // THREE.JS TEXTURE
+    // ========================================================
+
+    const texture =
+        new THREE.CanvasTexture(canvas);
+
+    texture.colorSpace =
+        THREE.SRGBColorSpace;
+
+    texture.wrapS =
+        THREE.RepeatWrapping;
+
+    texture.wrapT =
+        THREE.ClampToEdgeWrapping;
+
+    texture.anisotropy = 8;
+
+    texture.needsUpdate = true;
+
+
+    return texture;
+}
 
 
     // ========================================================
@@ -1004,11 +1909,13 @@ function createCelestialObject(data) {
         );
 
     const texture =
-        createPlanetTexture(
-            data.color,
-            data.type === "Planet"
-                ? 0.38
-                : 0.20
+    createPlanetTexture(
+        data.color,
+        data.type === "Planet"
+            ? 0.38
+            : 0.20,
+        data.name
+    );
         );
 
     const isStar =
