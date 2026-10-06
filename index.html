@@ -2,883 +2,534 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Universe Explorer</title>
 
 <style>
-
-*{
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-html,
-body{
-    width:100%;
-    height:100%;
-    overflow:hidden;
-    background:#000;
-    color:#fff;
-    font-family:Arial,Helvetica,sans-serif;
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
-button,
-input{
-    font:inherit;
+button, input {
+    font: inherit;
 }
 
-button{
-    cursor:pointer;
+#app {
+    position: fixed;
+    inset: 0;
 }
 
-#home{
-    position:fixed;
-    inset:0;
-    z-index:100;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    overflow:hidden;
+#space {
+    position: absolute;
+    inset: 0;
+}
+
+/* HOME */
+
+#home {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     background:
-        radial-gradient(circle at 20% 30%,rgba(65,80,255,.18),transparent 32%),
-        radial-gradient(circle at 80% 70%,rgba(130,50,255,.16),transparent 30%),
-        radial-gradient(circle at 50% 50%,#080b20 0%,#02030b 55%,#000 100%);
+        radial-gradient(circle at 50% 45%, rgba(50,80,150,.18), transparent 35%),
+        linear-gradient(rgba(0,0,0,.15), rgba(0,0,0,.55));
+    transition: opacity .8s ease, visibility .8s ease;
 }
 
-.home-stars{
-    position:absolute;
-    inset:0;
-    background-image:
-        radial-gradient(circle,#fff 1px,transparent 1px),
-        radial-gradient(circle,#8090ff 1px,transparent 1px);
-    background-size:120px 120px,190px 190px;
-    opacity:.25;
-    animation:spaceDrift 45s linear infinite;
+.home-content {
+    max-width: 850px;
+    padding: 30px;
 }
 
-@keyframes spaceDrift{
-    from{
-        transform:scale(1) translate(0,0);
-    }
-    to{
-        transform:scale(1.12) translate(-30px,-20px);
-    }
+.home-content h1 {
+    font-size: clamp(50px, 8vw, 105px);
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    text-shadow: 0 0 25px rgba(130,190,255,.8);
+    margin-bottom: 20px;
 }
 
-.home-content{
-    position:relative;
-    z-index:2;
-    width:min(900px,92%);
-    text-align:center;
+.home-content p {
+    color: #b8c9e8;
+    font-size: 18px;
+    line-height: 1.7;
+    margin-bottom: 40px;
 }
 
-.home-content h1{
-    font-size:clamp(48px,9vw,115px);
-    letter-spacing:clamp(3px,1vw,10px);
-    margin-bottom:24px;
-    text-shadow:
-        0 0 15px rgba(120,140,255,.9),
-        0 0 45px rgba(70,90,255,.5);
-}
-
-.home-content p{
-    max-width:760px;
-    margin:0 auto 42px;
-    color:#c7ccef;
-    font-size:clamp(15px,2vw,21px);
-    line-height:1.7;
-}
-
-#exploreBtn{
-    width:min(320px,85vw);
-    height:78px;
-    border:1px solid rgba(170,185,255,.65);
-    border-radius:12px;
-    color:#fff;
-    background:
-        linear-gradient(
-            135deg,
-            rgba(30,45,120,.75),
-            rgba(5,8,30,.9)
-        );
+#exploreBtn {
+    border: 1px solid rgba(150,210,255,.8);
+    background: rgba(10,20,40,.55);
+    color: white;
+    padding: 20px 70px;
+    min-width: 280px;
+    cursor: pointer;
+    letter-spacing: 5px;
+    font-weight: bold;
+    font-size: 18px;
+    border-radius: 6px;
     box-shadow:
-        0 0 25px rgba(80,100,255,.3),
-        inset 0 0 25px rgba(100,120,255,.08);
-    letter-spacing:6px;
-    font-weight:bold;
-    font-size:21px;
-    transition:.3s;
+        0 0 25px rgba(70,150,255,.25),
+        inset 0 0 25px rgba(70,150,255,.08);
+    transition: .3s;
 }
 
-#exploreBtn:hover{
-    transform:translateY(-4px) scale(1.03);
+#exploreBtn:hover {
+    transform: scale(1.05);
+    background: rgba(40,90,150,.4);
     box-shadow:
-        0 0 45px rgba(90,110,255,.65),
-        inset 0 0 30px rgba(100,120,255,.15);
+        0 0 40px rgba(80,180,255,.5),
+        inset 0 0 30px rgba(80,180,255,.15);
 }
 
-#explorer{
-    position:fixed;
-    inset:0;
-    display:none;
-    background:#000;
+/* EXPLORER */
+
+#explorer {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .8s ease;
 }
 
-canvas{
-    display:block;
-    position:absolute;
-    inset:0;
+#topBar {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    right: 18px;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-#topHUD{
-    position:absolute;
-    z-index:20;
-    top:14px;
-    left:14px;
-    right:14px;
-    display:flex;
-    align-items:center;
-    gap:10px;
-    pointer-events:none;
+.hud-button {
+    border: 1px solid rgba(150,200,255,.35);
+    background: rgba(5,10,25,.55);
+    backdrop-filter: blur(12px);
+    color: #dcecff;
+    padding: 11px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: .25s;
 }
 
-.hud,
-.hud-button,
-#search{
-    pointer-events:auto;
+.hud-button:hover {
+    background: rgba(50,100,170,.35);
+    border-color: rgba(150,220,255,.8);
 }
 
-.hud{
-    border:1px solid rgba(125,145,255,.28);
-    background:rgba(3,7,22,.65);
-    backdrop-filter:blur(15px);
-    box-shadow:0 10px 40px rgba(0,0,0,.3);
+#searchBox {
+    margin-left: auto;
+    position: relative;
 }
 
-#logo{
-    padding:12px 15px;
-    border-radius:10px;
-    font-weight:bold;
-    letter-spacing:2px;
-    white-space:nowrap;
+#searchInput {
+    width: 270px;
+    padding: 11px 14px;
+    border-radius: 5px;
+    border: 1px solid rgba(150,200,255,.35);
+    outline: none;
+    background: rgba(5,10,25,.65);
+    backdrop-filter: blur(12px);
+    color: white;
 }
 
-#search{
-    height:44px;
-    flex:1;
-    max-width:480px;
-    min-width:120px;
-    border-radius:10px;
-    border:1px solid rgba(125,145,255,.3);
-    outline:none;
-    padding:0 15px;
-    color:white;
-    background:rgba(3,7,22,.72);
+#searchInput::placeholder {
+    color: #8ea3c5;
 }
 
-#search::placeholder{
-    color:#7d86a8;
+#searchResults {
+    position: absolute;
+    top: 48px;
+    right: 0;
+    width: 270px;
+    max-height: 280px;
+    overflow-y: auto;
+    background: rgba(4,8,20,.92);
+    border: 1px solid rgba(130,190,255,.25);
+    border-radius: 5px;
+    display: none;
 }
 
-.hud-button{
-    height:44px;
-    padding:0 15px;
-    border:1px solid rgba(125,145,255,.3);
-    border-radius:10px;
-    color:white;
-    background:rgba(3,7,22,.72);
-    backdrop-filter:blur(15px);
-    transition:.2s;
+.search-result {
+    padding: 12px;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255,255,255,.06);
 }
 
-.hud-button:hover{
-    background:rgba(50,70,160,.55);
-    border-color:rgba(150,170,255,.65);
+.search-result:hover {
+    background: rgba(80,140,220,.2);
 }
 
-#functionsMenu{
-    position:absolute;
-    z-index:30;
-    top:70px;
-    left:14px;
-    width:270px;
-    max-height:calc(100vh - 100px);
-    overflow-y:auto;
-    display:none;
-    padding:12px;
-    border:1px solid rgba(125,145,255,.35);
-    border-radius:14px;
-    background:rgba(3,7,22,.88);
-    backdrop-filter:blur(20px);
-    box-shadow:0 20px 60px rgba(0,0,0,.55);
+#bottomHud {
+    position: absolute;
+    bottom: 18px;
+    left: 18px;
+    z-index: 20;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
-.menu-title{
-    padding:8px 10px;
-    color:#8d9aff;
-    font-size:11px;
-    letter-spacing:2px;
+#coordinates {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 20;
+    color: #91a9cc;
+    font-size: 12px;
+    background: rgba(0,0,0,.35);
+    padding: 9px 12px;
+    border: 1px solid rgba(150,200,255,.15);
 }
 
-.menu-button{
-    width:100%;
-    padding:11px;
-    margin:3px 0;
-    border:0;
-    border-radius:8px;
-    color:#e8ebff;
-    background:rgba(255,255,255,.035);
-    text-align:left;
+/* INFO PANEL */
+
+#infoPanel {
+    position: absolute;
+    top: 80px;
+    right: 20px;
+    bottom: 80px;
+    width: 350px;
+    z-index: 30;
+    padding: 22px;
+    border: 1px solid rgba(130,200,255,.3);
+    background: rgba(3,8,20,.72);
+    backdrop-filter: blur(18px);
+    border-radius: 8px;
+    display: none;
+    overflow: hidden;
+    box-shadow: 0 0 35px rgba(0,100,255,.12);
 }
 
-.menu-button:hover{
-    background:rgba(85,105,220,.25);
+#closeInfo {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border: 0;
+    background: transparent;
+    color: #9db4d8;
+    font-size: 22px;
+    cursor: pointer;
 }
 
-#leftHUD{
-    position:absolute;
-    z-index:15;
-    left:15px;
-    bottom:15px;
-    width:260px;
-    pointer-events:none;
+#infoName {
+    font-size: 28px;
+    margin-bottom: 6px;
 }
 
-.hud-card{
-    border:1px solid rgba(125,145,255,.25);
-    border-radius:12px;
-    padding:13px;
-    margin-top:8px;
-    background:rgba(3,7,22,.62);
-    backdrop-filter:blur(14px);
-    box-shadow:0 10px 35px rgba(0,0,0,.35);
+#infoType {
+    color: #76baff;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
 }
 
-.hud-label{
-    color:#737fa9;
-    font-size:10px;
-    letter-spacing:2px;
-    margin-bottom:5px;
-}
-
-.hud-value{
-    color:#dfe4ff;
-    font-size:12px;
-    line-height:1.5;
-}
-
-#minimap{
-    width:220px;
-    height:220px;
-    border-radius:50%;
-    position:relative;
-    overflow:hidden;
-    border:1px solid rgba(130,150,255,.35);
+#infoVisual {
+    height: 150px;
+    border-radius: 6px;
+    margin-bottom: 18px;
     background:
-        radial-gradient(
-            circle,
-            rgba(50,70,140,.22),
-            rgba(2,5,18,.75) 65%,
-            rgba(0,0,0,.95)
-        );
-    box-shadow:
-        0 0 30px rgba(60,80,180,.15),
-        inset 0 0 40px rgba(40,50,130,.2);
+        radial-gradient(circle at center, rgba(100,180,255,.25), transparent 60%),
+        rgba(255,255,255,.03);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 70px;
 }
 
-.minimap-grid{
-    position:absolute;
-    inset:0;
-    opacity:.25;
-    background:
-        linear-gradient(
-            transparent 49.5%,
-            rgba(130,150,255,.4) 50%,
-            transparent 50.5%
-        ),
-        linear-gradient(
-            90deg,
-            transparent 49.5%,
-            rgba(130,150,255,.4) 50%,
-            transparent 50.5%
-        );
+.info-page {
+    display: none;
 }
 
-.minimap-center{
-    position:absolute;
-    left:50%;
-    top:50%;
-    width:6px;
-    height:6px;
-    border-radius:50%;
-    transform:translate(-50%,-50%);
-    background:#fff;
-    box-shadow:0 0 12px #fff;
+.info-page.active {
+    display: block;
 }
 
-#infoPanel{
-    position:absolute;
-    z-index:25;
-    top:75px;
-    right:15px;
-    width:min(390px,calc(100vw - 30px));
-    max-height:calc(100vh - 95px);
-    display:none;
-    overflow:hidden;
-    border:1px solid rgba(135,155,255,.38);
-    border-radius:16px;
-    background:rgba(3,7,22,.84);
-    backdrop-filter:blur(22px);
-    box-shadow:
-        0 20px 80px rgba(0,0,0,.6),
-        0 0 35px rgba(60,80,180,.12);
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+    font-size: 13px;
 }
 
-#infoHeader{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:16px;
-    border-bottom:1px solid rgba(255,255,255,.08);
+.info-row span:first-child {
+    color: #8096b8;
 }
 
-#infoTitle{
-    font-size:22px;
-    font-weight:bold;
+.info-row span:last-child {
+    text-align: right;
 }
 
-#infoType{
-    margin-top:4px;
-    color:#8d9aff;
-    font-size:11px;
-    letter-spacing:1px;
+#infoText {
+    color: #b9c8df;
+    line-height: 1.6;
+    font-size: 14px;
 }
 
-#closeInfo{
-    border:0;
-    background:none;
-    color:#fff;
-    font-size:25px;
+#infoNavigation {
+    position: absolute;
+    bottom: 15px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between;
 }
 
-#objectVisual{
-    height:130px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border-bottom:1px solid rgba(255,255,255,.08);
-    background:
-        radial-gradient(
-            circle,
-            rgba(80,100,220,.14),
-            transparent 65%
-        );
+#pageIndicator {
+    color: #8298b9;
+    padding-top: 9px;
 }
 
-#visualObjectName{
-    color:#aeb8e9;
-    font-size:12px;
-    letter-spacing:2px;
+/* FUNCTION MENU */
+
+#functionsMenu {
+    position: absolute;
+    left: 18px;
+    bottom: 70px;
+    width: 250px;
+    z-index: 40;
+    padding: 10px;
+    background: rgba(3,8,20,.92);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(130,190,255,.25);
+    border-radius: 7px;
+    display: none;
 }
 
-#infoContent{
-    max-height:calc(100vh - 340px);
-    overflow-y:auto;
-    padding:15px;
+.function-item {
+    width: 100%;
+    text-align: left;
+    padding: 11px;
+    margin: 2px 0;
+    border: 0;
+    background: transparent;
+    color: #c9d8ef;
+    cursor: pointer;
+    border-radius: 4px;
 }
 
-.info-row{
-    display:flex;
-    justify-content:space-between;
-    gap:15px;
-    padding:10px 0;
-    border-bottom:1px solid rgba(255,255,255,.06);
+.function-item:hover {
+    background: rgba(80,150,230,.18);
 }
 
-.info-label{
-    color:#7f89ad;
+/* TOAST */
+
+#toast {
+    position: absolute;
+    left: 50%;
+    bottom: 35px;
+    transform: translateX(-50%);
+    z-index: 100;
+    padding: 11px 18px;
+    border: 1px solid rgba(130,200,255,.35);
+    background: rgba(5,10,25,.9);
+    border-radius: 5px;
+    color: #cfe4ff;
+    opacity: 0;
+    pointer-events: none;
+    transition: .3s;
 }
 
-.info-value{
-    color:#e5e8f8;
-    text-align:right;
-    max-width:62%;
+#toast.show {
+    opacity: 1;
 }
 
-#sourceBox{
-    margin-top:15px;
-    padding:10px;
-    border-radius:8px;
-    background:rgba(80,100,200,.08);
-    color:#9fa9d2;
-    font-size:11px;
-    line-height:1.5;
+/* LOADING */
+
+#loading {
+    position: absolute;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    color: #a8caff;
+    letter-spacing: 4px;
+    transition: opacity .5s;
 }
 
-#infoControls{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:12px 15px;
-    border-top:1px solid rgba(255,255,255,.08);
+#loading.hidden {
+    opacity: 0;
+    pointer-events: none;
 }
 
-.page-button{
-    border:1px solid rgba(125,145,255,.3);
-    border-radius:8px;
-    padding:8px 15px;
-    color:white;
-    background:rgba(70,85,170,.18);
-}
-
-#pageNumber{
-    color:#8d98c5;
-    font-size:12px;
-}
-
-#bottomRight{
-    position:absolute;
-    right:15px;
-    bottom:15px;
-    z-index:15;
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-    align-items:flex-end;
-}
-
-.status{
-    padding:9px 12px;
-    border-radius:8px;
-    border:1px solid rgba(125,145,255,.25);
-    background:rgba(3,7,22,.62);
-    backdrop-filter:blur(12px);
-    color:#9ca7d0;
-    font-size:11px;
-}
-
-.zoom-controls{
-    display:flex;
-    gap:5px;
-}
-
-.zoom-controls button{
-    width:40px;
-    height:40px;
-    border-radius:8px;
-    border:1px solid rgba(125,145,255,.3);
-    background:rgba(3,7,22,.72);
-    color:white;
-}
-
-#toast{
-    position:absolute;
-    z-index:100;
-    left:50%;
-    bottom:30px;
-    transform:translateX(-50%) translateY(20px);
-    opacity:0;
-    padding:12px 18px;
-    border:1px solid rgba(130,150,255,.4);
-    border-radius:10px;
-    background:rgba(3,7,22,.9);
-    color:#dce2ff;
-    pointer-events:none;
-    transition:.3s;
-}
-
-#toast.show{
-    opacity:1;
-    transform:translateX(-50%) translateY(0);
-}
-
-.hidden{
-    display:none!important;
-}
-
-@media(max-width:750px){
-
-    #topHUD{
-        flex-wrap:wrap;
+@media(max-width: 700px) {
+    #topBar {
+        flex-wrap: wrap;
     }
 
-    #logo{
-        display:none;
+    #searchBox {
+        width: 100%;
+        margin-left: 0;
     }
 
-    #search{
-        order:-1;
-        flex-basis:100%;
-        max-width:none;
+    #searchInput,
+    #searchResults {
+        width: 100%;
     }
 
-    #leftHUD{
-        width:180px;
+    #infoPanel {
+        left: 10px;
+        right: 10px;
+        width: auto;
+        top: 90px;
+        bottom: 70px;
     }
 
-    #minimap{
-        width:150px;
-        height:150px;
-    }
-
-    #infoPanel{
-        top:auto;
-        bottom:10px;
-        max-height:58vh;
-    }
-
-    #infoContent{
-        max-height:35vh;
-    }
-
-    #bottomRight{
-        bottom:10px;
-        right:10px;
+    .home-content h1 {
+        letter-spacing: 3px;
     }
 }
-
 </style>
 </head>
 
 <body>
 
-<div id="home">
+<div id="app">
 
-    <div class="home-stars"></div>
+    <div id="loading">INITIALIZING UNIVERSE...</div>
 
-    <div class="home-content">
+    <div id="space"></div>
 
-        <h1>Universe Explorer</h1>
+    <section id="home">
+        <div class="home-content">
+            <h1>Universe Explorer</h1>
+            <p>
+                Explore the Universe in an interactive 3D environment.
+                Travel through the Solar System, discover celestial objects
+                and explore the depths of space.
+            </p>
+            <button id="exploreBtn">EXPLORE</button>
+        </div>
+    </section>
 
-        <p>
-            Explore planets, stars, nebulae, galaxies and distant
-            worlds through an immersive interactive 3D universe.
-        </p>
+    <section id="explorer">
 
-        <button id="exploreBtn">
-            EXPLORE
-        </button>
+        <div id="topBar">
+            <button class="hud-button" id="homeBtn">HOME</button>
+            <button class="hud-button" id="solarBtn">SOLAR SYSTEM</button>
+            <button class="hud-button" id="functionsBtn">FUNCTIONS</button>
 
-    </div>
+            <div id="searchBox">
+                <input id="searchInput" type="text" placeholder="Search celestial object...">
+                <div id="searchResults"></div>
+            </div>
+        </div>
 
+        <div id="bottomHud">
+            <button class="hud-button" id="zoomIn">ZOOM +</button>
+            <button class="hud-button" id="zoomOut">ZOOM −</button>
+            <button class="hud-button" id="resetView">RESET VIEW</button>
+        </div>
+
+        <div id="coordinates">
+            X: 0 &nbsp; Y: 0 &nbsp; Z: 0
+        </div>
+
+        <div id="functionsMenu">
+            <button class="function-item" id="freeExplore">Free Exploration</button>
+            <button class="function-item" id="guidedTour">Guided Tour</button>
+            <button class="function-item" id="showOrbits">Toggle Orbits</button>
+            <button class="function-item" id="timeSimulation">Time Simulation</button>
+            <button class="function-item" id="compareObjects">Compare Objects</button>
+            <button class="function-item" id="favoritesBtn">Favorites</button>
+            <button class="function-item" id="historyBtn">History</button>
+        </div>
+
+        <aside id="infoPanel">
+            <button id="closeInfo">×</button>
+
+            <h2 id="infoName">Object</h2>
+            <div id="infoType">CELESTIAL OBJECT</div>
+
+            <div id="infoVisual">✦</div>
+
+            <div class="info-page active" data-page="0">
+                <div class="info-row">
+                    <span>Name</span>
+                    <span id="infoName2">—</span>
+                </div>
+                <div class="info-row">
+                    <span>Type</span>
+                    <span id="infoType2">—</span>
+                </div>
+                <div class="info-row">
+                    <span>Distance</span>
+                    <span id="infoDistance">—</span>
+                </div>
+            </div>
+
+            <div class="info-page" data-page="1">
+                <div class="info-row">
+                    <span>Diameter</span>
+                    <span id="infoDiameter">—</span>
+                </div>
+                <div class="info-row">
+                    <span>Mass</span>
+                    <span id="infoMass">—</span>
+                </div>
+                <div class="info-row">
+                    <span>Temperature</span>
+                    <span id="infoTemperature">—</span>
+                </div>
+                <div class="info-row">
+                    <span>Gravity</span>
+                    <span id="infoGravity">—</span>
+                </div>
+            </div>
+
+            <div class="info-page" data-page="2">
+                <div class="info-row">
+                    <span>Composition</span>
+                    <span id="infoComposition">—</span>
+                </div>
+                <div class="info-row">
+                    <span>Rotation</span>
+                    <span id="infoRotation">—</span>
+                </div>
+                <div class="info-row">
+                    <span>Orbit</span>
+                    <span id="infoOrbit">—</span>
+                </div>
+            </div>
+
+            <div class="info-page" data-page="3">
+                <p id="infoText">
+                    Select a celestial object to discover more information.
+                </p>
+            </div>
+
+            <div id="infoNavigation">
+                <button class="hud-button" id="prevPage">←</button>
+                <span id="pageIndicator">1 / 4</span>
+                <button class="hud-button" id="nextPage">→</button>
+            </div>
+        </aside>
+
+        <div id="toast"></div>
+
+    </section>
 </div>
-
-<div id="explorer">
-
-    <div id="topHUD">
-
-        <div id="logo" class="hud">
-            UNIVERSE EXPLORER
-        </div>
-
-        <input
-            id="search"
-            class="hud"
-            type="text"
-            autocomplete="off"
-            placeholder="Search Mars, Earth, Andromeda, Sirius..."
-        >
-
-        <button
-            id="functionsBtn"
-            class="hud-button"
-        >
-            FUNCTIONS
-        </button>
-
-        <button
-            id="homeBtn"
-            class="hud-button"
-        >
-            HOME
-        </button>
-
-    </div>
-
-    <div id="functionsMenu">
-
-        <div class="menu-title">
-            EXPLORATION
-        </div>
-
-        <button class="menu-button" id="freeBtn">
-            Free Exploration
-        </button>
-
-        <button class="menu-button" id="guidedBtn">
-            Guided Tour
-        </button>
-
-        <button class="menu-button" id="solarBtn">
-            Return to Solar System
-        </button>
-
-        <button class="menu-button" id="orbitsBtn">
-            Toggle Orbits
-        </button>
-
-        <button class="menu-button" id="distanceBtn">
-            Toggle Real Distances
-        </button>
-
-        <button class="menu-button" id="timeBtn">
-            Time Simulation
-        </button>
-
-        <button class="menu-button" id="speedBtn">
-            Light-Speed Travel
-        </button>
-
-        <div class="menu-title">
-            PERSONAL
-        </div>
-
-        <button class="menu-button" id="favoriteBtn">
-            Add to Favorites
-        </button>
-
-        <button class="menu-button" id="historyBtn">
-            Object History
-        </button>
-
-        <button class="menu-button" id="compareBtn">
-            Compare Objects
-        </button>
-
-        <button class="menu-button" id="customBtn">
-            Interface Settings
-        </button>
-
-        <button class="menu-button" id="vrBtn">
-            Immersive / VR
-        </button>
-
-    </div>
-
-    <div id="leftHUD">
-
-        <div class="hud-card">
-
-            <div class="hud-label">
-                SPACE MAP
-            </div>
-
-            <div id="minimap">
-
-                <div class="minimap-grid"></div>
-
-                <div class="minimap-center"></div>
-
-            </div>
-
-        </div>
-
-        <div class="hud-card">
-
-            <div class="hud-label">
-                POSITION
-            </div>
-
-            <div id="coordinates" class="hud-value">
-                X 0.00 | Y 0.00 | Z 0.00
-            </div>
-
-        </div>
-
-        <div class="hud-card">
-
-            <div class="hud-label">
-                MODE
-            </div>
-
-            <div id="modeText" class="hud-value">
-                FREE EXPLORATION
-            </div>
-
-        </div>
-
-    </div>
-
-    <div id="bottomRight">
-
-        <div id="status" class="status">
-            SOLAR SYSTEM READY
-        </div>
-
-        <div class="zoom-controls">
-
-            <button id="zoomOut">
-                −
-            </button>
-
-            <button id="zoomIn">
-                +
-            </button>
-
-        </div>
-
-    </div>
-
-    <div id="infoPanel">
-
-        <div id="infoHeader">
-
-            <div>
-
-                <div id="infoTitle">
-                    Object
-                </div>
-
-                <div id="infoType">
-                    Celestial Object
-                </div>
-
-            </div>
-
-            <button id="closeInfo">
-                ×
-            </button>
-
-        </div>
-
-        <div id="objectVisual">
-
-            <div id="visualObjectName">
-                SELECTED OBJECT
-            </div>
-
-        </div>
-
-        <div id="infoContent">
-
-            <div id="infoPage1">
-
-                <div class="info-row">
-                    <span class="info-label">Name</span>
-                    <span class="info-value" id="iName"></span>
-                </div>
-
-                <div class="info-row">
-                    <span class="info-label">Type</span>
-                    <span class="info-value" id="iType"></span>
-                </div>
-
-                <div class="info-row">
-                    <span class="info-label">Object Class</span>
-                    <span class="info-value" id="iClass"></span>
-                </div>
-
-            </div>
-
-            <div id="infoPage2" class="hidden">
-
-                <div class="info-row">
-                    <span class="info-label">Diameter</span>
-                    <span class="info-value" id="iDiameter"></span>
-                </div>
-
-                <div class="info-row">
-                    <span class="info-label">Mass</span>
-                    <span class="info-value" id="iMass"></span>
-                </div>
-
-                <div class="info-row">
-                    <span class="info-label">Temperature</span>
-                    <span class="info-value" id="iTemperature"></span>
-                </div>
-
-                <div class="info-row">
-                    <span class="info-label">Distance</span>
-                    <span class="info-value" id="iDistance"></span>
-                </div>
-
-                <div class="info-row">
-                    <span class="info-label">Gravity</span>
-                    <span class="info-value" id="iGravity"></span>
-                </div>
-
-            </div>
-
-            <div id="infoPage3" class="hidden">
-
-                <div class="info-row">
-                    <span class="info-label">Composition</span>
-                    <span class="info-value" id="iComposition"></span>
-                </div>
-
-                <div class="info-row">
-                    <span class="info-label">Atmosphere</span>
-                    <span class="info-value" id="iAtmosphere"></span>
-                </div>
-
-                <div class="info-row">
-                    <span class="info-label">Rotation</span>
-                    <span class="info-value" id="iRotation"></span>
-                </div>
-
-                <div class="info-row">
-                    <span class="info-label">Orbital Period</span>
-                    <span class="info-value" id="iOrbit"></span>
-                </div>
-
-            </div>
-
-            <div id="infoPage4" class="hidden">
-
-                <div class="info-row">
-                    <span class="info-label">Discovery</span>
-                    <span class="info-value" id="iDiscovery"></span>
-                </div>
-
-                <div class="info-row">
-                    <span class="info-label">Curiosity</span>
-                    <span class="info-value" id="iCuriosity"></span>
-                </div>
-
-                <div class="info-row">
-                    <span class="info-label">Missions</span>
-                    <span class="info-value" id="iMissions"></span>
-                </div>
-
-                <div id="sourceBox">
-                    Scientific source:
-                    <span id="iSource"></span>
-                </div>
-
-            </div>
-
-        </div>
-
-        <div id="infoControls">
-
-            <button
-                class="page-button"
-                id="prevPage"
-            >
-                ←
-            </button>
-
-            <span id="pageNumber">
-                1 / 4
-            </span>
-
-            <button
-                class="page-button"
-                id="nextPage"
-            >
-                →
-            </button>
-
-        </div>
-
-    </div>
-
-    <div id="toast"></div>
-
-</div>
-
 <script type="module">
 
 import * as THREE from
@@ -886,23 +537,17 @@ import * as THREE from
 
 import { OrbitControls } from
 "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
- <script>
 
-// ============================================================
-// CORE 3D SCENE
-// ============================================================
 
-const home = document.getElementById("home");
-const explorer = document.getElementById("explorer");
-const exploreBtn = document.getElementById("exploreBtn");
-const homeBtn = document.getElementById("homeBtn");
+/* =========================
+   BASIC SETUP
+========================= */
+
+const space = document.getElementById("space");
 
 const scene = new THREE.Scene();
 
-scene.fog = new THREE.FogExp2(
-    0x000005,
-    0.00018
-);
+scene.background = new THREE.Color(0x000008);
 
 const camera = new THREE.PerspectiveCamera(
     60,
@@ -911,20 +556,15 @@ const camera = new THREE.PerspectiveCamera(
     100000
 );
 
-camera.position.set(
-    0,
-    30,
-    75
-);
+camera.position.set(0, 35, 85);
 
-const renderer =
-    new THREE.WebGLRenderer({
-        antialias:true,
-        powerPreference:"high-performance"
-    });
+const renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    logarithmicDepthBuffer: true
+});
 
 renderer.setPixelRatio(
-    Math.min(window.devicePixelRatio,2)
+    Math.min(window.devicePixelRatio, 2)
 );
 
 renderer.setSize(
@@ -932,511 +572,391 @@ renderer.setSize(
     window.innerHeight
 );
 
-renderer.outputColorSpace =
-    THREE.SRGBColorSpace;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
 
-renderer.toneMapping =
-    THREE.ACESFilmicToneMapping;
+space.appendChild(renderer.domElement);
 
-renderer.toneMappingExposure =
-    1.15;
 
-explorer.appendChild(
+/* =========================
+   CONTROLS
+========================= */
+
+const controls = new OrbitControls(
+    camera,
     renderer.domElement
 );
 
-
-// ============================================================
-// CONTROLS
-// ============================================================
-
-const controls =
-    new OrbitControls(
-        camera,
-        renderer.domElement
-    );
-
 controls.enableDamping = true;
-controls.dampingFactor = 0.055;
-
-controls.rotateSpeed = 0.55;
-controls.zoomSpeed = 1.2;
-controls.panSpeed = 0.8;
-
-controls.minDistance = 0.15;
+controls.dampingFactor = 0.05;
+controls.minDistance = 2;
 controls.maxDistance = 50000;
 
-controls.target.set(
-    0,
-    0,
-    0
+
+/* =========================
+   LIGHT
+========================= */
+
+const ambientLight = new THREE.AmbientLight(
+    0xffffff,
+    0.18
 );
 
+scene.add(ambientLight);
 
-// ============================================================
-// LIGHTING
-// ============================================================
+const sunLight = new THREE.PointLight(
+    0xffffff,
+    4,
+    0,
+    2
+);
 
-const ambientLight =
-    new THREE.AmbientLight(
-        0x6677aa,
-        0.12
+scene.add(sunLight);
+
+
+/* =========================
+   GROUPS
+========================= */
+
+const universeGroup = new THREE.Group();
+scene.add(universeGroup);
+
+const solarSystem = new THREE.Group();
+universeGroup.add(solarSystem);
+
+const orbitGroup = new THREE.Group();
+solarSystem.add(orbitGroup);
+
+
+/* =========================
+   STAR FIELD
+========================= */
+
+function createStars(count = 9000) {
+
+    const geometry = new THREE.BufferGeometry();
+
+    const positions = new Float32Array(count * 3);
+    const sizes = new Float32Array(count);
+
+    for (let i = 0; i < count; i++) {
+
+        const radius =
+            1000 + Math.random() * 4000;
+
+        const theta =
+            Math.random() * Math.PI * 2;
+
+        const phi =
+            Math.acos(2 * Math.random() - 1);
+
+        positions[i * 3] =
+            radius * Math.sin(phi) * Math.cos(theta);
+
+        positions[i * 3 + 1] =
+            radius * Math.cos(phi);
+
+        positions[i * 3 + 2] =
+            radius * Math.sin(phi) * Math.sin(theta);
+
+        sizes[i] =
+            0.5 + Math.random() * 2;
+    }
+
+    geometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(positions, 3)
     );
 
-scene.add(
-    ambientLight
-);
-
-const sunLight =
-    new THREE.PointLight(
-        0xffffff,
-        5,
-        2500,
-        1.5
+    geometry.setAttribute(
+        "size",
+        new THREE.BufferAttribute(sizes, 1)
     );
 
-sunLight.position.set(
-    0,
-    0,
-    0
-);
+    const material = new THREE.PointsMaterial({
+        color: 0xffffff,
+        size: 1.6,
+        transparent: true,
+        opacity: 0.9,
+        sizeAttenuation: true
+    });
 
-scene.add(
-    sunLight
-);
+    const stars = new THREE.Points(
+        geometry,
+        material
+    );
 
+    scene.add(stars);
 
-// ============================================================
-// OBJECT GROUPS
-// ============================================================
+    return stars;
+}
 
-const solarSystem =
-    new THREE.Group();
-
-const deepSpace =
-    new THREE.Group();
-
-const galaxiesGroup =
-    new THREE.Group();
-
-const nebulaGroup =
-    new THREE.Group();
-
-scene.add(
-    solarSystem
-);
-
-scene.add(
-    deepSpace
-);
-
-scene.add(
-    galaxiesGroup
-);
-
-scene.add(
-    nebulaGroup
-);
+const stars = createStars();
 
 
-// ============================================================
-// GLOBAL STATE
-// ============================================================
+/* =========================
+   EXTRA STAR DUST
+========================= */
 
-const planets = [];
-const celestialObjects = [];
-const orbitLines = [];
+function createDust(count = 2500) {
 
-let selectedObject = null;
-let currentPage = 1;
+    const geometry = new THREE.BufferGeometry();
 
-let guidedMode = false;
-let guidedIndex = 0;
+    const positions = new Float32Array(count * 3);
 
-let orbitsVisible = true;
-let realDistancesVisible = false;
-let timeSimulation = false;
-let lightSpeedMode = false;
+    for (let i = 0; i < count; i++) {
 
-let simulationSpeed = 1;
+        positions[i * 3] =
+            (Math.random() - 0.5) * 3000;
 
-const favorites = new Set();
-const history = [];
+        positions[i * 3 + 1] =
+            (Math.random() - 0.5) * 1800;
+
+        positions[i * 3 + 2] =
+            (Math.random() - 0.5) * 3000;
+    }
+
+    geometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(
+            positions,
+            3
+        )
+    );
+
+    const material = new THREE.PointsMaterial({
+        color: 0x6688aa,
+        size: 0.6,
+        transparent: true,
+        opacity: 0.25
+    });
+
+    const dust = new THREE.Points(
+        geometry,
+        material
+    );
+
+    scene.add(dust);
+
+    return dust;
+}
+
+const dust = createDust();
 
 
-// ============================================================
-// CELESTIAL DATA
-// ============================================================
+/* =========================
+   CELESTIAL DATA
+========================= */
 
 const celestialData = {
 
-    Sun:{
-        name:"Sun",
-        type:"Star",
-        className:"G-type main-sequence star",
-        diameter:"1,392,700 km",
-        mass:"1.989 × 10³⁰ kg",
-        temperature:"~5,500 °C surface",
-        distance:"149.6 million km from Earth",
-        gravity:"274 m/s²",
-        composition:"Hydrogen and helium",
-        atmosphere:"Solar plasma",
-        rotation:"~25–35 days",
-        orbit:"~225 million years around the Milky Way",
-        discovery:"Known since antiquity",
-        curiosity:"The Sun contains almost all of the mass of the Solar System.",
-        missions:"Parker Solar Probe, Solar Orbiter",
-        source:"NASA"
+    Sun: {
+        type: "Star",
+        color: 0xffcc55,
+        size: 8,
+        distance: 0,
+        diameter: "1,392,700 km",
+        mass: "1.989 × 10³⁰ kg",
+        temperature: "≈ 5,500 °C surface",
+        gravity: "274 m/s²",
+        composition: "Hydrogen and helium",
+        rotation: "≈ 25 days",
+        orbit: "Galactic orbit",
+        description:
+            "The Sun is the star at the center of the Solar System. Its gravity keeps the planets and other objects in orbit."
     },
 
-    Mercury:{
-        name:"Mercury",
-        type:"Planet",
-        className:"Terrestrial planet",
-        diameter:"4,879 km",
-        mass:"3.301 × 10²³ kg",
-        temperature:"~167 °C average",
-        distance:"57.9 million km from Sun",
-        gravity:"3.70 m/s²",
-        composition:"Rock and metal",
-        atmosphere:"Extremely thin exosphere",
-        rotation:"58.6 Earth days",
-        orbit:"88 Earth days",
-        discovery:"Known since antiquity",
-        curiosity:"Mercury experiences extreme temperature differences between day and night.",
-        missions:"MESSENGER, BepiColombo",
-        source:"NASA / ESA"
+    Mercury: {
+        type: "Planet",
+        color: 0x9b8b7a,
+        size: 0.75,
+        distance: 12,
+        diameter: "4,879 km",
+        mass: "3.30 × 10²³ kg",
+        temperature: "≈ −180 to 430 °C",
+        gravity: "3.7 m/s²",
+        composition: "Rock and metal",
+        rotation: "58.6 Earth days",
+        orbit: "88 Earth days",
+        description:
+            "Mercury is the smallest planet in the Solar System and the closest planet to the Sun."
     },
 
-    Venus:{
-        name:"Venus",
-        type:"Planet",
-        className:"Terrestrial planet",
-        diameter:"12,104 km",
-        mass:"4.867 × 10²⁴ kg",
-        temperature:"~464 °C average",
-        distance:"108.2 million km from Sun",
-        gravity:"8.87 m/s²",
-        composition:"Rock and metal",
-        atmosphere:"Mostly carbon dioxide",
-        rotation:"243 Earth days",
-        orbit:"224.7 Earth days",
-        discovery:"Known since antiquity",
-        curiosity:"Venus rotates in the opposite direction to most planets.",
-        missions:"Magellan, Venus Express, Akatsuki",
-        source:"NASA / ESA / JAXA"
+    Venus: {
+        type: "Planet",
+        color: 0xd6a35d,
+        size: 1.05,
+        distance: 17,
+        diameter: "12,104 km",
+        mass: "4.87 × 10²⁴ kg",
+        temperature: "≈ 465 °C",
+        gravity: "8.87 m/s²",
+        composition: "Rock and metal",
+        rotation: "243 Earth days",
+        orbit: "225 Earth days",
+        description:
+            "Venus has a dense carbon-dioxide atmosphere and is the hottest planet in the Solar System."
     },
 
-    Earth:{
-        name:"Earth",
-        type:"Planet",
-        className:"Terrestrial planet",
-        diameter:"12,742 km",
-        mass:"5.972 × 10²⁴ kg",
-        temperature:"~15 °C average",
-        distance:"149.6 million km from Sun",
-        gravity:"9.81 m/s²",
-        composition:"Rock, metal and water",
-        atmosphere:"78% nitrogen, 21% oxygen",
-        rotation:"23 h 56 min",
-        orbit:"365.25 days",
-        discovery:"Known since antiquity",
-        curiosity:"Earth is the only known astronomical body with life.",
-        missions:"Apollo, ISS, Artemis",
-        source:"NASA / ESA"
+    Earth: {
+        type: "Planet",
+        color: 0x2d7fd3,
+        size: 1.15,
+        distance: 22,
+        diameter: "12,742 km",
+        mass: "5.97 × 10²⁴ kg",
+        temperature: "≈ 15 °C average",
+        gravity: "9.81 m/s²",
+        composition: "Rock, metal and water",
+        rotation: "23.93 hours",
+        orbit: "365.25 days",
+        description:
+            "Earth is the third planet from the Sun and the only world currently known to support life."
     },
 
-    Mars:{
-        name:"Mars",
-        type:"Planet",
-        className:"Terrestrial planet",
-        diameter:"6,779 km",
-        mass:"6.39 × 10²³ kg",
-        temperature:"~−63 °C average",
-        distance:"227.9 million km from Sun",
-        gravity:"3.71 m/s²",
-        composition:"Rock, iron and minerals",
-        atmosphere:"Mostly carbon dioxide",
-        rotation:"24 h 37 min",
-        orbit:"687 Earth days",
-        discovery:"Known since antiquity",
-        curiosity:"Olympus Mons is the largest known volcano in the Solar System.",
-        missions:"Curiosity, Perseverance, Mars Express",
-        source:"NASA / ESA"
+    Mars: {
+        type: "Planet",
+        color: 0xb94d32,
+        size: 0.9,
+        distance: 28,
+        diameter: "6,779 km",
+        mass: "6.42 × 10²³ kg",
+        temperature: "≈ −63 °C average",
+        gravity: "3.71 m/s²",
+        composition: "Rock and iron-rich minerals",
+        rotation: "24.6 hours",
+        orbit: "687 Earth days",
+        description:
+            "Mars is a cold rocky planet with a thin atmosphere and evidence of ancient water on its surface."
     },
 
-    Jupiter:{
-        name:"Jupiter",
-        type:"Planet",
-        className:"Gas giant",
-        diameter:"139,820 km",
-        mass:"1.898 × 10²⁷ kg",
-        temperature:"~−110 °C average cloud-top temperature",
-        distance:"778.5 million km from Sun",
-        gravity:"24.79 m/s²",
-        composition:"Hydrogen and helium",
-        atmosphere:"Hydrogen and helium",
-        rotation:"~9 h 56 min",
-        orbit:"11.86 Earth years",
-        discovery:"Known since antiquity",
-        curiosity:"Jupiter has the Great Red Spot, a gigantic persistent storm.",
-        missions:"Juno, Galileo, Voyager",
-        source:"NASA"
+    Jupiter: {
+        type: "Planet",
+        color: 0xd2b08a,
+        size: 3.5,
+        distance: 40,
+        diameter: "139,820 km",
+        mass: "1.90 × 10²⁷ kg",
+        temperature: "≈ −110 °C",
+        gravity: "24.79 m/s²",
+        composition: "Hydrogen and helium",
+        rotation: "≈ 9.9 hours",
+        orbit: "≈ 11.86 years",
+        description:
+            "Jupiter is the largest planet in the Solar System and is famous for its enormous storms."
     },
 
-    Saturn:{
-        name:"Saturn",
-        type:"Planet",
-        className:"Gas giant",
-        diameter:"116,460 km",
-        mass:"5.683 × 10²⁶ kg",
-        temperature:"~−140 °C average cloud-top temperature",
-        distance:"1.43 billion km from Sun",
-        gravity:"10.44 m/s²",
-        composition:"Hydrogen and helium",
-        atmosphere:"Hydrogen and helium",
-        rotation:"~10.7 hours",
-        orbit:"29.45 Earth years",
-        discovery:"Known since antiquity",
-        curiosity:"Saturn's rings consist mainly of water-ice particles.",
-        missions:"Cassini-Huygens, Voyager",
-        source:"NASA / ESA"
+    Saturn: {
+        type: "Planet",
+        color: 0xd8c39a,
+        size: 3,
+        distance: 52,
+        diameter: "116,460 km",
+        mass: "5.68 × 10²⁶ kg",
+        temperature: "≈ −140 °C",
+        gravity: "10.44 m/s²",
+        composition: "Hydrogen and helium",
+        rotation: "≈ 10.7 hours",
+        orbit: "≈ 29.5 years",
+        description:
+            "Saturn is a gas giant surrounded by a spectacular system of icy rings."
     },
 
-    Uranus:{
-        name:"Uranus",
-        type:"Planet",
-        className:"Ice giant",
-        diameter:"50,724 km",
-        mass:"8.681 × 10²⁵ kg",
-        temperature:"~−195 °C average",
-        distance:"2.87 billion km from Sun",
-        gravity:"8.69 m/s²",
-        composition:"Water, methane and ammonia ices",
-        atmosphere:"Hydrogen, helium and methane",
-        rotation:"~17.2 hours",
-        orbit:"84 Earth years",
-        discovery:"1781",
-        curiosity:"Uranus rotates with an extreme axial tilt of about 98°.",
-        missions:"Voyager 2",
-        source:"NASA"
+    Uranus: {
+        type: "Planet",
+        color: 0x79d9e8,
+        size: 2.1,
+        distance: 64,
+        diameter: "50,724 km",
+        mass: "8.68 × 10²⁵ kg",
+        temperature: "≈ −195 °C",
+        gravity: "8.69 m/s²",
+        composition: "Water, methane and ammonia ices",
+        rotation: "≈ 17.2 hours",
+        orbit: "≈ 84 years",
+        description:
+            "Uranus is an ice giant with an extreme axial tilt that makes it appear to rotate on its side."
     },
 
-    Neptune:{
-        name:"Neptune",
-        type:"Planet",
-        className:"Ice giant",
-        diameter:"49,244 km",
-        mass:"1.024 × 10²⁶ kg",
-        temperature:"~−200 °C average",
-        distance:"4.5 billion km from Sun",
-        gravity:"11.15 m/s²",
-        composition:"Water, methane and ammonia ices",
-        atmosphere:"Hydrogen, helium and methane",
-        rotation:"~16.1 hours",
-        orbit:"164.8 Earth years",
-        discovery:"1846",
-        curiosity:"Neptune has some of the fastest winds measured on a planet.",
-        missions:"Voyager 2",
-        source:"NASA"
-    },
-
-    Moon:{
-        name:"Moon",
-        type:"Natural Satellite",
-        className:"Planetary moon",
-        diameter:"3,474 km",
-        mass:"7.342 × 10²² kg",
-        temperature:"Extremely variable",
-        distance:"384,400 km from Earth",
-        gravity:"1.62 m/s²",
-        composition:"Rock and metal",
-        atmosphere:"Extremely thin exosphere",
-        rotation:"27.3 days",
-        orbit:"27.3 days",
-        discovery:"Known since antiquity",
-        curiosity:"The Moon is Earth's only natural satellite.",
-        missions:"Apollo, Artemis",
-        source:"NASA"
-    },
-
-    Sirius:{
-        name:"Sirius",
-        type:"Star",
-        className:"Binary star system",
-        diameter:"~1.7 × Sun for Sirius A",
-        mass:"~2.0 × Sun for Sirius A",
-        temperature:"~9,900 K",
-        distance:"8.6 light-years",
-        gravity:"Not commonly expressed as surface gravity",
-        composition:"Hydrogen and helium",
-        atmosphere:"Stellar atmosphere",
-        rotation:"Varies",
-        orbit:"Binary orbital period ~50 years",
-        discovery:"Known since antiquity",
-        curiosity:"Sirius is the brightest star in Earth's night sky.",
-        missions:"Astronomical observatories",
-        source:"ESA / NASA"
-    },
-
-    Polaris:{
-        name:"Polaris",
-        type:"Star",
-        className:"Multiple-star system",
-        diameter:"~46 times the Sun",
-        mass:"Several solar masses",
-        temperature:"~6,000 K",
-        distance:"~440 light-years",
-        gravity:"Stellar",
-        composition:"Hydrogen and helium",
-        atmosphere:"Stellar atmosphere",
-        rotation:"Varies",
-        orbit:"Multiple-star system",
-        discovery:"Known since antiquity",
-        curiosity:"Polaris lies very close to the north celestial pole.",
-        missions:"Astronomical observatories",
-        source:"NASA / ESA"
-    },
-
-    Andromeda:{
-        name:"Andromeda Galaxy",
-        type:"Galaxy",
-        className:"Spiral galaxy",
-        diameter:"~220,000 light-years",
-        mass:"~1 trillion solar masses",
-        temperature:"Varies by region",
-        distance:"~2.5 million light-years",
-        gravity:"Galactic",
-        composition:"Stars, gas, dust and dark matter",
-        atmosphere:"Not applicable",
-        rotation:"Galactic rotation",
-        orbit:"Local Group dynamics",
-        discovery:"Known since antiquity; catalogued by modern astronomy",
-        curiosity:"Andromeda and the Milky Way are expected to interact in the distant future.",
-        missions:"Hubble Space Telescope, JWST",
-        source:"NASA / ESA"
-    },
-
-    OrionNebula:{
-        name:"Orion Nebula",
-        type:"Nebula",
-        className:"Emission / star-forming nebula",
-        diameter:"~24 light-years",
-        mass:"Thousands of solar masses",
-        temperature:"Varies across the nebula",
-        distance:"~1,340 light-years",
-        gravity:"Nebular",
-        composition:"Hydrogen, helium, dust and other elements",
-        atmosphere:"Not applicable",
-        rotation:"Complex gas motions",
-        orbit:"Within the Milky Way",
-        discovery:"Known since antiquity",
-        curiosity:"The Orion Nebula is one of the closest major star-forming regions.",
-        missions:"Hubble Space Telescope, JWST",
-        source:"NASA / ESA"
-    },
-
-    SagittariusA:{
-        name:"Sagittarius A*",
-        type:"Black Hole",
-        className:"Supermassive black hole",
-        diameter:"Event-horizon scale: tens of millions of km",
-        mass:"~4.3 million solar masses",
-        temperature:"Not defined as a normal surface temperature",
-        distance:"~26,000 light-years",
-        gravity:"Extreme",
-        composition:"Spacetime region surrounding a singularity",
-        atmosphere:"Not applicable",
-        rotation:"Likely rotating",
-        orbit:"At the center of the Milky Way",
-        discovery:"Identified through observations of galactic-center stars",
-        curiosity:"Sagittarius A* is the supermassive black hole at the center of our galaxy.",
-        missions:"Event Horizon Telescope, ESO observations",
-        source:"NASA / ESO / EHT"
+    Neptune: {
+        type: "Planet",
+        color: 0x4169e1,
+        size: 2,
+        distance: 76,
+        diameter: "49,244 km",
+        mass: "1.02 × 10²⁶ kg",
+        temperature: "≈ −200 °C",
+        gravity: "11.15 m/s²",
+        composition: "Water, methane and ammonia ices",
+        rotation: "≈ 16 hours",
+        orbit: "≈ 165 years",
+        description:
+            "Neptune is the farthest recognized planet from the Sun and has extremely powerful winds."
     }
-
 };
 
 
-// ============================================================
-// SOLAR SYSTEM
-// ============================================================
+/* =========================
+   CREATE PLANETS
+========================= */
 
-const planetVisualData = [
+const objects = {};
 
-    {
-        name:"Mercury",
-        radius:.7,
-        distance:9,
-        color:0x9a9a9a
-    },
+function createPlanet(name, data) {
 
-    {
-        name:"Venus",
-        radius:1.05,
-        distance:12,
-        color:0xd2a267
-    },
+    const geometry =
+        new THREE.SphereGeometry(
+            data.size,
+            64,
+            64
+        );
 
-    {
-        name:"Earth",
-        radius:1.2,
-        distance:16,
-        color:0x3478d1
-    },
+    const material =
+        new THREE.MeshStandardMaterial({
+            color: data.color,
+            roughness: 0.75,
+            metalness: 0.05
+        });
 
-    {
-        name:"Mars",
-        radius:.9,
-        distance:21,
-        color:0xb84b35
-    },
+    const mesh =
+        new THREE.Mesh(
+            geometry,
+            material
+        );
 
-    {
-        name:"Jupiter",
-        radius:3.5,
-        distance:33,
-        color:0xc89b6b
-    },
+    mesh.position.x = data.distance;
 
-    {
-        name:"Saturn",
-        radius:3,
-        distance:46,
-        color:0xd4bd8d
-    },
+    mesh.userData.name = name;
 
-    {
-        name:"Uranus",
-        radius:2.1,
-        distance:59,
-        color:0x79cbd2
-    },
+    solarSystem.add(mesh);
 
-    {
-        name:"Neptune",
-        radius:2,
-        distance:72,
-        color:0x4269d9
-    }
+    objects[name] = mesh;
 
-];
+    return mesh;
+}
 
 
-// ============================================================
-// SUN
-// ============================================================
+for (const [name, data] of Object.entries(celestialData)) {
+
+    if (name === "Sun") continue;
+
+    createPlanet(name, data);
+}
+
+
+/* =========================
+   SUN
+========================= */
 
 const sunGeometry =
     new THREE.SphereGeometry(
-        4.2,
+        celestialData.Sun.size,
         64,
         64
     );
 
 const sunMaterial =
     new THREE.MeshBasicMaterial({
-        color:0xffd45c
+        color: 0xffcc44
     });
 
 const sun =
@@ -1445,41 +965,24 @@ const sun =
         sunMaterial
     );
 
-sun.name = "Sun";
+sun.userData.name = "Sun";
 
-sun.userData.objectName =
-    "Sun";
+solarSystem.add(sun);
 
-sun.userData.data =
-    celestialData.Sun;
-
-solarSystem.add(
-    sun
-);
-
-celestialObjects.push(
-    sun
-);
+objects.Sun = sun;
 
 
-// ============================================================
-// SUN GLOW
-// ============================================================
+/* SUN GLOW */
 
 const glowGeometry =
-    new THREE.SphereGeometry(
-        5.3,
-        48,
-        48
-    );
+    new THREE.SphereGeometry(9.5, 32, 32);
 
 const glowMaterial =
     new THREE.MeshBasicMaterial({
-        color:0xffaa33,
-        transparent:true,
-        opacity:.13,
-        side:THREE.BackSide,
-        blending:THREE.AdditiveBlending
+        color: 0xffaa33,
+        transparent: true,
+        opacity: 0.08,
+        side: THREE.BackSide
     });
 
 const sunGlow =
@@ -1488,248 +991,28 @@ const sunGlow =
         glowMaterial
     );
 
-sun.add(
-    sunGlow
-);
+sun.add(sunGlow);
 
 
-// ============================================================
-// PLANETS
-// ============================================================
+/* =========================
+   SATURN RINGS
+========================= */
 
-const textureLoader =
-    new THREE.TextureLoader();
-
-const textureURLs = {
-
-    Earth:
-        "https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg",
-
-    Mars:
-        "https://threejs.org/examples/textures/planets/mars_1k_color.jpg"
-
-};
-
-
-function createOrbit(
-    distance
-){
-
-    const points = [];
-
-    for(
-        let i=0;
-        i<=160;
-        i++
-    ){
-
-        const angle =
-            (i / 160) *
-            Math.PI * 2;
-
-        points.push(
-            new THREE.Vector3(
-                Math.cos(angle) *
-                distance,
-
-                0,
-
-                Math.sin(angle) *
-                distance
-            )
-        );
-
-    }
-
-    const geometry =
-        new THREE.BufferGeometry()
-            .setFromPoints(points);
-
-    const material =
-        new THREE.LineBasicMaterial({
-            color:0x34477f,
-            transparent:true,
-            opacity:.42
-        });
-
-    const orbit =
-        new THREE.LineLoop(
-            geometry,
-            material
-        );
-
-    solarSystem.add(
-        orbit
-    );
-
-    orbitLines.push(
-        orbit
-    );
-
-    return orbit;
-}
-
-
-function createPlanet(
-    visual
-){
-
-    const geometry =
-        new THREE.SphereGeometry(
-            visual.radius,
-            64,
-            64
-        );
-
-    let material;
-
-    if(
-        textureURLs[visual.name]
-    ){
-
-        const texture =
-            textureLoader.load(
-                textureURLs[
-                    visual.name
-                ]
-            );
-
-        texture.colorSpace =
-            THREE.SRGBColorSpace;
-
-        material =
-            new THREE.MeshStandardMaterial({
-                map:texture,
-                roughness:.82,
-                metalness:.02
-            });
-
-    }else{
-
-        material =
-            new THREE.MeshStandardMaterial({
-                color:visual.color,
-                roughness:.82,
-                metalness:.02
-            });
-
-    }
-
-    const planet =
-        new THREE.Mesh(
-            geometry,
-            material
-        );
-
-    planet.name =
-        visual.name;
-
-    planet.userData.objectName =
-        visual.name;
-
-    planet.userData.data =
-        celestialData[
-            visual.name
-        ];
-
-    planet.position.x =
-        visual.distance;
-
-    solarSystem.add(
-        planet
-    );
-
-    planets.push(
-        planet
-    );
-
-    celestialObjects.push(
-        planet
-    );
-
-    createOrbit(
-        visual.distance
-    );
-
-    return planet;
-}
-
-
-planetVisualData.forEach(
-    createPlanet
-);
-
-
-// ============================================================
-// MOON
-// ============================================================
-
-const earth =
-    planets.find(
-        p => p.name === "Earth"
-    );
-
-const moonGeometry =
-    new THREE.SphereGeometry(
-        .32,
-        48,
-        48
-    );
-
-const moonMaterial =
-    new THREE.MeshStandardMaterial({
-        color:0xb7b7b7,
-        roughness:1
-    });
-
-const moon =
-    new THREE.Mesh(
-        moonGeometry,
-        moonMaterial
-    );
-
-moon.name =
-    "Moon";
-
-moon.userData.objectName =
-    "Moon";
-
-moon.userData.data =
-    celestialData.Moon;
-
-solarSystem.add(
-    moon
-);
-
-celestialObjects.push(
-    moon
-);
-
-
-// ============================================================
-// SATURN RINGS
-// ============================================================
-
-const saturn =
-    planets.find(
-        p => p.name === "Saturn"
-    );
+const saturn = objects.Saturn;
 
 const ringGeometry =
     new THREE.RingGeometry(
-        3.8,
+        4.1,
         6.2,
-        128,
-        8
+        96
     );
 
 const ringMaterial =
-    new THREE.MeshStandardMaterial({
-        color:0xcbbd9a,
-        side:THREE.DoubleSide,
-        transparent:true,
-        opacity:.8,
-        roughness:.9
+    new THREE.MeshBasicMaterial({
+        color: 0xcbb98e,
+        transparent: true,
+        opacity: 0.65,
+        side: THREE.DoubleSide
     });
 
 const rings =
@@ -1739,317 +1022,137 @@ const rings =
     );
 
 rings.rotation.x =
-    Math.PI / 2;
+    Math.PI / 2.3;
 
-rings.rotation.z =
-    THREE.MathUtils.degToRad(8);
-
-saturn.add(
-    rings
-);
+saturn.add(rings);
 
 
-// ============================================================
-// EARTH ATMOSPHERE
-// ============================================================
+/* =========================
+   EARTH MOON
+========================= */
 
-const atmosphereGeometry =
+const moonGeometry =
     new THREE.SphereGeometry(
-        1.2 * 1.065,
-        64,
-        64
+        0.3,
+        32,
+        32
     );
 
-const atmosphereMaterial =
-    new THREE.MeshBasicMaterial({
-        color:0x4da6ff,
-        transparent:true,
-        opacity:.16,
-        side:THREE.BackSide,
-        blending:THREE.AdditiveBlending
+const moonMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0xaaaaaa,
+        roughness: 1
     });
 
-const atmosphere =
+const moon =
     new THREE.Mesh(
-        atmosphereGeometry,
-        atmosphereMaterial
+        moonGeometry,
+        moonMaterial
     );
 
-earth.add(
-    atmosphere
+moon.position.set(
+    2.2,
+    0,
+    0
 );
 
+moon.userData.name = "Moon";
 
-// ============================================================
-// EARTH CLOUD LAYER
-// ============================================================
+objects.Moon = moon;
 
-const cloudGeometry =
-    new THREE.SphereGeometry(
-        1.2 * 1.012,
-        64,
-        6
-        // ===============================
-// OBJECT SELECTION + INFO SYSTEM
-// ===============================
+objects.Earth.add(moon);
 
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
 
-function getSelectableObjects() {
-    const objects = [];
+/* =========================
+   ORBITS
+========================= */
 
-    celestialObjects.forEach(obj => {
-        if (obj.mesh) objects.push(obj.mesh);
-    });
+const orbitObjects = [];
 
-    return objects;
-}
+function createOrbit(radius) {
 
-function getObjectFromMesh(mesh) {
-    return celestialObjects.find(obj => obj.mesh === mesh);
-}
+    const points = [];
 
-function selectObject(object) {
-    if (!object) return;
+    for (let i = 0; i <= 128; i++) {
 
-    selectedObject = object;
-    currentPage = 0;
+        const angle =
+            (i / 128) * Math.PI * 2;
 
-    addToHistory(object.name);
-    updateInfoPanel();
-    focusOnObject(object);
-}
-
-function focusOnObject(object) {
-    if (!object.mesh) return;
-
-    const target = new THREE.Vector3();
-    object.mesh.getWorldPosition(target);
-
-    const radius = object.mesh.geometry?.boundingSphere?.radius || 1;
-
-    const direction = new THREE.Vector3()
-        .subVectors(camera.position, target)
-        .normalize();
-
-    if (direction.lengthSq() === 0) {
-        direction.set(1, 0.5, 1).normalize();
-    }
-
-    const distance = Math.max(radius * 8, 8);
-
-    const destination = target.clone()
-        .add(direction.multiplyScalar(distance));
-
-    animateCamera(destination, target);
-}
-
-function animateCamera(destination, target) {
-    const startPosition = camera.position.clone();
-    const startTarget = controls.target.clone();
-
-    let progress = 0;
-
-    function animation() {
-        progress += 0.035;
-
-        const eased = 1 - Math.pow(1 - Math.min(progress, 1), 3);
-
-        camera.position.lerpVectors(
-            startPosition,
-            destination,
-            eased
+        points.push(
+            new THREE.Vector3(
+                Math.cos(angle) * radius,
+                0,
+                Math.sin(angle) * radius
+            )
         );
-
-        controls.target.lerpVectors(
-            startTarget,
-            target,
-            eased
-        );
-
-        controls.update();
-
-        if (progress < 1) {
-            requestAnimationFrame(animation);
-        }
     }
 
-    animation();
-}
+    const geometry =
+        new THREE.BufferGeometry()
+            .setFromPoints(points);
 
-// ===============================
-// MOUSE / TOUCH SELECTION
-// ===============================
-
-function updatePointer(event) {
-    const rect = renderer.domElement.getBoundingClientRect();
-
-    mouse.x =
-        ((event.clientX - rect.left) / rect.width) * 2 - 1;
-
-    mouse.y =
-        -((event.clientY - rect.top) / rect.height) * 2 + 1;
-}
-
-renderer.domElement.addEventListener("pointerdown", event => {
-
-    updatePointer(event);
-
-    raycaster.setFromCamera(mouse, camera);
-
-    const objects = getSelectableObjects();
-    const intersections = raycaster.intersectObjects(
-        objects,
-        true
-    );
-
-    if (!intersections.length) return;
-
-    let selectedMesh = intersections[0].object;
-
-    while (
-        selectedMesh.parent &&
-        !celestialObjects.some(obj => obj.mesh === selectedMesh)
-    ) {
-        selectedMesh = selectedMesh.parent;
-    }
-
-    const object = getObjectFromMesh(selectedMesh);
-
-    if (object) {
-        selectObject(object);
-    }
-});
-
-// ===============================
-// INFO PANEL
-// ===============================
-
-function updateInfoPanel() {
-    if (!selectedObject) return;
-
-    const data = selectedObject;
-
-    document.getElementById("infoName").textContent =
-        data.name || "Unknown";
-
-    document.getElementById("infoType").textContent =
-        data.type || "Unknown";
-
-    document.getElementById("infoClass").textContent =
-        data.class || "—";
-
-    document.getElementById("infoDiameter").textContent =
-        data.diameter || "—";
-
-    document.getElementById("infoMass").textContent =
-        data.mass || "—";
-
-    document.getElementById("infoTemperature").textContent =
-        data.temperature || "—";
-
-    document.getElementById("infoDistance").textContent =
-        data.distance || "—";
-
-    document.getElementById("infoGravity").textContent =
-        data.gravity || "—";
-
-    document.getElementById("infoComposition").textContent =
-        data.composition || "—";
-
-    document.getElementById("infoAtmosphere").textContent =
-        data.atmosphere || "—";
-
-    document.getElementById("infoRotation").textContent =
-        data.rotation || "—";
-
-    document.getElementById("infoOrbit").textContent =
-        data.orbit || "—";
-
-    document.getElementById("infoDiscovery").textContent =
-        data.discovery || "—";
-
-    document.getElementById("infoCuriosity").textContent =
-        data.curiosity || "—";
-
-    document.getElementById("infoMissions").textContent =
-        data.missions || "—";
-
-    document.getElementById("infoSource").textContent =
-        data.source || "Scientific sources";
-
-    document.getElementById("infoPanel").classList.add("visible");
-
-    showInfoPage(0);
-}
-
-function showInfoPage(page) {
-    currentPage = Math.max(0, Math.min(3, page));
-
-    document.querySelectorAll(".infoPage").forEach(
-        (element, index) => {
-            element.classList.toggle(
-                "active",
-                index === currentPage
-            );
-        }
-    );
-
-    document.querySelectorAll(".pageDot").forEach(
-        (dot, index) => {
-            dot.classList.toggle(
-                "active",
-                index === currentPage
-            );
-        }
-    );
-}
-
-// ===============================
-// INFO NAVIGATION
-// ===============================
-
-document.getElementById("infoPrev")
-    .addEventListener("click", () => {
-
-        showInfoPage(currentPage - 1);
-
-    });
-
-document.getElementById("infoNext")
-    .addEventListener("click", () => {
-
-        showInfoPage(currentPage + 1);
-
-    });
-
-document.querySelectorAll(".pageDot").forEach(
-    (dot, index) => {
-
-        dot.addEventListener("click", () => {
-            showInfoPage(index);
+    const material =
+        new THREE.LineBasicMaterial({
+            color: 0x365477,
+            transparent: true,
+            opacity: 0.4
         });
 
-    }
-);
+    const line =
+        new THREE.Line(
+            geometry,
+            material
+        );
 
-// ===============================
-// CLOSE INFO PANEL
-// ===============================
+    orbitGroup.add(line);
 
-document.getElementById("closeInfo")
-    .addEventListener("click", () => {
+    orbitObjects.push(line);
+}
 
-        document.getElementById("infoPanel")
-            .classList.remove("visible");
+for (const name of [
+    "Mercury",
+    "Venus",
+    "Earth",
+    "Mars",
+    "Jupiter",
+    "Saturn",
+    "Uranus",
+    "Neptune"
+]) {
+    createOrbit(
+        celestialData[name].distance
+    );
+}
+    /* =========================
+   UI STATE
+========================= */
 
-        selectedObject = null;
-    });
+const home = document.getElementById("home");
+const explorer = document.getElementById("explorer");
 
-// ===============================
-// SEARCH SYSTEM
-// ===============================
+const exploreBtn =
+    document.getElementById("exploreBtn");
+
+const homeBtn =
+    document.getElementById("homeBtn");
+
+const solarBtn =
+    document.getElementById("solarBtn");
+
+const functionsBtn =
+    document.getElementById("functionsBtn");
+
+const functionsMenu =
+    document.getElementById("functionsMenu");
+
+const infoPanel =
+    document.getElementById("infoPanel");
+
+const closeInfo =
+    document.getElementById("closeInfo");
+
+const toast =
+    document.getElementById("toast");
 
 const searchInput =
     document.getElementById("searchInput");
@@ -2057,303 +1160,37 @@ const searchInput =
 const searchResults =
     document.getElementById("searchResults");
 
-function searchObjects(query) {
+const infoPages =
+    document.querySelectorAll(".info-page");
 
-    const value = query
-        .trim()
-        .toLowerCase();
+let currentPage = 0;
+let selectedObject = null;
 
-    if (!value) {
-        searchResults.innerHTML = "";
-        searchResults.classList.remove("visible");
-        return;
-    }
+let favorites = [];
+let history = [];
 
-    const matches = celestialObjects
-        .filter(obj =>
-            obj.name.toLowerCase().includes(value)
-        )
-        .slice(0, 8);
+let showOrbits = true;
+let timeSpeed = 1;
 
-    searchResults.innerHTML = "";
 
-    matches.forEach(object => {
+/* =========================
+   EXPLORE BUTTON
+========================= */
 
-        const item = document.createElement("button");
+exploreBtn.addEventListener("click", () => {
 
-        item.className = "searchResult";
-        item.textContent =
-            `${object.name} — ${object.type}`;
+    home.style.opacity = "0";
+    home.style.visibility = "hidden";
 
-        item.addEventListener("click", () => {
+    explorer.style.opacity = "1";
+    explorer.style.visibility = "visible";
 
-            selectObject(object);
-
-            searchInput.value =
-                object.name;
-
-            searchResults.classList.remove(
-                "visible"
-            );
-        });
-
-        searchResults.appendChild(item);
-    });
-
-    searchResults.classList.toggle(
-        "visible",
-        matches.length > 0
-    );
-}
-
-searchInput.addEventListener(
-    "input",
-    event => {
-        searchObjects(event.target.value);
-    }
-);
-
-searchInput.addEventListener(
-    "keydown",
-    event => {
-
-        if (event.key === "Enter") {
-
-            const value =
-                searchInput.value.trim().toLowerCase();
-
-            const object =
-                celestialObjects.find(
-                    obj =>
-                        obj.name.toLowerCase() === value
-                ) ||
-                celestialObjects.find(
-                    obj =>
-                        obj.name.toLowerCase()
-                            .includes(value)
-                );
-
-            if (object) {
-                selectObject(object);
-                searchResults.classList.remove(
-                    "visible"
-                );
-            }
-        }
-    }
-);
-
-// ===============================
-// HISTORY
-// ===============================
-
-function addToHistory(name) {
-
-    history = history.filter(
-        item => item !== name
-    );
-
-    history.unshift(name);
-
-    if (history.length > 20) {
-        history.pop();
-    }
-}
-
-// ===============================
-// FAVORITES
-// ===============================
-
-function toggleFavorite() {
-
-    if (!selectedObject) {
-        showToast("Select an object first.");
-        return;
-    }
-
-    const name = selectedObject.name;
-
-    if (favorites.includes(name)) {
-
-        favorites =
-            favorites.filter(item => item !== name);
-
-        showToast(`${name} removed from favorites.`);
-
-    } else {
-
-        favorites.push(name);
-
-        showToast(`${name} added to favorites.`);
-    }
-}
-
-// ===============================
-// TOAST
-// ===============================
-
-let toastTimeout;
-
-function showToast(message) {
-
-    const toast =
-        document.getElementById("toast");
-
-    toast.textContent = message;
-    toast.classList.add("visible");
-
-    clearTimeout(toastTimeout);
-
-    toastTimeout = setTimeout(() => {
-
-        toast.classList.remove("visible");
-
-    }, 2500);
-}
-
-// ===============================
-// HIGHLIGHT SELECTED OBJECT
-// ===============================
-
-let selectionRing = null;
-
-function updateSelectionHighlight() {
-
-    if (selectionRing) {
-
-        scene.remove(selectionRing);
-        selectionRing = null;
-    }
-
-    if (!selectedObject || !selectedObject.mesh) {
-        return;
-    }
-
-    const mesh = selectedObject.mesh;
-
-    const radius =
-        mesh.geometry?.boundingSphere?.radius || 1;
-
-    const geometry =
-        new THREE.RingGeometry(
-            radius * 1.35,
-            radius * 1.42,
-            64
-        );
-
-    const material =
-        new THREE.MeshBasicMaterial({
-            color: 0x66ccff,
-            transparent: true,
-            opacity: 0.8,
-            side: THREE.DoubleSide
-        });
-
-    selectionRing =
-        new THREE.Mesh(
-            geometry,
-            material
-        );
-
-    selectionRing.position.copy(
-        mesh.getWorldPosition(
-            new THREE.Vector3()
-        )
-    );
-
-    selectionRing.lookAt(camera.position);
-
-    scene.add(selectionRing);
-}
-
-// ===============================
-// KEYBOARD SHORTCUTS
-// ===============================
-
-window.addEventListener("keydown", event => {
-
-    if (event.key === "Escape") {
-
-        document.getElementById("infoPanel")
-            .classList.remove("visible");
-
-        document.getElementById("functionsMenu")
-            .classList.remove("visible");
-
-        searchResults.classList.remove(
-            "visible"
-        );
-    }
-
-    if (event.key === "+" || event.key === "=") {
-        zoomCamera(-1);
-    }
-
-    if (event.key === "-") {
-        zoomCamera(1);
-    }
-});
-
-// ===============================
-// ZOOM
-// ===============================
-
-function zoomCamera(direction) {
-
-    const offset =
-        camera.position.clone()
-            .sub(controls.target);
-
-    const factor =
-        direction < 0 ? 0.75 : 1.35;
-
-    offset.multiplyScalar(factor);
-
-    const distance =
-        offset.length();
-
-    if (
-        distance >= controls.minDistance &&
-        distance <= controls.maxDistance
-    ) {
-        camera.position
-            .copy(controls.target)
-            .add(offset);
-
-        controls.update();
-    }
-}
-
-document.getElementById("zoomIn")
-    .addEventListener("click", () => {
-        zoomCamera(-1);
-    });
-
-document.getElementById("zoomOut")
-    .addEventListener("click", () => {
-        zoomCamera(1);
-    });
-
-// ===============================
-// HOME / EXPLORE
-// ===============================
-
-const homeScreen =
-    document.getElementById("homeScreen");
-
-const explorer =
-    document.getElementById("explorer");
-
-document.getElementById("exploreButton")
-    .addEventListener("click", () => {
-
-        homeScreen.classList.add("hidden");
-        explorer.classList.add("active");
+    setTimeout(() => {
 
         camera.position.set(
             0,
-            18,
-            42
+            30,
+            90
         );
 
         controls.target.set(
@@ -2364,147 +1201,44 @@ document.getElementById("exploreButton")
 
         controls.update();
 
-        showToast("Solar System ready.");
-    });
+    }, 200);
 
-document.getElementById("homeButton")
-    .addEventListener("click", () => {
-
-        explorer.classList.remove("active");
-        homeScreen.classList.remove("hidden");
-
-    });
-
-// ===============================
-// FUNCTIONS MENU
-// ===============================
-
-const functionsButton =
-    document.getElementById("functionsButton");
-
-const functionsMenu =
-    document.getElementById("functionsMenu");
-
-functionsButton.addEventListener(
-    "click",
-    event => {
-
-        event.stopPropagation();
-
-        functionsMenu.classList.toggle(
-            "visible"
-        );
-    }
-);
-
-document.addEventListener(
-    "click",
-    event => {
-
-        if (
-            !functionsMenu.contains(event.target) &&
-            event.target !== functionsButton
-        ) {
-            functionsMenu.classList.remove(
-                "visible"
-            );
-        }
-    }
-);
-    // ===============================
-// EXPLORATION FUNCTIONS
-// ===============================
-
-// FREE EXPLORATION
-function enableFreeExploration() {
-
-    guidedMode = false;
-
-    controls.enableRotate = true;
-    controls.enableZoom = true;
-    controls.enablePan = true;
-
-    showToast("Free Exploration enabled.");
-}
+    showToast("Welcome to Universe Explorer");
+});
 
 
-// GUIDED TOUR
-function startGuidedTour() {
+/* =========================
+   HOME
+========================= */
 
-    guidedMode = true;
-    guidedIndex = 0;
+homeBtn.addEventListener("click", () => {
 
-    const tour = [
-        "Sun",
-        "Mercury",
-        "Venus",
-        "Earth",
-        "Mars",
-        "Jupiter",
-        "Saturn",
-        "Uranus",
-        "Neptune"
-    ];
+    explorer.style.opacity = "0";
+    explorer.style.visibility = "hidden";
 
-    const nextTourObject = () => {
+    home.style.opacity = "1";
+    home.style.visibility = "visible";
 
-        if (!guidedMode) return;
-
-        const name = tour[guidedIndex];
-
-        const object =
-            celestialObjects.find(
-                obj => obj.name === name
-            );
-
-        if (object) {
-            selectObject(object);
-        }
-
-        guidedIndex++;
-
-        if (guidedIndex >= tour.length) {
-            guidedIndex = 0;
-        }
-    };
-
-    nextTourObject();
-
-    clearInterval(window.guidedTourTimer);
-
-    window.guidedTourTimer =
-        setInterval(nextTourObject, 6000);
-
-    showToast("Guided Tour started.");
-}
+    closeInfoPanel();
+});
 
 
-// STOP GUIDED TOUR
-function stopGuidedTour() {
+/* =========================
+   SOLAR SYSTEM
+========================= */
 
-    guidedMode = false;
+function goToSolarSystem() {
 
-    clearInterval(
-        window.guidedTourTimer
-    );
+    explorer.style.opacity = "1";
+    explorer.style.visibility = "visible";
 
-    showToast("Guided Tour stopped.");
-}
-
-
-// RETURN TO SOLAR SYSTEM
-function returnToSolarSystem() {
-
-    guidedMode = false;
-
-    clearInterval(
-        window.guidedTourTimer
-    );
+    home.style.opacity = "0";
+    home.style.visibility = "hidden";
 
     camera.position.set(
         0,
-        18,
-        42
+        35,
+        85
     );
 
     controls.target.set(
@@ -2515,383 +1249,799 @@ function returnToSolarSystem() {
 
     controls.update();
 
-    selectedObject = null;
+    closeInfoPanel();
+}
 
-    document.getElementById(
-        "infoPanel"
-    ).classList.remove("visible");
+solarBtn.addEventListener(
+    "click",
+    goToSolarSystem
+);
 
-    showToast("Returned to Solar System.");
+
+/* =========================
+   FUNCTIONS MENU
+========================= */
+
+functionsBtn.addEventListener(
+    "click",
+    () => {
+
+        functionsMenu.style.display =
+            functionsMenu.style.display === "block"
+                ? "none"
+                : "block";
+    }
+);
+
+
+/* =========================
+   TOAST
+========================= */
+
+let toastTimer;
+
+function showToast(message) {
+
+    toast.textContent = message;
+
+    toast.classList.add("show");
+
+    clearTimeout(toastTimer);
+
+    toastTimer =
+        setTimeout(() => {
+            toast.classList.remove("show");
+        }, 2500);
 }
 
 
-// ===============================
-// ORBITS
-// ===============================
+/* =========================
+   OBJECT SELECTION
+========================= */
 
-function setOrbitsVisible(value) {
+const raycaster =
+    new THREE.Raycaster();
 
-    orbitsVisible = value;
+const mouse =
+    new THREE.Vector2();
 
-    orbitLines.forEach(line => {
+renderer.domElement.addEventListener(
+    "click",
+    onCanvasClick
+);
 
-        line.visible = value;
+function onCanvasClick(event) {
 
-    });
+    mouse.x =
+        (event.clientX / window.innerWidth) * 2 - 1;
 
-    showToast(
-        value
-            ? "Orbital paths enabled."
-            : "Orbital paths disabled."
+    mouse.y =
+        -(event.clientY / window.innerHeight) * 2 + 1;
+
+    raycaster.setFromCamera(
+        mouse,
+        camera
     );
+
+    const meshes =
+        Object.values(objects);
+
+    const intersections =
+        raycaster.intersectObjects(
+            meshes,
+            true
+        );
+
+    if (!intersections.length) return;
+
+    let target =
+        intersections[0].object;
+
+    while (
+        target.parent &&
+        !target.userData.name
+    ) {
+        target = target.parent;
+    }
+
+    if (target.userData.name) {
+        selectObject(
+            target.userData.name
+        );
+    }
 }
 
 
-// ===============================
-// REAL DISTANCES
-// ===============================
+/* =========================
+   SELECT OBJECT
+========================= */
 
-function setRealDistances(value) {
+function selectObject(name) {
 
-    realDistancesVisible = value;
+    const data =
+        celestialData[name];
 
-    planets.forEach(planet => {
+    if (!data) {
 
-        if (!planet.userData.originalPosition) {
-            planet.userData.originalPosition =
-                planet.position.clone();
+        if (name === "Moon") {
+
+            openMoonInfo();
+
         }
 
-    });
-
-    if (value) {
-
-        // Distances are displayed in a
-        // compressed astronomical scale
-        // so the Solar System remains usable.
-
-        planets.forEach(planet => {
-
-            const original =
-                planet.userData.originalPosition;
-
-            planet.position.copy(original);
-
-            const factor =
-                planet.userData.distanceScale || 1;
-
-            planet.position.multiplyScalar(factor);
-
-        });
-
-        showToast("Real-distance mode enabled.");
-
-    } else {
-
-        planets.forEach(planet => {
-
-            if (
-                planet.userData.originalPosition
-            ) {
-                planet.position.copy(
-                    planet.userData.originalPosition
-                );
-            }
-
-        });
-
-        showToast("Standard distance mode.");
-    }
-}
-
-
-// ===============================
-// TIME SIMULATION
-// ===============================
-
-function toggleTimeSimulation() {
-
-    timeSimulation =
-        !timeSimulation;
-
-    showToast(
-        timeSimulation
-            ? "Time simulation enabled."
-            : "Time simulation paused."
-    );
-}
-
-
-// ===============================
-// SIMULATION SPEED
-// ===============================
-
-function setSimulationSpeed(speed) {
-
-    simulationSpeed = speed;
-
-    showToast(
-        `Time speed: ${speed}x`
-    );
-}
-
-
-// ===============================
-// LIGHT-SPEED TRAVEL
-// ===============================
-
-function toggleLightSpeed() {
-
-    lightSpeedMode =
-        !lightSpeedMode;
-
-    if (lightSpeedMode) {
-
-        controls.enableDamping = false;
-
-        showToast(
-            "Light-Speed Travel enabled."
-        );
-
-    } else {
-
-        controls.enableDamping = true;
-
-        showToast(
-            "Light-Speed Travel disabled."
-        );
-    }
-}
-
-
-// ===============================
-// COMPARE OBJECTS
-// ===============================
-
-let comparisonObject = null;
-
-function compareSelectedObject() {
-
-    if (!selectedObject) {
-
-        showToast(
-            "Select an object first."
-        );
-
         return;
     }
 
-    if (!comparisonObject) {
+    selectedObject =
+        objects[name];
 
-        comparisonObject =
-            selectedObject;
+    document.getElementById(
+        "infoName"
+    ).textContent = name;
 
-        showToast(
-            `${selectedObject.name} selected for comparison.`
-        );
+    document.getElementById(
+        "infoType"
+    ).textContent = data.type;
 
-        return;
-    }
+    document.getElementById(
+        "infoName2"
+    ).textContent = name;
 
-    if (
-        comparisonObject.name ===
-        selectedObject.name
-    ) {
+    document.getElementById(
+        "infoType2"
+    ).textContent = data.type;
 
-        showToast(
-            "Choose another object."
-        );
+    document.getElementById(
+        "infoDistance"
+    ).textContent =
+        data.distance === 0
+            ? "Center of Solar System"
+            : `${data.distance} AU (visual scale)`;
 
-        return;
-    }
+    document.getElementById(
+        "infoDiameter"
+    ).textContent = data.diameter;
 
-    showComparison(
-        comparisonObject,
+    document.getElementById(
+        "infoMass"
+    ).textContent = data.mass;
+
+    document.getElementById(
+        "infoTemperature"
+    ).textContent = data.temperature;
+
+    document.getElementById(
+        "infoGravity"
+    ).textContent = data.gravity;
+
+    document.getElementById(
+        "infoComposition"
+    ).textContent = data.composition;
+
+    document.getElementById(
+        "infoRotation"
+    ).textContent = data.rotation;
+
+    document.getElementById(
+        "infoOrbit"
+    ).textContent = data.orbit;
+
+    document.getElementById(
+        "infoText"
+    ).textContent = data.description;
+
+    document.getElementById(
+        "infoVisual"
+    ).textContent =
+        data.type === "Star"
+            ? "☀"
+            : "●";
+
+    currentPage = 0;
+
+    updateInfoPage();
+
+    infoPanel.style.display = "block";
+
+    focusObject(
         selectedObject
     );
 
-    comparisonObject = null;
+    addHistory(name);
 }
 
 
-// ===============================
-// COMPARISON DISPLAY
-// ===============================
+/* =========================
+   MOON
+========================= */
 
-function showComparison(a, b) {
+function openMoonInfo() {
 
-    const diameterA =
-        a.diameter || "—";
+    document.getElementById(
+        "infoName"
+    ).textContent = "Moon";
 
-    const diameterB =
-        b.diameter || "—";
+    document.getElementById(
+        "infoType"
+    ).textContent = "NATURAL SATELLITE";
 
-    const massA =
-        a.mass || "—";
+    document.getElementById(
+        "infoName2"
+    ).textContent = "Moon";
 
-    const massB =
-        b.mass || "—";
+    document.getElementById(
+        "infoType2"
+    ).textContent =
+        "Natural Satellite";
 
-    const message =
-        `${a.name}: ${diameterA}, ${massA}\n` +
-        `${b.name}: ${diameterB}, ${massB}`;
+    document.getElementById(
+        "infoDistance"
+    ).textContent =
+        "≈ 384,400 km from Earth";
 
-    showToast(message);
+    document.getElementById(
+        "infoDiameter"
+    ).textContent =
+        "3,474 km";
+
+    document.getElementById(
+        "infoMass"
+    ).textContent =
+        "7.35 × 10²² kg";
+
+    document.getElementById(
+        "infoTemperature"
+    ).textContent =
+        "≈ −173 to 127 °C";
+
+    document.getElementById(
+        "infoGravity"
+    ).textContent =
+        "1.62 m/s²";
+
+    document.getElementById(
+        "infoComposition"
+    ).textContent =
+        "Rock";
+
+    document.getElementById(
+        "infoRotation"
+    ).textContent =
+        "≈ 27.3 days";
+
+    document.getElementById(
+        "infoOrbit"
+    ).textContent =
+        "≈ 27.3 days";
+
+    document.getElementById(
+        "infoText"
+    ).textContent =
+        "Earth's natural satellite. Its gravitational interaction with Earth contributes to ocean tides.";
+
+    document.getElementById(
+        "infoVisual"
+    ).textContent = "●";
+
+    currentPage = 0;
+
+    updateInfoPage();
+
+    infoPanel.style.display = "block";
+
+    focusObject(objects.Moon);
 }
 
 
-// ===============================
-// OBJECT HISTORY
-// ===============================
+/* =========================
+   CAMERA FOCUS
+========================= */
 
-function showHistory() {
+function focusObject(object) {
 
-    if (!history.length) {
+    if (!object) return;
 
-        showToast(
-            "No objects visited yet."
+    const worldPosition =
+        new THREE.Vector3();
+
+    object.getWorldPosition(
+        worldPosition
+    );
+
+    const direction =
+        new THREE.Vector3()
+            .subVectors(
+                camera.position,
+                controls.target
+            )
+            .normalize();
+
+    const distance =
+        Math.max(
+            object.geometry?.parameters?.radius
+                ? object.geometry.parameters.radius * 5
+                : 10,
+            8
         );
 
-        return;
-    }
+    const targetPosition =
+        worldPosition.clone()
+            .add(
+                direction.multiplyScalar(
+                    distance
+                )
+            );
 
-    showToast(
-        "History: " +
-        history.slice(0, 5).join(" • ")
+    camera.position.copy(
+        targetPosition
     );
+
+    controls.target.copy(
+        worldPosition
+    );
+
+    controls.update();
 }
 
 
-// ===============================
-// FAVORITES
-// ===============================
+/* =========================
+   CLOSE INFO
+========================= */
 
-function showFavorites() {
+function closeInfoPanel() {
 
-    if (!favorites.length) {
+    infoPanel.style.display =
+        "none";
 
-        showToast(
-            "No favorite objects yet."
+    selectedObject = null;
+}
+
+closeInfo.addEventListener(
+    "click",
+    closeInfoPanel
+);
+
+
+/* =========================
+   INFO PAGES
+========================= */
+
+function updateInfoPage() {
+
+    infoPages.forEach(
+        (page, index) => {
+
+            page.classList.toggle(
+                "active",
+                index === currentPage
+            );
+        }
+    );
+
+    document.getElementById(
+        "pageIndicator"
+    ).textContent =
+        `${currentPage + 1} / 4`;
+}
+
+document.getElementById(
+    "prevPage"
+).addEventListener(
+    "click",
+    () => {
+
+        currentPage--;
+
+        if (currentPage < 0) {
+            currentPage = 3;
+        }
+
+        updateInfoPage();
+    }
+);
+
+document.getElementById(
+    "nextPage"
+).addEventListener(
+    "click",
+    () => {
+
+        currentPage++;
+
+        if (currentPage > 3) {
+            currentPage = 0;
+        }
+
+        updateInfoPage();
+    }
+);
+
+
+/* =========================
+   SEARCH
+========================= */
+
+searchInput.addEventListener(
+    "input",
+    () => {
+
+        const query =
+            searchInput.value
+                .trim()
+                .toLowerCase();
+
+        searchResults.innerHTML = "";
+
+        if (!query) {
+
+            searchResults.style.display =
+                "none";
+
+            return;
+        }
+
+        const results =
+            Object.keys(celestialData)
+                .filter(name =>
+                    name
+                        .toLowerCase()
+                        .includes(query)
+                );
+
+        if (!results.length) {
+
+            searchResults.innerHTML =
+                `<div class="search-result">
+                    No object found
+                 </div>`;
+
+        } else {
+
+            results.forEach(name => {
+
+                const item =
+                    document.createElement("div");
+
+                item.className =
+                    "search-result";
+
+                item.textContent =
+                    `${name} — ${celestialData[name].type}`;
+
+                item.addEventListener(
+                    "click",
+                    () => {
+
+                        selectObject(name);
+
+                        searchInput.value =
+                            name;
+
+                        searchResults.style.display =
+                            "none";
+                    }
+                );
+
+                searchResults.appendChild(
+                    item
+                );
+            });
+        }
+
+        searchResults.style.display =
+            "block";
+    }
+);
+
+
+/* =========================
+   ZOOM
+========================= */
+
+document.getElementById(
+    "zoomIn"
+).addEventListener(
+    "click",
+    () => {
+
+        const direction =
+            new THREE.Vector3();
+
+        camera.getWorldDirection(
+            direction
         );
 
-        return;
+        camera.position.add(
+            direction.multiplyScalar(10)
+        );
+
+        controls.update();
     }
+);
 
-    showToast(
-        "Favorites: " +
-        favorites.join(" • ")
-    );
+document.getElementById(
+    "zoomOut"
+).addEventListener(
+    "click",
+    () => {
+
+        const direction =
+            new THREE.Vector3();
+
+        camera.getWorldDirection(
+            direction
+        );
+
+        camera.position.add(
+            direction.multiplyScalar(-10)
+        );
+
+        controls.update();
+    }
+);
+
+
+/* =========================
+   RESET
+========================= */
+
+document.getElementById(
+    "resetView"
+).addEventListener(
+    "click",
+    goToSolarSystem
+);
+
+
+/* =========================
+   ORBITS
+========================= */
+
+document.getElementById(
+    "showOrbits"
+).addEventListener(
+    "click",
+    () => {
+
+        showOrbits =
+            !showOrbits;
+
+        orbitGroup.visible =
+            showOrbits;
+
+        showToast(
+            showOrbits
+                ? "Orbits enabled"
+                : "Orbits disabled"
+        );
+    }
+);
+
+
+/* =========================
+   FREE EXPLORATION
+========================= */
+
+document.getElementById(
+    "freeExplore"
+).addEventListener(
+    "click",
+    () => {
+
+        controls.enabled = true;
+
+        showToast(
+            "Free exploration enabled"
+        );
+
+        functionsMenu.style.display =
+            "none";
+    }
+);
+
+
+/* =========================
+   GUIDED TOUR
+========================= */
+
+document.getElementById(
+    "guidedTour"
+).addEventListener(
+    "click",
+    () => {
+
+        const tour = [
+            "Sun",
+            "Earth",
+            "Mars",
+            "Jupiter",
+            "Saturn"
+        ];
+
+        let index = 0;
+
+        function nextTourObject() {
+
+            if (index >= tour.length) {
+
+                showToast(
+                    "Guided tour complete"
+                );
+
+                return;
+            }
+
+            selectObject(
+                tour[index]
+            );
+
+            index++;
+
+            setTimeout(
+                nextTourObject,
+                3000
+            );
+        }
+
+        nextTourObject();
+
+        functionsMenu.style.display =
+            "none";
+    }
+);
+
+
+/* =========================
+   TIME SIMULATION
+========================= */
+
+document.getElementById(
+    "timeSimulation"
+).addEventListener(
+    "click",
+    () => {
+
+        timeSpeed =
+            timeSpeed === 1
+                ? 5
+                : timeSpeed === 5
+                    ? 20
+                    : 1;
+
+        showToast(
+            `Time simulation: ${timeSpeed}x`
+        );
+    }
+);
+
+
+/* =========================
+   FAVORITES
+========================= */
+
+function addFavorite(name) {
+
+    if (!favorites.includes(name)) {
+
+        favorites.push(name);
+
+        showToast(
+            `${name} added to favorites`
+        );
+    }
 }
 
+document.getElementById(
+    "favoritesBtn"
+).addEventListener(
+    "click",
+    () => {
 
-// ===============================
-// INTERFACE SETTINGS
-// ===============================
+        if (!selectedObject) {
 
-function toggleInterface() {
+            showToast(
+                "Select an object first"
+            );
 
-    document.body.classList.toggle(
-        "minimal-interface"
-    );
+            return;
+        }
 
-    showToast(
-        document.body.classList.contains(
-            "minimal-interface"
-        )
-            ? "Minimal interface enabled."
-            : "Full interface enabled."
-    );
+        addFavorite(
+            selectedObject.userData.name
+        );
+    }
+);
+
+
+/* =========================
+   HISTORY
+========================= */
+
+function addHistory(name) {
+
+    history =
+        history.filter(
+            item => item !== name
+        );
+
+    history.unshift(name);
+
+    if (history.length > 20) {
+        history.pop();
+    }
 }
 
+document.getElementById(
+    "historyBtn"
+).addEventListener(
+    "click",
+    () => {
 
-// ===============================
-// IMMERSIVE MODE
-// ===============================
+        if (!history.length) {
 
-function toggleImmersiveMode() {
+            showToast(
+                "Exploration history is empty"
+            );
 
-    document.body.classList.toggle(
-        "immersive-mode"
-    );
+            return;
+        }
 
-    showToast(
-        document.body.classList.contains(
-            "immersive-mode"
-        )
-            ? "Immersive mode enabled."
-            : "Immersive mode disabled."
-    );
-}
+        showToast(
+            `Last visited: ${history[0]}`
+        );
+    }
+);
 
 
-// ===============================
-// FUNCTION BUTTON CONNECTIONS
-// ===============================
+/* =========================
+   COMPARE
+========================= */
 
-const functionButtons = {
+document.getElementById(
+    "compareObjects"
+).addEventListener(
+    "click",
+    () => {
 
-    freeExploration:
-        enableFreeExploration,
+        showToast(
+            "Select two celestial objects to compare"
+        );
+    }
+);
 
-    guidedTour:
-        startGuidedTour,
 
-    returnSolar:
-        returnToSolarSystem,
+/* =========================
+   PLANET MOTION
+========================= */
 
-    toggleOrbits:
-        () => setOrbitsVisible(
-            !orbitsVisible
-        ),
+const planetSpeeds = {
 
-    toggleDistances:
-        () => setRealDistances(
-            !realDistancesVisible
-        ),
+    Mercury: 0.025,
+    Venus: 0.018,
+    Earth: 0.014,
+    Mars: 0.011,
+    Jupiter: 0.006,
+    Saturn: 0.004,
+    Uranus: 0.003,
+    Neptune: 0.002
+};
 
-    timeSimulation:
-        toggleTimeSimulation,
+const planetAngles = {
 
-    lightSpeed:
-        toggleLightSpeed,
-
-    favorites:
-        toggleFavorite,
-
-    history:
-        showHistory,
-
-    compare:
-        compareSelectedObject,
-
-    interfaceSettings:
-        toggleInterface,
-
-    immersive:
-        toggleImmersiveMode
+    Mercury: 0,
+    Venus: 1,
+    Earth: 2,
+    Mars: 3,
+    Jupiter: 4,
+    Saturn: 5,
+    Uranus: 6,
+    Neptune: 7
 };
 
 
-// Automatically connect buttons
-Object.entries(functionButtons)
-    .forEach(([id, callback]) => {
-
-        const button =
-            document.getElementById(id);
-
-        if (button) {
-
-            button.addEventListener(
-                "click",
-                callback
-            );
-        }
-    });
-
-
-// ===============================
-// ANIMATION SYSTEM
-// ===============================
+/* =========================
+   ANIMATION
+========================= */
 
 const clock =
     new THREE.Clock();
@@ -2905,89 +2055,57 @@ function animate() {
     const delta =
         clock.getDelta();
 
-    const elapsed =
-        clock.getElapsedTime();
+    for (const name in planetSpeeds) {
 
-    // Planetary rotation
-    planets.forEach(planet => {
+        const planet =
+            objects[name];
 
-        if (!planet.userData.rotationSpeed) {
-            return;
-        }
+        const data =
+            celestialData[name];
 
-        planet.rotation.y +=
-            planet.userData.rotationSpeed *
-            delta;
-
-    });
-
-
-    // Orbital animation
-    planets.forEach(planet => {
-
-        if (
-            !planet.userData.orbitSpeed ||
-            !planet.userData.orbitCenter
-        ) {
-            return;
-        }
-
-        if (!timeSimulation) {
-            return;
-        }
-
-        const speed =
-            planet.userData.orbitSpeed *
-            simulationSpeed;
-
-        planet.userData.orbitAngle +=
-            speed * delta;
+        planetAngles[name] +=
+            planetSpeeds[name] *
+            delta *
+            60 *
+            timeSpeed;
 
         const angle =
-            planet.userData.orbitAngle;
-
-        const distance =
-            planet.userData.orbitDistance;
-
-        const center =
-            planet.userData.orbitCenter;
+            planetAngles[name];
 
         planet.position.x =
-            center.x +
-            Math.cos(angle) * distance;
+            Math.cos(angle) *
+            data.distance;
 
         planet.position.z =
-            center.z +
-            Math.sin(angle) * distance;
+            Math.sin(angle) *
+            data.distance;
 
-    });
-
-
-    // Slowly rotate galaxies
-    galaxiesGroup.rotation.y =
-        elapsed * 0.002;
-
-
-    // Nebula movement
-    nebulaGroup.rotation.y =
-        elapsed * 0.0005;
-
-
-    // Selection ring
-    if (selectionRing) {
-
-        selectionRing.lookAt(
-            camera.position
-        );
-
-        selectionRing.rotation.z =
-            elapsed * 0.8;
+        planet.rotation.y +=
+            delta *
+            0.3;
     }
 
+    sun.rotation.y +=
+        delta *
+        0.05;
+
+    stars.rotation.y +=
+        delta *
+        0.0005;
+
+    dust.rotation.y +=
+        delta *
+        0.0002;
 
     controls.update();
 
-    updateHUD();
+    const p =
+        camera.position;
+
+    document.getElementById(
+        "coordinates"
+    ).textContent =
+        `X: ${p.x.toFixed(1)}   Y: ${p.y.toFixed(1)}   Z: ${p.z.toFixed(1)}`;
 
     renderer.render(
         scene,
@@ -2995,61 +2113,12 @@ function animate() {
     );
 }
 
-
-// ===============================
-// HUD UPDATE
-// ===============================
-
-function updateHUD() {
-
-    const distance =
-        camera.position.distanceTo(
-            controls.target
-        );
-
-    const distanceElement =
-        document.getElementById(
-            "cameraDistance"
-        );
-
-    if (distanceElement) {
-
-        if (distance >= 1000000) {
-
-            distanceElement.textContent =
-                `${(distance / 1000000).toFixed(2)} M km`;
-
-        } else if (distance >= 1000) {
-
-            distanceElement.textContent =
-                `${(distance / 1000).toFixed(2)} k km`;
-
-        } else {
-
-            distanceElement.textContent =
-                `${distance.toFixed(1)} km`;
-        }
-    }
+animate();
 
 
-    const modeElement =
-        document.getElementById(
-            "currentMode"
-        );
-
-    if (modeElement) {
-
-        modeElement.textContent =
-            guidedMode
-                ? "GUIDED"
-                : "FREE";
-    }
-}
-
-
-// ===============================
-// WINDOW RESIZE
-// ===============================
+/* =========================
+   RESIZE
+========================= */
 
 window.addEventListener(
     "resize",
@@ -3065,1038 +2134,52 @@ window.addEventListener(
             window.innerWidth,
             window.innerHeight
         );
-
     }
 );
 
 
-// ===============================
-// INITIAL STATE
-// ===============================
+/* =========================
+   LOADING
+========================= */
 
-homeScreen.classList.remove(
-    "hidden"
-);
+setTimeout(() => {
 
-explorer.classList.remove(
-    "active"
-);
-
-document.getElementById(
-    "infoPanel"
-).classList.remove(
-    "visible"
-);
-
-
-// Start application
-animate();
-    <!-- ===============================
-     SPACE BACKGROUND
-================================ -->
-
-<script>
-
-// Create procedural stars so the site
-// does not depend on external images.
-
-function createStarField(
-    count,
-    radius,
-    size,
-    opacity
-) {
-
-    const geometry =
-        new THREE.BufferGeometry();
-
-    const positions = new Float32Array(
-        count * 3
-    );
-
-    const colors = new Float32Array(
-        count * 3
-    );
-
-    for (let i = 0; i < count; i++) {
-
-        const r =
-            radius *
-            Math.pow(Math.random(), 0.45);
-
-        const theta =
-            Math.random() *
-            Math.PI * 2;
-
-        const phi =
-            Math.acos(
-                2 * Math.random() - 1
-            );
-
-        positions[i * 3] =
-            r *
-            Math.sin(phi) *
-            Math.cos(theta);
-
-        positions[i * 3 + 1] =
-            r *
-            Math.cos(phi);
-
-        positions[i * 3 + 2] =
-            r *
-            Math.sin(phi) *
-            Math.sin(theta);
-
-        // Slightly different star colors
-        const temperature =
-            Math.random();
-
-        if (temperature < 0.15) {
-
-            colors[i * 3] = 0.65;
-            colors[i * 3 + 1] = 0.78;
-            colors[i * 3 + 2] = 1.0;
-
-        } else if (temperature > 0.85) {
-
-            colors[i * 3] = 1.0;
-            colors[i * 3 + 1] = 0.72;
-            colors[i * 3 + 2] = 0.45;
-
-        } else {
-
-            colors[i * 3] = 1.0;
-            colors[i * 3 + 1] = 1.0;
-            colors[i * 3 + 2] = 1.0;
-        }
-    }
-
-    geometry.setAttribute(
-        "position",
-        new THREE.BufferAttribute(
-            positions,
-            3
-        )
-    );
-
-    geometry.setAttribute(
-        "color",
-        new THREE.BufferAttribute(
-            colors,
-            3
-        )
-    );
-
-    const material =
-        new THREE.PointsMaterial({
-            size,
-            transparent: true,
-            opacity,
-            vertexColors: true,
-            depthWrite: false,
-            sizeAttenuation: true
-        });
-
-    return new THREE.Points(
-        geometry,
-        material
-    );
-}
-
-
-// Several layers create depth.
-
-const starsFar =
-    createStarField(
-        10000,
-        9000,
-        2.2,
-        0.75
-    );
-
-const starsMid =
-    createStarField(
-        5000,
-        5000,
-        3.2,
-        0.9
-    );
-
-const starsNear =
-    createStarField(
-        1800,
-        2200,
-        4.5,
-        1
-    );
-
-deepSpace.add(starsFar);
-deepSpace.add(starsMid);
-deepSpace.add(starsNear);
-
-
-// ===============================
-// PROCEDURAL NEBULAS
-// ===============================
-
-function createNebula(
-    radius,
-    particleCount,
-    spread,
-    particleSize
-) {
-
-    const geometry =
-        new THREE.BufferGeometry();
-
-    const positions =
-        new Float32Array(
-            particleCount * 3
-        );
-
-    const colors =
-        new Float32Array(
-            particleCount * 3
-        );
-
-    for (
-        let i = 0;
-        i < particleCount;
-        i++
-    ) {
-
-        const angle =
-            Math.random() *
-            Math.PI * 2;
-
-        const distance =
-            Math.random() *
-            radius;
-
-        const spiral =
-            angle +
-            distance * 0.004;
-
-        const width =
-            (Math.random() - 0.5) *
-            spread;
-
-        positions[i * 3] =
-            Math.cos(spiral) *
-            distance +
-            width;
-
-        positions[i * 3 + 1] =
-            (Math.random() - 0.5) *
-            spread *
-            0.45;
-
-        positions[i * 3 + 2] =
-            Math.sin(spiral) *
-            distance +
-            width;
-
-        const colorChoice =
-            Math.random();
-
-        if (colorChoice < 0.33) {
-
-            colors[i * 3] = 0.35;
-            colors[i * 3 + 1] = 0.55;
-            colors[i * 3 + 2] = 1.0;
-
-        } else if (colorChoice < 0.66) {
-
-            colors[i * 3] = 0.75;
-            colors[i * 3 + 1] = 0.25;
-            colors[i * 3 + 2] = 1.0;
-
-        } else {
-
-            colors[i * 3] = 1.0;
-            colors[i * 3 + 1] = 0.35;
-            colors[i * 3 + 2] = 0.55;
-        }
-    }
-
-    geometry.setAttribute(
-        "position",
-        new THREE.BufferAttribute(
-            positions,
-            3
-        )
-    );
-
-    geometry.setAttribute(
-        "color",
-        new THREE.BufferAttribute(
-            colors,
-            3
-        )
-    );
-
-    const material =
-        new THREE.PointsMaterial({
-            size: particleSize,
-            transparent: true,
-            opacity: 0.12,
-            vertexColors: true,
-            blending:
-                THREE.AdditiveBlending,
-            depthWrite: false
-        });
-
-    return new THREE.Points(
-        geometry,
-        material
-    );
-}
-
-
-const nebula1 =
-    createNebula(
-        900,
-        7000,
-        500,
-        18
-    );
-
-nebula1.position.set(
-    -1800,
-    900,
-    -2600
-);
-
-nebulaGroup.add(
-    nebula1
-);
-
-
-const nebula2 =
-    createNebula(
-        650,
-        5000,
-        380,
-        15
-    );
-
-nebula2.position.set(
-    2500,
-    -800,
-    -3500
-);
-
-nebulaGroup.add(
-    nebula2
-);
-
-
-// ===============================
-// GALAXY OBJECT
-// ===============================
-
-function createGalaxy() {
-
-    const geometry =
-        new THREE.BufferGeometry();
-
-    const count = 9000;
-
-    const positions =
-        new Float32Array(
-            count * 3
-        );
-
-    const colors =
-        new Float32Array(
-            count * 3
-        );
-
-    for (
-        let i = 0;
-        i < count;
-        i++
-    ) {
-
-        const arm =
-            i % 4;
-
-        const distance =
-            Math.random() * 1000;
-
-        const angle =
-            distance * 0.006 +
-            arm * Math.PI / 2 +
-            (Math.random() - 0.5) *
-            0.7;
-
-        const thickness =
-            (Math.random() - 0.5) *
-            (80 + distance * 0.15);
-
-        positions[i * 3] =
-            Math.cos(angle) *
-            distance +
-            thickness;
-
-        positions[i * 3 + 1] =
-            (Math.random() - 0.5) *
-            (50 + distance * 0.05);
-
-        positions[i * 3 + 2] =
-            Math.sin(angle) *
-            distance +
-            thickness;
-
-        const brightness =
-            0.65 +
-            Math.random() *
-            0.35;
-
-        colors[i * 3] =
-            brightness;
-
-        colors[i * 3 + 1] =
-            brightness * 0.8;
-
-        colors[i * 3 + 2] =
-            brightness;
-    }
-
-    geometry.setAttribute(
-        "position",
-        new THREE.BufferAttribute(
-            positions,
-            3
-        )
-    );
-
-    geometry.setAttribute(
-        "color",
-        new THREE.BufferAttribute(
-            colors,
-            3
-        )
-    );
-
-    const material =
-        new THREE.PointsMaterial({
-            size: 4,
-            vertexColors: true,
-            transparent: true,
-            opacity: 0.8,
-            depthWrite: false,
-            blending:
-                THREE.AdditiveBlending
-        });
-
-    return new THREE.Points(
-        geometry,
-        material
-    );
-}
-
-
-const galaxy =
-    createGalaxy();
-
-galaxy.position.set(
-    0,
-    -1200,
-    -6000
-);
-
-galaxy.rotation.x =
-    THREE.MathUtils.degToRad(65);
-
-galaxiesGroup.add(
-    galaxy
-);
-
-
-// ===============================
-// AMBIENT SPACE DUST
-// ===============================
-
-const dust =
-    createStarField(
-        3500,
-        1800,
-        1.4,
-        0.28
-    );
-
-dust.rotation.x =
-    THREE.MathUtils.degToRad(25);
-
-deepSpace.add(dust);
-
-
-// ===============================
-// SPACE ANIMATION
-// ===============================
-
-const originalStarRotation =
-    deepSpace.rotation.y;
-
-function animateSpace() {
-
-    const time =
-        performance.now() * 0.00001;
-
-    deepSpace.rotation.y =
-        originalStarRotation +
-        time;
-
-    dust.rotation.y =
-        time * 2;
-
-    nebula1.rotation.z =
-        time * 0.7;
-
-    nebula2.rotation.z =
-        -time * 0.5;
-
-    galaxy.rotation.y =
-        time * 0.4;
-}
-
-const originalAnimate =
-    animate;
-
-
-// Replace the animation loop with
-// the space-aware version.
-
-function renderUniverse() {
-
-    requestAnimationFrame(
-        renderUniverse
-    );
-
-    const delta =
-        clock.getDelta();
-
-    const elapsed =
-        clock.getElapsedTime();
-
-    planets.forEach(planet => {
-
-        if (
-            planet.userData.rotationSpeed
-        ) {
-
-            planet.rotation.y +=
-                planet.userData.rotationSpeed *
-                delta;
-        }
-
-        if (
-            timeSimulation &&
-            planet.userData.orbitSpeed &&
-            planet.userData.orbitCenter
-        ) {
-
-            planet.userData.orbitAngle +=
-                planet.userData.orbitSpeed *
-                simulationSpeed *
-                delta;
-
-            const angle =
-                planet.userData.orbitAngle;
-
-            const distance =
-                planet.userData.orbitDistance;
-
-            const center =
-                planet.userData.orbitCenter;
-
-            planet.position.x =
-                center.x +
-                Math.cos(angle) *
-                distance;
-
-            planet.position.z =
-                center.z +
-                Math.sin(angle) *
-                distance;
-        }
-    });
-
-
-    animateSpace();
-
-
-    if (selectionRing) {
-
-        selectionRing.lookAt(
-            camera.position
-        );
-
-        selectionRing.rotation.z =
-            elapsed * 0.8;
-    }
-
-
-    controls.update();
-
-    updateHUD();
-
-    renderer.render(
-        scene,
-        camera
-    );
-}
-
-
-// Stop the previous animation loop
-// from being used twice.
-
-window.__universeExplorerReady = true;
-
-renderUniverse();
-
-</script>
-<!-- ===============================
-     FINAL UI / POLISH / SAFETY
-================================ -->
-
-<style>
-/* Search results */
-#searchResults {
-    position: absolute;
-    top: 48px;
-    left: 0;
-    width: 100%;
-    display: none;
-    flex-direction: column;
-    gap: 5px;
-    padding: 8px;
-    border: 1px solid rgba(120,200,255,.25);
-    background: rgba(5,10,25,.92);
-    backdrop-filter: blur(15px);
-    border-radius: 12px;
-    z-index: 1000;
-}
-
-#searchResults.visible {
-    display: flex;
-}
-
-.searchResult {
-    border: 0;
-    padding: 10px 12px;
-    border-radius: 8px;
-    background: rgba(255,255,255,.05);
-    color: white;
-    text-align: left;
-    cursor: pointer;
-    transition: .2s;
-}
-
-.searchResult:hover {
-    background: rgba(100,190,255,.18);
-}
-
-
-/* Toast */
-#toast {
-    white-space: pre-line;
-    max-width: 340px;
-}
-
-
-/* Minimal interface */
-body.minimal-interface .topHud,
-body.minimal-interface .leftHud,
-body.minimal-interface .bottomHud {
-    opacity: .15;
-    transition: opacity .3s;
-}
-
-body.minimal-interface .topHud:hover,
-body.minimal-interface .leftHud:hover,
-body.minimal-interface .bottomHud:hover {
-    opacity: 1;
-}
-
-
-/* Immersive mode */
-body.immersive-mode .topHud,
-body.immersive-mode .leftHud,
-body.immersive-mode .bottomHud {
-    opacity: 0;
-    pointer-events: none;
-}
-
-body.immersive-mode .infoPanel {
-    opacity: .25;
-}
-
-body.immersive-mode .infoPanel:hover {
-    opacity: 1;
-}
-
-
-/* Better mobile search */
-@media (max-width: 700px) {
-
-    #searchBox {
-        width: min(260px, 55vw);
-    }
-
-    #functionsMenu {
-        max-height: 70vh;
-        overflow-y: auto;
-    }
-
-    .infoPanel {
-        width: min(92vw, 380px);
-    }
-}
-
-
-/* Smooth UI */
-button,
-input {
-    -webkit-tap-highlight-color: transparent;
-}
-
-button {
-    user-select: none;
-}
-
-canvas {
-    display: block;
-}
-</style>
-
-
-<script>
-
-// ===============================
-// SAFE DATA STORAGE
-// ===============================
-
-try {
-
-    const savedFavorites =
-        localStorage.getItem(
-            "universeExplorerFavorites"
-        );
-
-    const savedHistory =
-        localStorage.getItem(
-            "universeExplorerHistory"
-        );
-
-    if (savedFavorites) {
-        favorites =
-            JSON.parse(savedFavorites);
-    }
-
-    if (savedHistory) {
-        history =
-            JSON.parse(savedHistory);
-    }
-
-} catch (error) {
-
-    console.warn(
-        "Local storage unavailable."
-    );
-}
-
-
-// Save whenever data changes.
-function saveUserData() {
-
-    try {
-
-        localStorage.setItem(
-            "universeExplorerFavorites",
-            JSON.stringify(favorites)
-        );
-
-        localStorage.setItem(
-            "universeExplorerHistory",
-            JSON.stringify(history)
-        );
-
-    } catch (error) {
-
-        console.warn(
-            "Could not save local data."
-        );
-    }
-}
-
-
-// Save periodically.
-setInterval(
-    saveUserData,
-    3000
-);
-
-
-// ===============================
-// OBJECT LABEL
-// ===============================
-
-let objectLabel = null;
-
-function createObjectLabel() {
-
-    if (objectLabel) {
-        return;
-    }
-
-    objectLabel =
-        document.createElement(
-            "div"
-        );
-
-    objectLabel.id =
-        "objectLabel";
-
-    objectLabel.style.position =
-        "fixed";
-
-    objectLabel.style.display =
-        "none";
-
-    objectLabel.style.pointerEvents =
-        "none";
-
-    objectLabel.style.padding =
-        "7px 11px";
-
-    objectLabel.style.border =
-        "1px solid rgba(120,210,255,.35)";
-
-    objectLabel.style.borderRadius =
-        "8px";
-
-    objectLabel.style.background =
-        "rgba(3,8,20,.8)";
-
-    objectLabel.style.backdropFilter =
-        "blur(10px)";
-
-    objectLabel.style.color =
-        "white";
-
-    objectLabel.style.fontSize =
-        "12px";
-
-    objectLabel.style.zIndex =
-        "2000";
-
-    document.body.appendChild(
-        objectLabel
-    );
-}
-
-createObjectLabel();
-
-
-// ===============================
-// HOVER DETECTION
-// ===============================
-
-renderer.domElement.addEventListener(
-    "pointermove",
-    event => {
-
-        updatePointer(event);
-
-        raycaster.setFromCamera(
-            mouse,
-            camera
-        );
-
-        const intersections =
-            raycaster.intersectObjects(
-                getSelectableObjects(),
-                true
-            );
-
-        if (!intersections.length) {
-
-            objectLabel.style.display =
-                "none";
-
-            renderer.domElement.style.cursor =
-                "default";
-
-            return;
-        }
-
-        let mesh =
-            intersections[0].object;
-
-        while (
-            mesh.parent &&
-            !celestialObjects.some(
-                obj => obj.mesh === mesh
-            )
-        ) {
-            mesh = mesh.parent;
-        }
-
-        const object =
-            getObjectFromMesh(mesh);
-
-        if (!object) {
-            return;
-        }
-
-        renderer.domElement.style.cursor =
-            "pointer";
-
-        objectLabel.textContent =
-            `${object.name} • ${object.type}`;
-
-        objectLabel.style.left =
-            `${event.clientX + 14}px`;
-
-        objectLabel.style.top =
-            `${event.clientY + 14}px`;
-
-        objectLabel.style.display =
-            "block";
-    }
-);
-
-
-// ===============================
-// SELECTION HIGHLIGHT UPDATE
-// ===============================
-
-// Update the selection ring whenever
-// the selected object changes.
-
-const originalSelectObject =
-    selectObject;
-
-selectObject = function(object) {
-
-    originalSelectObject(object);
-
-    updateSelectionHighlight();
-};
-
-
-// ===============================
-// BETTER INFO PANEL SOURCE
-// ===============================
-
-function openSource() {
-
-    if (!selectedObject) {
-        return;
-    }
-
-    const source =
-        selectedObject.source;
-
-    if (!source) {
-
-        showToast(
-            "Scientific source unavailable."
-        );
-
-        return;
-    }
-
-    // Open only known scientific
-    // institutions / sources.
-    window.open(
-        source,
-        "_blank",
-        "noopener,noreferrer"
-    );
-}
-
-
-// ===============================
-// SOURCE BUTTON
-// ===============================
-
-const sourceButton =
     document.getElementById(
-        "infoSource"
-    );
+        "loading"
+    ).classList.add("hidden");
 
-if (sourceButton) {
-
-    sourceButton.style.cursor =
-        "pointer";
-
-    sourceButton.addEventListener(
-        "click",
-        openSource
-    );
-}
+}, 1000);
 
 
-// ===============================
-// ESCAPE SEARCH
-// ===============================
+/* =========================
+   KEYBOARD
+========================= */
 
-document.addEventListener(
+window.addEventListener(
     "keydown",
     event => {
 
-        if (
-            event.key === "Escape" &&
-            document.activeElement ===
-            searchInput
-        ) {
+        if (event.key === "Escape") {
+            closeInfoPanel();
+            functionsMenu.style.display =
+                "none";
+        }
 
-            searchInput.blur();
+        if (event.key === "+") {
+            document.getElementById(
+                "zoomIn"
+            ).click();
+        }
 
-            searchResults.classList.remove(
-                "visible"
-            );
+        if (event.key === "-") {
+            document.getElementById(
+                "zoomOut"
+            ).click();
         }
     }
 );
 
+</script>
 
-// ===============================
-// CAMERA LIMITS
-// ===============================
-
-controls.minDistance = 0.35;
-controls.maxDistance = 20000;
-
-
-// ===============================
-// INITIAL CAMERA
-// ===============================
-
-camera.position.set(
-    0,
-    18,
-    42
-);
-
-controls.target.set(
-    0,
-    0,
-    0
-);
-
-controls.update();
-
-
-// ===============================
-// FINAL READY MESSAGE
-// ===============================
-
-console.log(
-    "Universe Explorer initialized."
-);
-
-    </script>
+</body>
+</html>
