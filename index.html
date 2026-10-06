@@ -1,1888 +1,305 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Universe Explorer</title>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
-<style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-html,
-body {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: #000;
-    color: white;
-    font-family: Arial, Helvetica, sans-serif;
-}
-
-#universe {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    display: block;
-}
-
-/* ================================
-   WELCOME
-================================ */
-
-#welcome {
-    position: fixed;
-    inset: 0;
-    z-index: 20;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-
-    text-align: center;
-
-    background:
-        radial-gradient(
-            circle at center,
-            rgba(22, 42, 90, 0.16),
-            rgba(0,0,0,0.97) 72%
-        );
-
-    transition:
-        opacity 1.2s ease,
-        visibility 1.2s ease;
-}
-
-#welcome.hidden {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-}
-
-.welcome-small {
-    font-size: 13px;
-    letter-spacing: 6px;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.6);
-    margin-bottom: 20px;
-}
-
-.welcome-title {
-    font-size: clamp(45px, 8vw, 105px);
-    font-weight: 300;
-    letter-spacing: 8px;
-    line-height: 1;
-    text-transform: uppercase;
-
-    background:
-        linear-gradient(
-            90deg,
-            #ffffff,
-            #a8c9ff,
-            #ffffff
-        );
-
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-
-    text-shadow:
-        0 0 35px rgba(100,160,255,0.25);
-}
-
-.welcome-subtitle {
-    margin-top: 28px;
-    max-width: 650px;
-    padding: 0 20px;
-
-    font-size: 16px;
-    line-height: 1.7;
-
-    color: rgba(255,255,255,0.62);
-}
-
-.enter-button {
-    margin-top: 42px;
-
-    padding: 15px 38px;
-
-    border: 1px solid rgba(255,255,255,0.4);
-    border-radius: 50px;
-
-    background: rgba(255,255,255,0.04);
-    color: white;
-
-    font-size: 13px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-
-    cursor: pointer;
-
-    backdrop-filter: blur(12px);
-
-    transition:
-        background 0.3s,
-        border-color 0.3s,
-        transform 0.3s,
-        box-shadow 0.3s;
-}
-
-.enter-button:hover {
-    background: rgba(255,255,255,0.12);
-    border-color: rgba(255,255,255,0.8);
-
-    transform: translateY(-3px);
-
-    box-shadow:
-        0 0 35px rgba(100,160,255,0.2);
-}
-
-
-/* ================================
-   INTERFACE
-================================ */
-
-#interface {
-    position: fixed;
-    inset: 0;
-    z-index: 10;
-
-    pointer-events: none;
-
-    opacity: 0;
-
-    transition: opacity 1s ease;
-}
-
-#interface.visible {
-    opacity: 1;
-}
-
-
-/* TOP BAR */
-
-.top-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-
-    height: 90px;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    padding: 0 40px;
-
-    background:
-        linear-gradient(
-            to bottom,
-            rgba(0,0,0,0.7),
-            transparent
-        );
-}
-
-.logo {
-    font-size: 18px;
-    letter-spacing: 4px;
-    font-weight: 400;
-}
-
-.logo span {
-    color: #8bb8ff;
-}
-
-.status {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-
-    font-size: 10px;
-    letter-spacing: 2px;
-
-    color: rgba(255,255,255,0.5);
-    text-transform: uppercase;
-}
-
-.status-dot {
-    width: 6px;
-    height: 6px;
-
-    border-radius: 50%;
-
-    background: #78aaff;
-
-    box-shadow:
-        0 0 12px #78aaff;
-}
-
-
-/* ================================
-   PLANET MENU
-================================ */
-
-.planet-menu {
-    position: absolute;
-
-    right: 40px;
-    top: 120px;
-
-    width: 175px;
-
-    pointer-events: auto;
-}
-
-.planet-menu-title {
-    font-size: 9px;
-    letter-spacing: 3px;
-
-    color: rgba(255,255,255,0.4);
-
-    margin-bottom: 14px;
-}
-
-.planet-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-
-    width: 100%;
-
-    padding: 9px 0;
-
-    background: transparent;
-    border: none;
-
-    color: rgba(255,255,255,0.55);
-
-    font-size: 11px;
-    letter-spacing: 1px;
-
-    cursor: pointer;
-    text-align: left;
-
-    transition:
-        color 0.25s,
-        transform 0.25s;
-}
-
-.planet-item:hover {
-    color: white;
-    transform: translateX(-5px);
-}
-
-.planet-number {
-    font-size: 8px;
-    color: rgba(150,195,255,0.65);
-    width: 18px;
-}
-
-
-/* ================================
-   INFO
-================================ */
-
-.info-panel {
-    position: absolute;
-
-    left: 40px;
-    bottom: 40px;
-
-    width: 310px;
-
-    padding: 22px;
-
-    border-left:
-        1px solid rgba(150,195,255,0.55);
-
-    background:
-        linear-gradient(
-            90deg,
-            rgba(5,10,20,0.75),
-            rgba(5,10,20,0.15)
-        );
-
-    backdrop-filter: blur(8px);
-}
-
-.info-label {
-    font-size: 9px;
-    letter-spacing: 3px;
-
-    color: rgba(255,255,255,0.42);
-
-    text-transform: uppercase;
-
-    margin-bottom: 8px;
-}
-
-.info-name {
-    font-size: 25px;
-    font-weight: 300;
-    letter-spacing: 2px;
-}
-
-.info-description {
-    margin-top: 10px;
-
-    font-size: 12px;
-    line-height: 1.6;
-
-    color: rgba(255,255,255,0.58);
-}
-
-
-/* ================================
-   CONTROLLI
-================================ */
-
-.controls {
-    position: absolute;
-
-    right: 40px;
-    bottom: 40px;
-
-    display: flex;
-    gap: 8px;
-}
-
-.control-button {
-    pointer-events: auto;
-
-    width: 43px;
-    height: 43px;
-
-    border:
-        1px solid rgba(255,255,255,0.2);
-
-    border-radius: 50%;
-
-    background:
-        rgba(0,0,0,0.35);
-
-    color: white;
-
-    cursor: pointer;
-
-    font-size: 15px;
-
-    backdrop-filter: blur(10px);
-
-    transition:
-        background 0.25s,
-        border-color 0.25s,
-        transform 0.25s;
-}
-
-.control-button:hover {
-    background: rgba(255,255,255,0.12);
-
-    border-color:
-        rgba(255,255,255,0.55);
-
-    transform: scale(1.08);
-}
-
-
-/* ================================
-   MOBILE
-================================ */
-
-@media (max-width: 700px) {
-
-    .top-bar {
-        padding: 0 20px;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universe Explorer</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
     }
-
-    .welcome-title {
-        letter-spacing: 4px;
-    }
-
-    .welcome-subtitle {
-        font-size: 14px;
-    }
-
-    .planet-menu {
-        display: none;
-    }
-
-    .info-panel {
-        left: 20px;
-        bottom: 20px;
-        width: calc(100% - 40px);
-    }
-
-    .controls {
-        right: 20px;
-        bottom: 145px;
-    }
-
-    .logo {
-        font-size: 14px;
-    }
-}
-</style>
+    </script>
 </head>
 
 <body>
 
-<canvas id="universe"></canvas>
+    <!-- HOME -->
+    <section id="homeScreen" class="screen active">
+        <div class="home-stars"></div>
 
+        <div class="home-content">
+            <div class="eyebrow">INTERACTIVE 3D SPACE EXPLORATION</div>
 
-<!-- =================================
-     WELCOME
-================================= -->
+            <h1>UNIVERSE<br><span>EXPLORER</span></h1>
 
-<section id="welcome">
+            <p>
+                Explore planets, moons, stars, galaxies and the deepest regions
+                of the Universe through an immersive 3D experience.
+            </p>
 
-    <div class="welcome-small">
-        Explore beyond
-    </div>
-
-    <h1 class="welcome-title">
-        Universe Explorer
-    </h1>
-
-    <p class="welcome-subtitle">
-        Un viaggio interattivo attraverso pianeti,
-        stelle, sistemi e meraviglie dell'Universo.
-    </p>
-
-    <button
-        class="enter-button"
-        id="enterButton">
-
-        Inizia l'esplorazione
-
-    </button>
-
-</section>
-
-
-<!-- =================================
-     INTERFACE
-================================= -->
-
-<section id="interface">
-
-    <div class="top-bar">
-
-        <div class="logo">
-            UNIVERSE <span>EXPLORER</span>
+            <button id="exploreButton" class="explore-button">
+                <span>EXPLORE</span>
+                <span class="button-arrow">→</span>
+            </button>
         </div>
 
-        <div class="status">
-
-            <span class="status-dot"></span>
-
-            Sistema attivo
-
+        <div class="home-footer">
+            <span>3D SPACE NAVIGATION SYSTEM</span>
+            <span>UNIVERSE EXPLORER © 2026</span>
         </div>
-
-    </div>
-
-
-    <!-- PLANET MENU -->
-
-    <div class="planet-menu">
-
-        <div class="planet-menu-title">
-            CORPI CELESTI
-        </div>
-
-        <button
-            class="planet-item"
-            data-planet="sun">
-
-            <span class="planet-number">
-                01
-            </span>
-
-            Sole
-
-        </button>
-
-        <button
-            class="planet-item"
-            data-planet="mercury">
-
-            <span class="planet-number">
-                02
-            </span>
-
-            Mercurio
-
-        </button>
-
-        <button
-            class="planet-item"
-            data-planet="venus">
-
-            <span class="planet-number">
-                03
-            </span>
-
-            Venere
-
-        </button>
-
-        <button
-            class="planet-item"
-            data-planet="earth">
-
-            <span class="planet-number">
-                04
-            </span>
-
-            Terra
-
-        </button>
-
-        <button
-            class="planet-item"
-            data-planet="mars">
-
-            <span class="planet-number">
-                05
-            </span>
-
-            Marte
-
-        </button>
-
-        <button
-            class="planet-item"
-            data-planet="jupiter">
-
-            <span class="planet-number">
-                06
-            </span>
-
-            Giove
-
-        </button>
-
-        <button
-            class="planet-item"
-            data-planet="saturn">
-
-            <span class="planet-number">
-                07
-            </span>
-
-            Saturno
-
-        </button>
-
-        <button
-            class="planet-item"
-            data-planet="uranus">
-
-            <span class="planet-number">
-                08
-            </span>
-
-            Urano
-
-        </button>
-
-        <button
-            class="planet-item"
-            data-planet="neptune">
-
-            <span class="planet-number">
-                09
-            </span>
-
-            Nettuno
-
-        </button>
-
-    </div>
+    </section>
 
 
-    <!-- INFO -->
+    <!-- EXPLORER -->
+    <section id="explorerScreen" class="screen">
 
-    <div class="info-panel">
+        <div id="canvasContainer"></div>
 
-        <div class="info-label">
-            Posizione attuale
-        </div>
+        <!-- TOP HUD -->
+        <header class="top-hud">
 
-        <div
-            class="info-name"
-            id="infoName">
+            <button id="homeButton" class="hud-button">
+                HOME
+            </button>
 
-            Sistema Solare
+            <div class="logo">
+                <span>UNIVERSE</span>
+                <strong>EXPLORER</strong>
+            </div>
+
+            <div class="search-wrapper">
+                <input
+                    id="searchInput"
+                    type="text"
+                    placeholder="Search planets, stars, galaxies..."
+                    autocomplete="off"
+                >
+                <button id="searchButton">⌕</button>
+                <div id="searchResults"></div>
+            </div>
+
+        </header>
+
+
+        <!-- LEFT CONTROLS -->
+        <aside class="left-controls">
+
+            <button id="solarSystemButton" class="control-button active">
+                <span>◎</span>
+                SOLAR SYSTEM
+            </button>
+
+            <button id="freeModeButton" class="control-button">
+                <span>✦</span>
+                FREE MODE
+            </button>
+
+            <button id="guidedModeButton" class="control-button">
+                <span>◇</span>
+                GUIDED MODE
+            </button>
+
+            <button id="tourButton" class="control-button">
+                <span>▶</span>
+                SPACE TOUR
+            </button>
+
+            <button id="orbitsButton" class="control-button active">
+                <span>◌</span>
+                ORBITS
+            </button>
+
+            <button id="timeButton" class="control-button">
+                <span>◷</span>
+                TIME ×1
+            </button>
+
+        </aside>
+
+
+        <!-- NAVIGATION CONTROLS -->
+        <div class="navigation-controls">
+
+            <button id="zoomIn" class="round-button">+</button>
+
+            <button id="zoomOut" class="round-button">−</button>
+
+            <button id="resetCamera" class="round-button">⌂</button>
 
         </div>
 
-        <div
-            class="info-description"
-            id="infoDescription">
 
-            Esplora lo spazio e seleziona
-            un corpo celeste per visualizzarne
-            le informazioni.
-
+        <!-- COORDINATES -->
+        <div class="coordinates-panel">
+            <div>POSITION</div>
+            <strong id="positionText">X 0.00 / Y 0.00 / Z 0.00</strong>
+            <div>MODE: <span id="modeText">SOLAR SYSTEM</span></div>
         </div>
 
-    </div>
 
+        <!-- MINIMAP -->
+        <div class="minimap">
+            <div class="minimap-title">SPACE MAP</div>
+            <div id="minimapCanvas"></div>
+            <span class="map-center"></span>
+        </div>
+
+
+        <!-- OBJECT INFO -->
+        <aside id="infoPanel" class="info-panel hidden">
+
+            <button id="closeInfo" class="close-info">×</button>
+
+            <div class="object-header">
+                <div>
+                    <span id="objectType">PLANET</span>
+                    <h2 id="objectName">Mars</h2>
+                </div>
+            </div>
+
+            <div class="object-preview">
+                <div id="objectPreviewSphere"></div>
+            </div>
+
+            <div class="page-indicator">
+                <span id="pageNumber">01</span>
+                <div class="page-line"></div>
+                <span>04</span>
+            </div>
+
+            <div class="info-page active" data-page="1">
+                <h3>OVERVIEW</h3>
+
+                <div class="data-row">
+                    <span>TYPE</span>
+                    <strong id="infoType">Planet</strong>
+                </div>
+
+                <div class="data-row">
+                    <span>NAME</span>
+                    <strong id="infoName">Mars</strong>
+                </div>
+
+                <div class="source-label">
+                    SOURCE: NASA / ESA
+                </div>
+            </div>
+
+            <div class="info-page" data-page="2">
+                <h3>PHYSICAL DATA</h3>
+
+                <div class="data-row">
+                    <span>SIZE</span>
+                    <strong id="infoSize">6,779 km</strong>
+                </div>
 
-    <!-- CONTROLLI -->
+                <div class="data-row">
+                    <span>MASS</span>
+                    <strong id="infoMass">6.39 × 10²³ kg</strong>
+                </div>
+
+                <div class="data-row">
+                    <span>TEMPERATURE</span>
+                    <strong id="infoTemperature">−63 °C</strong>
+                </div>
 
-    <div class="controls">
+                <div class="data-row">
+                    <span>GRAVITY</span>
+                    <strong id="infoGravity">3.71 m/s²</strong>
+                </div>
+            </div>
 
-        <button
-            class="control-button"
-            id="resetView"
-            title="Vista iniziale">
+            <div class="info-page" data-page="3">
+                <h3>ASTRONOMICAL DATA</h3>
 
-            ⌂
+                <div class="data-row">
+                    <span>COMPOSITION</span>
+                    <strong id="infoComposition">Rock and iron</strong>
+                </div>
 
-        </button>
+                <div class="data-row">
+                    <span>ATMOSPHERE</span>
+                    <strong id="infoAtmosphere">CO₂ dominant</strong>
+                </div>
 
-        <button
-            class="control-button"
-            id="zoomIn"
-            title="Avvicina">
+                <div class="data-row">
+                    <span>ROTATION</span>
+                    <strong id="infoRotation">24.6 hours</strong>
+                </div>
 
-            +
+                <div class="data-row">
+                    <span>ORBITAL PERIOD</span>
+                    <strong id="infoOrbit">687 days</strong>
+                </div>
+            </div>
 
-        </button>
+            <div class="info-page" data-page="4">
+                <h3>DISCOVERY & MISSIONS</h3>
 
-        <button
-            class="control-button"
-            id="zoomOut"
-            title="Allontana">
+                <p id="infoFacts" class="facts">
+                    Mars has been explored by numerous robotic missions
+                    and remains one of the main targets for planetary science.
+                </p>
 
-            −
+                <div class="source-label">
+                    NASA · ESA · SCIENTIFIC CATALOGUES
+                </div>
+            </div>
 
-        </button>
+            <div class="info-navigation">
+                <button id="previousPage">←</button>
+                <button id="nextPage">→</button>
+            </div>
 
-    </div>
+            <div class="object-actions">
+                <button id="focusObject">FOCUS</button>
+                <button id="favoriteObject">☆</button>
+                <button id="atmosphereButton">ATMOSPHERE</button>
+            </div>
 
-</section>
+        </aside>
 
 
-<script>
+        <!-- BOTTOM HUD -->
+        <footer class="bottom-hud">
 
-/* =========================================
-   RENDERER
-========================================= */
+            <div class="status">
+                <span class="status-dot"></span>
+                SYSTEM ONLINE
+            </div>
 
-const canvas =
-    document.getElementById("universe");
+            <div id="selectedStatus">
+                NO OBJECT SELECTED
+            </div>
 
-const renderer =
-    new THREE.WebGLRenderer({
+            <div>
+                DRAG: ROTATE · WHEEL: ZOOM
+            </div>
 
-        canvas: canvas,
+        </footer>
 
-        antialias: true,
 
-        alpha: false
+        <!-- GUIDED MODE -->
+        <div id="guidedPanel" class="guided-panel hidden">
+            <div class="guided-title">GUIDED TOUR</div>
 
-    });
+            <h2 id="tourTitle">Welcome to the Solar System</h2>
 
-renderer.setPixelRatio(
-    Math.min(
-        window.devicePixelRatio,
-        2
-    )
-);
+            <p id="tourDescription">
+                Begin your journey through our planetary system.
+            </p>
 
-renderer.setSize(
-    window.innerWidth,
-    window.innerHeight
-);
+            <button id="tourNext">NEXT DESTINATION →</button>
+        </div>
 
-renderer.outputEncoding =
-    THREE.sRGBEncoding;
 
+        <!-- LOADING -->
+        <div id="loadingScreen" class="loading-screen">
+            <div class="loader-ring"></div>
+            <div>INITIALIZING UNIVERSE</div>
+            <small>LOADING 3D SPACE ENVIRONMENT</small>
+        </div>
 
-/* =========================================
-   SCENA
-========================================= */
+    </section>
 
-const scene =
-    new THREE.Scene();
 
-scene.background =
-    new THREE.Color(0x000004);
-
-
-/* =========================================
-   CAMERA
-========================================= */
-
-const camera =
-    new THREE.PerspectiveCamera(
-
-        55,
-
-        window.innerWidth /
-        window.innerHeight,
-
-        0.1,
-
-        2000
-
-    );
-
-camera.position.set(
-    0,
-    8,
-    42
-);
-
-
-/* =========================================
-   LUCI
-========================================= */
-
-const ambientLight =
-    new THREE.AmbientLight(
-        0xffffff,
-        0.12
-    );
-
-scene.add(
-    ambientLight
-);
-
-const sunLight =
-    new THREE.PointLight(
-        0xffffff,
-        3.5,
-        500
-    );
-
-sunLight.position.set(
-    0,
-    0,
-    0
-);
-
-scene.add(
-    sunLight
-);
-
-
-/* =========================================
-   STELLE
-========================================= */
-
-const starGeometry =
-    new THREE.BufferGeometry();
-
-const starCount = 12000;
-
-const starPositions =
-    new Float32Array(
-        starCount * 3
-    );
-
-for (
-    let i = 0;
-    i < starCount * 3;
-    i += 3
-) {
-
-    const radius =
-        250 +
-        Math.random() *
-        1000;
-
-    const theta =
-        Math.random() *
-        Math.PI * 2;
-
-    const phi =
-        Math.acos(
-            2 * Math.random() - 1
-        );
-
-    starPositions[i] =
-        radius *
-        Math.sin(phi) *
-        Math.cos(theta);
-
-    starPositions[i + 1] =
-        radius *
-        Math.sin(phi) *
-        Math.sin(theta);
-
-    starPositions[i + 2] =
-        radius *
-        Math.cos(phi);
-}
-
-starGeometry.setAttribute(
-    "position",
-
-    new THREE.BufferAttribute(
-        starPositions,
-        3
-    )
-);
-
-const starMaterial =
-    new THREE.PointsMaterial({
-
-        color: 0xffffff,
-
-        size: 0.65,
-
-        transparent: true,
-
-        opacity: 0.9
-
-    });
-
-const stars =
-    new THREE.Points(
-        starGeometry,
-        starMaterial
-    );
-
-scene.add(
-    stars
-);
-
-
-/* =========================================
-   SISTEMA SOLARE
-========================================= */
-
-const solarSystem =
-    new THREE.Group();
-
-scene.add(
-    solarSystem
-);
-
-
-/* =========================================
-   SOLE
-========================================= */
-
-const sunGeometry =
-    new THREE.SphereGeometry(
-        4,
-        64,
-        64
-    );
-
-const sunMaterial =
-    new THREE.MeshBasicMaterial({
-
-        color: 0xffa928
-
-    });
-
-const sun =
-    new THREE.Mesh(
-        sunGeometry,
-        sunMaterial
-    );
-
-solarSystem.add(
-    sun
-);
-
-
-/* BAGLIORE */
-
-const glowGeometry =
-    new THREE.SphereGeometry(
-        4.7,
-        64,
-        64
-    );
-
-const glowMaterial =
-    new THREE.MeshBasicMaterial({
-
-        color: 0xff8c00,
-
-        transparent: true,
-
-        opacity: 0.13,
-
-        side: THREE.BackSide
-
-    });
-
-const sunGlow =
-    new THREE.Mesh(
-        glowGeometry,
-        glowMaterial
-    );
-
-sun.add(
-    sunGlow
-);
-
-
-/* =========================================
-   CREAZIONE PIANETI
-========================================= */
-
-function createPlanet(
-    name,
-    radius,
-    distance,
-    color,
-    speed
-) {
-
-    const orbit =
-        new THREE.Group();
-
-    solarSystem.add(
-        orbit
-    );
-
-    const geometry =
-        new THREE.SphereGeometry(
-            radius,
-            48,
-            48
-        );
-
-    const material =
-        new THREE.MeshStandardMaterial({
-
-            color: color,
-
-            roughness: 0.8,
-
-            metalness: 0.05
-
-        });
-
-    const planet =
-        new THREE.Mesh(
-            geometry,
-            material
-        );
-
-    planet.position.x =
-        distance;
-
-    planet.userData.name =
-        name;
-
-    planet.userData.distance =
-        distance;
-
-    planet.userData.speed =
-        speed;
-
-    planet.userData.orbit =
-        orbit;
-
-    orbit.add(
-        planet
-    );
-
-    return {
-
-        planet,
-        orbit
-
-    };
-}
-
-
-/* =========================================
-   PIANETI
-========================================= */
-
-const mercury =
-    createPlanet(
-        "Mercurio",
-        0.45,
-        7,
-        0x9b8f82,
-        0.035
-    );
-
-const venus =
-    createPlanet(
-        "Venere",
-        0.75,
-        10,
-        0xc98b4a,
-        0.026
-    );
-
-const earth =
-    createPlanet(
-        "Terra",
-        0.85,
-        14,
-        0x3978c9,
-        0.020
-    );
-
-const mars =
-    createPlanet(
-        "Marte",
-        0.62,
-        18,
-        0xb94b32,
-        0.016
-    );
-
-const jupiter =
-    createPlanet(
-        "Giove",
-        1.9,
-        25,
-        0xc89462,
-        0.009
-    );
-
-const saturn =
-    createPlanet(
-        "Saturno",
-        1.55,
-        33,
-        0xd4b47a,
-        0.007
-    );
-
-const uranus =
-    createPlanet(
-        "Urano",
-        1.05,
-        40,
-        0x73c9d6,
-        0.005
-    );
-
-const neptune =
-    createPlanet(
-        "Nettuno",
-        1.0,
-        47,
-        0x3159c8,
-        0.004
-    );
-
-
-/* =========================================
-   ATMOSFERA TERRA
-========================================= */
-
-const earthAtmosphereGeometry =
-    new THREE.SphereGeometry(
-        0.94,
-        48,
-        48
-    );
-
-const earthAtmosphereMaterial =
-    new THREE.MeshBasicMaterial({
-
-        color: 0x4fa8ff,
-
-        transparent: true,
-
-        opacity: 0.13,
-
-        side: THREE.BackSide
-
-    });
-
-const earthAtmosphere =
-    new THREE.Mesh(
-        earthAtmosphereGeometry,
-        earthAtmosphereMaterial
-    );
-
-earth.planet.add(
-    earthAtmosphere
-);
-
-
-/* =========================================
-   ANELLI SATURNO
-========================================= */
-
-const ringGeometry =
-    new THREE.RingGeometry(
-        2.0,
-        3.25,
-        96
-    );
-
-const ringMaterial =
-    new THREE.MeshBasicMaterial({
-
-        color: 0xc9b58b,
-
-        transparent: true,
-
-        opacity: 0.75,
-
-        side: THREE.DoubleSide
-
-    });
-
-const saturnRing =
-    new THREE.Mesh(
-        ringGeometry,
-        ringMaterial
-    );
-
-saturnRing.rotation.x =
-    Math.PI / 2.4;
-
-saturn.planet.add(
-    saturnRing
-);
-
-
-/* =========================================
-   ORBITE
-========================================= */
-
-function createOrbit(
-    distance
-) {
-
-    const curve =
-        new THREE.EllipseCurve(
-
-            0,
-            0,
-
-            distance,
-            distance,
-
-            0,
-            Math.PI * 2,
-
-            false,
-            0
-        );
-
-    const points =
-        curve.getPoints(160);
-
-    const geometry =
-        new THREE.BufferGeometry()
-            .setFromPoints(
-                points
-            );
-
-    const material =
-        new THREE.LineBasicMaterial({
-
-            color: 0x536b8f,
-
-            transparent: true,
-
-            opacity: 0.22
-
-        });
-
-    const line =
-        new THREE.LineLoop(
-            geometry,
-            material
-        );
-
-    line.rotation.x =
-        Math.PI / 2;
-
-    solarSystem.add(
-        line
-    );
-}
-
-createOrbit(7);
-createOrbit(10);
-createOrbit(14);
-createOrbit(18);
-createOrbit(25);
-createOrbit(33);
-createOrbit(40);
-createOrbit(47);
-
-
-/* =========================================
-   INFORMAZIONI
-========================================= */
-
-const infoName =
-    document.getElementById(
-        "infoName"
-    );
-
-const infoDescription =
-    document.getElementById(
-        "infoDescription"
-    );
-
-const planetDescriptions = {
-
-    Sole:
-        "La stella al centro del Sistema Solare. La sua enorme energia permette alla vita sulla Terra.",
-
-    Mercurio:
-        "Il pianeta più vicino al Sole e il più piccolo del Sistema Solare.",
-
-    Venere:
-        "Un pianeta roccioso avvolto da una densa atmosfera e caratterizzato da temperature estreme.",
-
-    Terra:
-        "Il nostro pianeta, ricco di acqua liquida e l'unico mondo conosciuto dove esiste la vita.",
-
-    Marte:
-        "Il pianeta rosso, caratterizzato da vaste pianure, vulcani e antichi letti fluviali.",
-
-    Giove:
-        "Il pianeta più grande del Sistema Solare, famoso per la sua Grande Macchia Rossa.",
-
-    Saturno:
-        "Un gigante gassoso circondato dal suo spettacolare sistema di anelli.",
-
-    Urano:
-        "Un gigante ghiacciato dalla caratteristica rotazione estremamente inclinata.",
-
-    Nettuno:
-        "Il pianeta più lontano dal Sole, caratterizzato da venti potentissimi."
-};
-
-
-/* =========================================
-   CAMERA
-========================================= */
-
-let cameraTarget =
-    new THREE.Vector3(
-        0,
-        0,
-        0
-    );
-
-let cameraDistance = 42;
-
-let cameraAngle = 0;
-
-
-/* =========================================
-   SELEZIONE PIANETA
-========================================= */
-
-function selectPlanet(
-    planet
-) {
-
-    const name =
-        planet.userData.name;
-
-    infoName.textContent =
-        name;
-
-    infoDescription.textContent =
-        planetDescriptions[name];
-
-    cameraTarget.copy(
-        planet.getWorldPosition(
-            new THREE.Vector3()
-        )
-    );
-
-    cameraDistance =
-        Math.max(
-            planet.userData.distance * 0.65,
-            7
-        );
-}
-
-
-/* =========================================
-   MENU
-========================================= */
-
-document
-    .querySelectorAll(".planet-item")
-    .forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                const name =
-                    button.dataset.planet;
-
-                if (
-                    name === "sun"
-                ) {
-
-                    cameraTarget.set(
-                        0,
-                        0,
-                        0
-                    );
-
-                    cameraDistance = 15;
-
-                    infoName.textContent =
-                        "Sole";
-
-                    infoDescription.textContent =
-                        planetDescriptions.Sole;
-
-                    return;
-                }
-
-                const planets = {
-
-                    mercury,
-                    venus,
-                    earth,
-                    mars,
-                    jupiter,
-                    saturn,
-                    uranus,
-                    neptune
-
-                };
-
-                if (
-                    planets[name]
-                ) {
-
-                    selectPlanet(
-                        planets[name].planet
-                    );
-
-                }
-
-            }
-        );
-
-    });
-
-
-/* =========================================
-   CONTROLLI ZOOM
-========================================= */
-
-document
-    .getElementById("zoomIn")
-    .addEventListener(
-        "click",
-        () => {
-
-            cameraDistance =
-                Math.max(
-                    5,
-                    cameraDistance - 5
-                );
-
-        }
-    );
-
-
-document
-    .getElementById("zoomOut")
-    .addEventListener(
-        "click",
-        () => {
-
-            cameraDistance =
-                Math.min(
-                    150,
-                    cameraDistance + 5
-                );
-
-        }
-    );
-
-
-/* =========================================
-   RESET
-========================================= */
-
-document
-    .getElementById("resetView")
-    .addEventListener(
-        "click",
-        () => {
-
-            cameraTarget.set(
-                0,
-                0,
-                0
-            );
-
-            cameraDistance = 42;
-
-            infoName.textContent =
-                "Sistema Solare";
-
-            infoDescription.textContent =
-                "Esplora lo spazio e seleziona un corpo celeste per visualizzarne le informazioni.";
-
-        }
-    );
-
-
-/* =========================================
-   CAMERA MOUSE
-========================================= */
-
-let mouseX = 0;
-let mouseY = 0;
-
-let targetMouseX = 0;
-let targetMouseY = 0;
-
-window.addEventListener(
-    "mousemove",
-    event => {
-
-        targetMouseX =
-            (
-                event.clientX /
-                window.innerWidth -
-                0.5
-            ) * 2;
-
-        targetMouseY =
-            (
-                event.clientY /
-                window.innerHeight -
-                0.5
-            ) * 2;
-
-    }
-);
-
-
-function updateMouseCamera() {
-
-    mouseX +=
-        (
-            targetMouseX -
-            mouseX
-        ) * 0.025;
-
-    mouseY +=
-        (
-            targetMouseY -
-            mouseY
-        ) * 0.025;
-
-}
-
-
-/* =========================================
-   CAMERA
-========================================= */
-
-function updateCamera() {
-
-    const targetX =
-        cameraTarget.x +
-        Math.sin(cameraAngle) *
-        cameraDistance;
-
-    const targetZ =
-        cameraTarget.z +
-        Math.cos(cameraAngle) *
-        cameraDistance;
-
-    camera.position.x +=
-        (
-            targetX -
-            camera.position.x
-        ) * 0.035;
-
-    camera.position.y +=
-        (
-            cameraTarget.y +
-            8 -
-            camera.position.y
-        ) * 0.035;
-
-    camera.position.z +=
-        (
-            targetZ -
-            camera.position.z
-        ) * 0.035;
-
-    camera.lookAt(
-        cameraTarget
-    );
-
-    camera.rotation.y +=
-        (
-            mouseX * 0.025 -
-            camera.rotation.y
-        ) * 0.04;
-
-}
-
-
-/* =========================================
-   MOUSE WHEEL
-========================================= */
-
-window.addEventListener(
-    "wheel",
-    event => {
-
-        cameraDistance +=
-            event.deltaY * 0.025;
-
-        cameraDistance =
-            THREE.MathUtils.clamp(
-                cameraDistance,
-                5,
-                150
-            );
-
-    },
-    {
-        passive: true
-    }
-);
-
-
-/* =========================================
-   CLICK PIANETI
-========================================= */
-
-const raycaster =
-    new THREE.Raycaster();
-
-const mouse =
-    new THREE.Vector2();
-
-window.addEventListener(
-    "click",
-    event => {
-
-        if (
-            event.target.closest(
-                "button"
-            )
-        ) {
-            return;
-        }
-
-        mouse.x =
-            (
-                event.clientX /
-                window.innerWidth
-            ) * 2 - 1;
-
-        mouse.y =
-            -(
-                event.clientY /
-                window.innerHeight
-            ) * 2 + 1;
-
-        raycaster.setFromCamera(
-            mouse,
-            camera
-        );
-
-        const objects = [
-
-            sun,
-
-            mercury.planet,
-            venus.planet,
-            earth.planet,
-            mars.planet,
-            jupiter.planet,
-            saturn.planet,
-            uranus.planet,
-            neptune.planet
-
-        ];
-
-        const intersections =
-            raycaster.intersectObjects(
-                objects
-            );
-
-        if (
-            intersections.length > 0
-        ) {
-
-            const object =
-                intersections[0].object;
-
-            if (
-                object === sun
-            ) {
-
-                cameraTarget.set(
-                    0,
-                    0,
-                    0
-                );
-
-                cameraDistance = 15;
-
-                infoName.textContent =
-                    "Sole";
-
-                infoDescription.textContent =
-                    planetDescriptions.Sole;
-
-            } else {
-
-                selectPlanet(
-                    object
-                );
-
-            }
-
-        }
-
-    }
-);
-
-
-/* =========================================
-   TOUCH
-========================================= */
-
-let touchStartX = 0;
-let touchStartY = 0;
-
-window.addEventListener(
-    "touchstart",
-    event => {
-
-        if (
-            event.touches.length === 1
-        ) {
-
-            touchStartX =
-                event.touches[0].clientX;
-
-            touchStartY =
-                event.touches[0].clientY;
-
-        }
-
-    },
-    {
-        passive: true
-    }
-);
-
-
-window.addEventListener(
-    "touchmove",
-    event => {
-
-        if (
-            event.touches.length === 1
-        ) {
-
-            const touch =
-                event.touches[0];
-
-            const dx =
-                touch.clientX -
-                touchStartX;
-
-            const dy =
-                touch.clientY -
-                touchStartY;
-
-            cameraAngle +=
-                dx * 0.002;
-
-            camera.position.y +=
-                dy * 0.015;
-
-            camera.position.y =
-                THREE.MathUtils.clamp(
-                    camera.position.y,
-                    -5,
-                    30
-                );
-
-            touchStartX =
-                touch.clientX;
-
-            touchStartY =
-                touch.clientY;
-
-        }
-
-    },
-    {
-        passive: true
-    }
-);
-
-
-/* =========================================
-   BENVENUTO
-========================================= */
-
-const welcome =
-    document.getElementById(
-        "welcome"
-    );
-
-const interfaceElement =
-    document.getElementById(
-        "interface"
-    );
-
-const enterButton =
-    document.getElementById(
-        "enterButton"
-    );
-
-enterButton.addEventListener(
-    "click",
-    () => {
-
-        welcome.classList.add(
-            "hidden"
-        );
-
-        setTimeout(
-            () => {
-
-                interfaceElement.classList.add(
-                    "visible"
-                );
-
-            },
-            500
-        );
-
-    }
-);
-
-
-/* =========================================
-   ANIMAZIONE
-========================================= */
-
-function animate() {
-
-    requestAnimationFrame(
-        animate
-    );
-
-
-    /* Orbite */
-
-    const planets = [
-
-        mercury,
-        venus,
-        earth,
-        mars,
-        jupiter,
-        saturn,
-        uranus,
-        neptune
-
-    ];
-
-    planets.forEach(
-        data => {
-
-            data.orbit.rotation.y +=
-                data.planet.userData.speed;
-
-            data.planet.rotation.y +=
-                0.01;
-
-        }
-    );
-
-
-    /* Sole */
-
-    sun.rotation.y +=
-        0.003;
-
-
-    /* Stelle */
-
-    stars.rotation.y +=
-        0.00012;
-
-    stars.rotation.x +=
-        0.00002;
-
-
-    updateMouseCamera();
-
-    updateCamera();
-
-
-    renderer.render(
-        scene,
-        camera
-    );
-
-}
-
-animate();
-
-
-/* =========================================
-   RESIZE
-========================================= */
-
-window.addEventListener(
-    "resize",
-    () => {
-
-        camera.aspect =
-            window.innerWidth /
-            window.innerHeight;
-
-        camera.updateProjectionMatrix();
-
-        renderer.setSize(
-            window.innerWidth,
-            window.innerHeight
-        );
-
-        renderer.setPixelRatio(
-            Math.min(
-                window.devicePixelRatio,
-                2
-            )
-        );
-
-    }
-);
-
-</script>
+    <script type="module" src="app.js"></script>
 
 </body>
 </html>
