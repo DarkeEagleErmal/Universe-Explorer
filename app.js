@@ -811,7 +811,10 @@ function openExplorer() {
 
     }, 50);
 }
-
+exploreButton?.addEventListener(
+    "click",
+    openExplorer
+);
 
 function openHome() {
 
