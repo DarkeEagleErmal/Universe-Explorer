@@ -851,10 +851,6 @@ if (saturn) {
 // PLANET MOONS
 // ============================================================
 
-function createMoon(
-    name,
-    parent,
-    distance
     function createMoon(
     name,
     parent,
