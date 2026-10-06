@@ -359,25 +359,42 @@ function createPlanetTexture(
 ) {
 
     const canvas =
-        document.createElement("canvas");
+        document.createElement(
+            "canvas"
+        );
 
-    canvas.width = 512;
-    canvas.height = 256;
+    canvas.width = 1024;
+    canvas.height = 512;
 
     const ctx =
-        canvas.getContext("2d");
+        canvas.getContext(
+            "2d"
+        );
 
     const color =
-        new THREE.Color(baseColor);
+        new THREE.Color(
+            baseColor
+        );
 
     const r =
-        Math.floor(color.r * 255);
+        Math.floor(
+            color.r * 255
+        );
 
     const g =
-        Math.floor(color.g * 255);
+        Math.floor(
+            color.g * 255
+        );
 
     const b =
-        Math.floor(color.b * 255);
+        Math.floor(
+            color.b * 255
+        );
+
+
+    // ========================================================
+    // BASE COLOR
+    // ========================================================
 
     ctx.fillStyle =
         `rgb(${r},${g},${b})`;
@@ -389,30 +406,46 @@ function createPlanetTexture(
         canvas.height
     );
 
-    for (let i = 0; i < 900; i++) {
+
+    // ========================================================
+    // SURFACE VARIATIONS
+    // ========================================================
+
+    for (
+        let i = 0;
+        i < 1800;
+        i++
+    ) {
 
         const x =
-            Math.random() * canvas.width;
+            Math.random() *
+            canvas.width;
 
         const y =
-            Math.random() * canvas.height;
+            Math.random() *
+            canvas.height;
 
         const size =
-            2 + Math.random() * 18;
+            1 +
+            Math.random() *
+            25;
 
-        const change =
-            Math.floor(
-                (Math.random() - 0.5) *
-                variation *
-                255
-            );
+
+        const brightness =
+            (
+                Math.random() -
+                0.5
+            ) *
+            variation *
+            255;
+
 
         const rr =
             Math.max(
                 0,
                 Math.min(
                     255,
-                    r + change
+                    r + brightness
                 )
             );
 
@@ -421,7 +454,7 @@ function createPlanetTexture(
                 0,
                 Math.min(
                     255,
-                    g + change
+                    g + brightness
                 )
             );
 
@@ -430,12 +463,19 @@ function createPlanetTexture(
                 0,
                 Math.min(
                     255,
-                    b + change
+                    b + brightness
                 )
             );
 
+
         ctx.fillStyle =
-            `rgba(${rr},${gg},${bb},${0.08 + Math.random() * 0.18})`;
+            `rgba(
+                ${rr},
+                ${gg},
+                ${bb},
+                ${0.08 + Math.random() * 0.20}
+            )`;
+
 
         ctx.beginPath();
 
@@ -450,11 +490,189 @@ function createPlanetTexture(
         ctx.fill();
     }
 
+
+    // ========================================================
+    // DARK SURFACE AREAS
+    // ========================================================
+
+    for (
+        let i = 0;
+        i < 180;
+        i++
+    ) {
+
+        const x =
+            Math.random() *
+            canvas.width;
+
+        const y =
+            Math.random() *
+            canvas.height;
+
+        const radius =
+            4 +
+            Math.random() *
+            35;
+
+
+        ctx.fillStyle =
+            `rgba(
+                0,
+                0,
+                0,
+                ${0.03 + Math.random() * 0.12}
+            )`;
+
+
+        ctx.beginPath();
+
+        ctx.arc(
+            x,
+            y,
+            radius,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+    }
+
+
+    // ========================================================
+    // LIGHT SURFACE AREAS
+    // ========================================================
+
+    for (
+        let i = 0;
+        i < 180;
+        i++
+    ) {
+
+        const x =
+            Math.random() *
+            canvas.width;
+
+        const y =
+            Math.random() *
+            canvas.height;
+
+        const radius =
+            3 +
+            Math.random() *
+            28;
+
+
+        ctx.fillStyle =
+            `rgba(
+                255,
+                255,
+                255,
+                ${0.02 + Math.random() * 0.10}
+            )`;
+
+
+        ctx.beginPath();
+
+        ctx.arc(
+            x,
+            y,
+            radius,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+    }
+
+
+    // ========================================================
+    // SOFT CLOUD-LIKE DETAILS
+    // ========================================================
+
+    for (
+        let i = 0;
+        i < 100;
+        i++
+    ) {
+
+        const x =
+            Math.random() *
+            canvas.width;
+
+        const y =
+            Math.random() *
+            canvas.height;
+
+        const radius =
+            10 +
+            Math.random() *
+            45;
+
+
+        const gradient =
+            ctx.createRadialGradient(
+                x,
+                y,
+                0,
+                x,
+                y,
+                radius
+            );
+
+
+        gradient.addColorStop(
+            0,
+            "rgba(255,255,255,0.12)"
+        );
+
+        gradient.addColorStop(
+            1,
+            "rgba(255,255,255,0)"
+        );
+
+
+        ctx.fillStyle =
+            gradient;
+
+
+        ctx.beginPath();
+
+        ctx.arc(
+            x,
+            y,
+            radius,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+    }
+
+
+    // ========================================================
+    // TEXTURE
+    // ========================================================
+
     const texture =
-        new THREE.CanvasTexture(canvas);
+        new THREE.CanvasTexture(
+            canvas
+        );
 
     texture.colorSpace =
         THREE.SRGBColorSpace;
+
+    texture.wrapS =
+        THREE.RepeatWrapping;
+
+    texture.wrapT =
+        THREE.ClampToEdgeWrapping;
+
+    texture.anisotropy =
+        4;
+
+    texture.needsUpdate =
+        true;
+
 
     return texture;
 }
