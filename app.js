@@ -811,10 +811,58 @@ function openExplorer() {
 
     }, 50);
 }
-exploreButton?.addEventListener(
-    "click",
-    openExplorer
-);
+function setupExploreButton() {
+
+    const button =
+        document.getElementById(
+            "exploreButton"
+        );
+
+    if (!button) {
+        return;
+    }
+
+    button.addEventListener(
+        "click",
+        () => {
+
+            homeScreen.classList.add(
+                "hidden"
+            );
+
+            explorerScreen.classList.remove(
+                "hidden"
+            );
+
+            renderer.setSize(
+                window.innerWidth,
+                window.innerHeight
+            );
+
+            camera.aspect =
+                window.innerWidth /
+                window.innerHeight;
+
+            camera.updateProjectionMatrix();
+        }
+    );
+}
+
+
+if (
+    document.readyState ===
+    "loading"
+) {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        setupExploreButton
+    );
+
+} else {
+
+    setupExploreButton();
+}
 
 function openHome() {
 
