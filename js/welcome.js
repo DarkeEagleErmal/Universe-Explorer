@@ -2,10 +2,15 @@ export function showExplorer() {
     const homeScreen = document.getElementById("homeScreen");
     const explorerScreen = document.getElementById("explorerScreen");
 
-    if (!homeScreen || !explorerScreen) return;
+    if (homeScreen) {
+        homeScreen.classList.remove("active");
+        homeScreen.style.display = "none";
+    }
 
-    homeScreen.classList.add("hidden");
-    explorerScreen.classList.remove("hidden");
+    if (explorerScreen) {
+        explorerScreen.classList.add("active");
+        explorerScreen.style.display = "block";
+    }
 
     window.dispatchEvent(new CustomEvent("universe:explore"));
 }
@@ -14,10 +19,15 @@ export function showHome() {
     const homeScreen = document.getElementById("homeScreen");
     const explorerScreen = document.getElementById("explorerScreen");
 
-    if (!homeScreen || !explorerScreen) return;
+    if (explorerScreen) {
+        explorerScreen.classList.remove("active");
+        explorerScreen.style.display = "none";
+    }
 
-    explorerScreen.classList.add("hidden");
-    homeScreen.classList.remove("hidden");
+    if (homeScreen) {
+        homeScreen.classList.add("active");
+        homeScreen.style.display = "flex";
+    }
 
     window.dispatchEvent(new CustomEvent("universe:home"));
 }
@@ -27,37 +37,22 @@ export function initializeWelcome() {
     const homeButton = document.getElementById("homeButton");
 
     if (exploreButton) {
-        exploreButton.onclick = function (event) {
-            event.preventDefault();
-            event.stopPropagation();
+        exploreButton.addEventListener("click", () => {
             showExplorer();
-        };
+        });
     }
 
     if (homeButton) {
-        homeButton.onclick = function (event) {
-            event.preventDefault();
-            event.stopPropagation();
+        homeButton.addEventListener("click", () => {
             showHome();
-        };
+        });
     }
 
-    document.addEventListener("keydown", function (event) {
+    document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
-            const explorerScreen = document.getElementById("explorerScreen");
-
-            if (
-                explorerScreen &&
-                !explorerScreen.classList.contains("hidden")
-            ) {
-                showHome();
-            }
+            showHome();
         }
     });
 
-    const homeScreen = document.getElementById("homeScreen");
-    const explorerScreen = document.getElementById("explorerScreen");
-
-    if (homeScreen) homeScreen.classList.remove("hidden");
-    if (explorerScreen) explorerScreen.classList.add("hidden");
+    showHome();
 }
