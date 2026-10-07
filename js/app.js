@@ -90,6 +90,11 @@ let cometGroup;
 
 function initializeApp() {
 
+    // Initialize HOME / EXPLORE first
+    // so the EXPLORE button works even if
+    // another part of the 3D universe has an error.
+    initializeWelcome();
+
     createScene();
     createRenderer();
 
@@ -115,7 +120,6 @@ function initializeApp() {
     initializeRaycaster();
     initializeEvents();
 
-    initializeWelcome();
     initializeExplorationControls();
     initializeInformation();
     initializeGuide();
@@ -127,7 +131,6 @@ function initializeApp() {
 
     hideLoadingScreen();
 }
-
 
 // ============================================================
 // SCENE
