@@ -1,8 +1,6 @@
 import * as THREE from "three";
 
-import {
-    initializeWelcome
-} from "./welcome.js";
+import { initializeWelcome } from "./welcome.js";
 
 import {
     initializeExplorationControls,
@@ -11,8 +9,6 @@ import {
 
 import {
     initializeCamera,
-    getCamera,
-    getControls,
     focusCameraOnObject,
     updateCamera
 } from "./camera.js";
@@ -52,9 +48,7 @@ import {
     cometObjects
 } from "./universe.js";
 
-import {
-    COLORS
-} from "./colors.js";
+import { COLORS } from "./colors.js";
 
 
 // ============================================================
@@ -85,20 +79,18 @@ let cometGroup;
 
 
 // ============================================================
-// INITIALIZE APPLICATION
+// INITIALIZATION
 // ============================================================
 
 function initializeApp() {
 
-    // Initialize HOME / EXPLORE first
-    // so the EXPLORE button works even if
-    // another part of the 3D universe has an error.
-    initializeWelcome();
-
     createScene();
     createRenderer();
 
-    const cameraData = initializeCamera(scene, renderer);
+    const cameraData = initializeCamera(
+        scene,
+        renderer
+    );
 
     camera = cameraData.camera;
     controls = cameraData.controls;
@@ -106,20 +98,24 @@ function initializeApp() {
     initializeEffects(scene);
 
     createUniverseGroups();
+
     createCelestialBodies();
     createDeepSpace();
     createNebulae();
     createGalaxies();
     createBlackHoles();
+
     createAsteroidBelt();
     createKuiperBelt();
     createOortCloud();
     createComets();
+
     createOrbits();
 
     initializeRaycaster();
     initializeEvents();
 
+    initializeWelcome();
     initializeExplorationControls();
     initializeInformation();
     initializeGuide();
@@ -131,6 +127,7 @@ function initializeApp() {
 
     hideLoadingScreen();
 }
+
 
 // ============================================================
 // SCENE
@@ -146,21 +143,23 @@ function createScene() {
 
     scene.fog = new THREE.FogExp2(
         COLORS.space.background,
-        0.00012
+        0.00008
     );
 
-    const ambientLight = new THREE.AmbientLight(
-        COLORS.lighting.ambient,
-        0.7
-    );
+    const ambientLight =
+        new THREE.AmbientLight(
+            COLORS.lighting.ambient,
+            0.7
+        );
 
     scene.add(ambientLight);
 
-    const sunLight = new THREE.PointLight(
-        COLORS.lighting.sunlight,
-        5,
-        100000
-    );
+    const sunLight =
+        new THREE.PointLight(
+            COLORS.lighting.sunlight,
+            6,
+            1000000
+        );
 
     sunLight.position.set(0, 0, 0);
 
@@ -174,12 +173,16 @@ function createScene() {
 
 function createRenderer() {
 
-    const container = document.getElementById("canvasContainer");
+    const container =
+        document.getElementById(
+            "canvasContainer"
+        );
 
-    renderer = new THREE.WebGLRenderer({
-        antialias: true,
-        alpha: false
-    });
+    renderer =
+        new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: false
+        });
 
     renderer.setPixelRatio(
         Math.min(window.devicePixelRatio, 2)
@@ -190,13 +193,18 @@ function createRenderer() {
         window.innerHeight
     );
 
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.outputColorSpace =
+        THREE.SRGBColorSpace;
 
     renderer.shadowMap.enabled = true;
 
     if (container) {
+
         container.innerHTML = "";
-        container.appendChild(renderer.domElement);
+
+        container.appendChild(
+            renderer.domElement
+        );
     }
 }
 
@@ -207,26 +215,47 @@ function createRenderer() {
 
 function createUniverseGroups() {
 
-    solarSystem = new THREE.Group();
-    solarSystem.name = "Solar System";
+    solarSystem =
+        new THREE.Group();
 
-    deepSpaceGroup = new THREE.Group();
-    deepSpaceGroup.name = "Deep Space";
+    solarSystem.name =
+        "Solar System";
 
-    galaxyGroup = new THREE.Group();
-    galaxyGroup.name = "Galaxies";
+    deepSpaceGroup =
+        new THREE.Group();
 
-    nebulaGroup = new THREE.Group();
-    nebulaGroup.name = "Nebulae";
+    deepSpaceGroup.name =
+        "Deep Space";
 
-    blackHoleGroup = new THREE.Group();
-    blackHoleGroup.name = "Black Holes";
+    galaxyGroup =
+        new THREE.Group();
 
-    asteroidGroup = new THREE.Group();
-    asteroidGroup.name = "Asteroids";
+    galaxyGroup.name =
+        "Galaxies";
 
-    cometGroup = new THREE.Group();
-    cometGroup.name = "Comets";
+    nebulaGroup =
+        new THREE.Group();
+
+    nebulaGroup.name =
+        "Nebulae";
+
+    blackHoleGroup =
+        new THREE.Group();
+
+    blackHoleGroup.name =
+        "Black Holes";
+
+    asteroidGroup =
+        new THREE.Group();
+
+    asteroidGroup.name =
+        "Asteroids";
+
+    cometGroup =
+        new THREE.Group();
+
+    cometGroup.name =
+        "Comets";
 
     scene.add(solarSystem);
     scene.add(deepSpaceGroup);
@@ -245,49 +274,69 @@ function createUniverseGroups() {
 function createCelestialBodies() {
 
     const objects = [
-        ...allCelestialObjects,
-        ...moonObjects
+        ...(Array.isArray(allCelestialObjects)
+            ? allCelestialObjects
+            : Object.values(allCelestialObjects || {})),
+
+        ...(Array.isArray(moonObjects)
+            ? moonObjects
+            : Object.values(moonObjects || {}))
     ];
 
     objects.forEach(data => {
 
-        if (!data || !data.name) return;
+        if (!data || !data.name) {
+            return;
+        }
 
-        const radius = Math.max(
-            data.radius || 1,
-            0.5
-        );
+        const radius =
+            Math.max(
+                Number(data.radius) || 1,
+                0.5
+            );
 
-        const geometry = new THREE.SphereGeometry(
-            radius,
-            64,
-            64
-        );
+        const geometry =
+            new THREE.SphereGeometry(
+                radius,
+                64,
+                64
+            );
 
-        const material = new THREE.MeshStandardMaterial({
-            color: data.color || 0xffffff,
-            roughness: 0.65,
-            metalness: 0.05
-        });
+        const material =
+            new THREE.MeshStandardMaterial({
+                color:
+                    data.color || 0xffffff,
 
-        const mesh = new THREE.Mesh(
-            geometry,
-            material
-        );
+                roughness: 0.7,
 
-        mesh.name = data.name;
+                metalness: 0.02
+            });
+
+        const mesh =
+            new THREE.Mesh(
+                geometry,
+                material
+            );
+
+        mesh.name =
+            data.name;
 
         if (data.position) {
+
             mesh.position.set(
-                data.position.x || 0,
-                data.position.y || 0,
-                data.position.z || 0
+                Number(data.position.x) || 0,
+                Number(data.position.y) || 0,
+                Number(data.position.z) || 0
             );
         }
 
         mesh.userData = {
-            type: data.type || "Planet",
-            name: data.name,
+            type:
+                data.type || "Planet",
+
+            name:
+                data.name,
+
             data
         };
 
@@ -297,21 +346,34 @@ function createCelestialBodies() {
         solarSystem.add(mesh);
 
         objectMeshes.push(mesh);
-        objectMap.set(data.name.toLowerCase(), mesh);
 
-        // Earth atmosphere
+        objectMap.set(
+            data.name.toLowerCase(),
+            mesh
+        );
+
         if (data.name === "Earth") {
-            createEarthAtmosphere(mesh, radius);
+
+            createEarthAtmosphere(
+                mesh,
+                radius
+            );
         }
 
-        // Sun glow
         if (data.name === "Sun") {
-            createSunGlow(mesh, radius);
+
+            createSunGlow(
+                mesh,
+                radius
+            );
         }
 
-        // Saturn rings
         if (data.name === "Saturn") {
-            createSaturnRings(mesh, radius);
+
+            createSaturnRings(
+                mesh,
+                radius
+            );
         }
     });
 }
@@ -321,25 +383,37 @@ function createCelestialBodies() {
 // EARTH ATMOSPHERE
 // ============================================================
 
-function createEarthAtmosphere(parent, radius) {
+function createEarthAtmosphere(
+    parent,
+    radius
+) {
 
-    const geometry = new THREE.SphereGeometry(
-        radius * 1.08,
-        64,
-        64
-    );
+    const geometry =
+        new THREE.SphereGeometry(
+            radius * 1.08,
+            64,
+            64
+        );
 
-    const material = new THREE.MeshBasicMaterial({
-        color: COLORS.planets.earth.atmosphere,
-        transparent: true,
-        opacity: 0.16,
-        side: THREE.BackSide
-    });
+    const material =
+        new THREE.MeshBasicMaterial({
+            color:
+                COLORS.planets.earth.atmosphere,
 
-    const atmosphere = new THREE.Mesh(
-        geometry,
-        material
-    );
+            transparent: true,
+
+            opacity: 0.18,
+
+            side: THREE.BackSide,
+
+            depthWrite: false
+        });
+
+    const atmosphere =
+        new THREE.Mesh(
+            geometry,
+            material
+        );
 
     parent.add(atmosphere);
 }
@@ -349,25 +423,37 @@ function createEarthAtmosphere(parent, radius) {
 // SUN GLOW
 // ============================================================
 
-function createSunGlow(parent, radius) {
+function createSunGlow(
+    parent,
+    radius
+) {
 
-    const geometry = new THREE.SphereGeometry(
-        radius * 1.35,
-        32,
-        32
-    );
+    const geometry =
+        new THREE.SphereGeometry(
+            radius * 1.5,
+            32,
+            32
+        );
 
-    const material = new THREE.MeshBasicMaterial({
-        color: COLORS.sun.glow,
-        transparent: true,
-        opacity: 0.14,
-        side: THREE.BackSide
-    });
+    const material =
+        new THREE.MeshBasicMaterial({
+            color:
+                COLORS.sun.glow,
 
-    const glow = new THREE.Mesh(
-        geometry,
-        material
-    );
+            transparent: true,
+
+            opacity: 0.16,
+
+            side: THREE.BackSide,
+
+            depthWrite: false
+        });
+
+    const glow =
+        new THREE.Mesh(
+            geometry,
+            material
+        );
 
     parent.add(glow);
 }
@@ -377,27 +463,40 @@ function createSunGlow(parent, radius) {
 // SATURN RINGS
 // ============================================================
 
-function createSaturnRings(parent, radius) {
+function createSaturnRings(
+    parent,
+    radius
+) {
 
-    const geometry = new THREE.RingGeometry(
-        radius * 1.45,
-        radius * 2.35,
-        96
-    );
+    const geometry =
+        new THREE.RingGeometry(
+            radius * 1.45,
+            radius * 2.4,
+            128
+        );
 
-    const material = new THREE.MeshBasicMaterial({
-        color: COLORS.planets.saturn.rings,
-        transparent: true,
-        opacity: 0.8,
-        side: THREE.DoubleSide
-    });
+    const material =
+        new THREE.MeshBasicMaterial({
+            color:
+                COLORS.planets.saturn.rings,
 
-    const rings = new THREE.Mesh(
-        geometry,
-        material
-    );
+            transparent: true,
 
-    rings.rotation.x = Math.PI / 2;
+            opacity: 0.8,
+
+            side: THREE.DoubleSide,
+
+            depthWrite: false
+        });
+
+    const rings =
+        new THREE.Mesh(
+            geometry,
+            material
+        );
+
+    rings.rotation.x =
+        Math.PI / 2;
 
     parent.add(rings);
 }
@@ -409,57 +508,75 @@ function createSaturnRings(parent, radius) {
 
 function createDeepSpace() {
 
-    if (!deepSpaceObjects) return;
-
-    const objects = Array.isArray(deepSpaceObjects)
-        ? deepSpaceObjects
-        : Object.values(deepSpaceObjects);
+    const objects =
+        Array.isArray(deepSpaceObjects)
+            ? deepSpaceObjects
+            : Object.values(
+                deepSpaceObjects || {}
+            );
 
     objects.forEach(data => {
 
-        if (!data || !data.name) return;
+        if (!data || !data.name) {
+            return;
+        }
 
-        const position = data.position || {
-            x: 0,
-            y: 0,
-            z: 0
-        };
+        const position =
+            data.position || {};
 
-        const geometry = new THREE.SphereGeometry(
-            data.radius || 30,
-            32,
-            32
-        );
+        const radius =
+            Number(data.radius) || 30;
 
-        const material = new THREE.MeshBasicMaterial({
-            color: data.color || 0xffffff,
-            transparent: true,
-            opacity: 0.8
-        });
+        const geometry =
+            new THREE.SphereGeometry(
+                radius,
+                32,
+                32
+            );
 
-        const mesh = new THREE.Mesh(
-            geometry,
-            material
-        );
+        const material =
+            new THREE.MeshBasicMaterial({
+                color:
+                    data.color || 0xffffff,
+
+                transparent: true,
+
+                opacity: 0.75
+            });
+
+        const mesh =
+            new THREE.Mesh(
+                geometry,
+                material
+            );
 
         mesh.position.set(
-            position.x || 0,
-            position.y || 0,
-            position.z || 0
+            Number(position.x) || 0,
+            Number(position.y) || 0,
+            Number(position.z) || 0
         );
 
-        mesh.name = data.name;
+        mesh.name =
+            data.name;
 
         mesh.userData = {
-            type: data.type || "Deep Space Object",
-            name: data.name,
+            type:
+                data.type || "Deep Space Object",
+
+            name:
+                data.name,
+
             data
         };
 
         deepSpaceGroup.add(mesh);
 
         objectMeshes.push(mesh);
-        objectMap.set(data.name.toLowerCase(), mesh);
+
+        objectMap.set(
+            data.name.toLowerCase(),
+            mesh
+        );
     });
 }
 
@@ -470,58 +587,78 @@ function createDeepSpace() {
 
 function createNebulae() {
 
-    if (!nebulaObjects) return;
-
-    const objects = Array.isArray(nebulaObjects)
-        ? nebulaObjects
-        : Object.values(nebulaObjects);
+    const objects =
+        Array.isArray(nebulaObjects)
+            ? nebulaObjects
+            : Object.values(
+                nebulaObjects || {}
+            );
 
     objects.forEach(data => {
 
-        if (!data) return;
+        if (!data) {
+            return;
+        }
 
-        const position = data.position || {
-            x: 0,
-            y: 0,
-            z: 0
-        };
+        const position =
+            data.position || {};
 
-        const size = data.size || 300;
+        const size =
+            Number(data.size) || 300;
 
-        const geometry = new THREE.SphereGeometry(
-            size,
-            32,
-            32
-        );
+        const geometry =
+            new THREE.SphereGeometry(
+                size,
+                32,
+                32
+            );
 
-        const material = new THREE.MeshBasicMaterial({
-            color: data.color || COLORS.nebulae.purple,
-            transparent: true,
-            opacity: 0.12,
-            depthWrite: false,
-            side: THREE.DoubleSide
-        });
+        const material =
+            new THREE.MeshBasicMaterial({
+                color:
+                    data.color ||
+                    COLORS.nebulae.purple,
 
-        const mesh = new THREE.Mesh(
-            geometry,
-            material
-        );
+                transparent: true,
+
+                opacity: 0.12,
+
+                depthWrite: false,
+
+                side: THREE.DoubleSide
+            });
+
+        const mesh =
+            new THREE.Mesh(
+                geometry,
+                material
+            );
 
         mesh.position.set(
-            position.x || 0,
-            position.y || 0,
-            position.z || 0
+            Number(position.x) || 0,
+            Number(position.y) || 0,
+            Number(position.z) || 0
         );
 
-        mesh.name = data.name || "Nebula";
+        mesh.name =
+            data.name || "Nebula";
 
         mesh.userData = {
             type: "Nebula",
+
             name: mesh.name,
+
             data
         };
 
         nebulaGroup.add(mesh);
+
+        objectMeshes.push(mesh);
+
+        objectMap.set(
+            mesh.name.toLowerCase(),
+            mesh
+        );
     });
 }
 
@@ -532,52 +669,69 @@ function createNebulae() {
 
 function createGalaxies() {
 
-    if (!galaxyObjects) return;
-
-    const objects = Array.isArray(galaxyObjects)
-        ? galaxyObjects
-        : Object.values(galaxyObjects);
+    const objects =
+        Array.isArray(galaxyObjects)
+            ? galaxyObjects
+            : Object.values(
+                galaxyObjects || {}
+            );
 
     objects.forEach(data => {
 
-        if (!data) return;
+        if (!data) {
+            return;
+        }
 
-        const group = new THREE.Group();
+        const group =
+            new THREE.Group();
 
-        const position = data.position || {
-            x: 0,
-            y: 0,
-            z: 0
-        };
+        const position =
+            data.position || {};
 
         group.position.set(
-            position.x || 0,
-            position.y || 0,
-            position.z || 0
+            Number(position.x) || 0,
+            Number(position.y) || 0,
+            Number(position.z) || 0
         );
 
-        const particleCount = data.count || 2500;
-        const size = data.size || 500;
+        const particleCount =
+            Number(data.count) || 2500;
 
-        const positions = new Float32Array(
-            particleCount * 3
-        );
+        const size =
+            Number(data.size) || 500;
 
-        const colors = new Float32Array(
-            particleCount * 3
-        );
+        const positions =
+            new Float32Array(
+                particleCount * 3
+            );
 
-        const color = new THREE.Color(
-            data.color || COLORS.galaxies.andromeda
-        );
+        const colors =
+            new Float32Array(
+                particleCount * 3
+            );
 
-        for (let i = 0; i < particleCount; i++) {
+        const color =
+            new THREE.Color(
+                data.color ||
+                COLORS.galaxies.andromeda
+            );
+
+        for (
+            let i = 0;
+            i < particleCount;
+            i++
+        ) {
 
             const radius =
-                Math.pow(Math.random(), 0.65) * size;
+                Math.pow(
+                    Math.random(),
+                    0.65
+                ) * size;
 
             const angle =
-                Math.random() * Math.PI * 2 +
+                Math.random() *
+                Math.PI *
+                2 +
                 radius * 0.008;
 
             const x =
@@ -593,15 +747,26 @@ function createGalaxies() {
                 size *
                 0.08;
 
-            const index = i * 3;
+            const index =
+                i * 3;
 
-            positions[index] = x;
-            positions[index + 1] = y;
-            positions[index + 2] = z;
+            positions[index] =
+                x;
 
-            colors[index] = color.r;
-            colors[index + 1] = color.g;
-            colors[index + 2] = color.b;
+            positions[index + 1] =
+                y;
+
+            positions[index + 2] =
+                z;
+
+            colors[index] =
+                color.r;
+
+            colors[index + 1] =
+                color.g;
+
+            colors[index + 2] =
+                color.b;
         }
 
         const geometry =
@@ -625,10 +790,17 @@ function createGalaxies() {
 
         const material =
             new THREE.PointsMaterial({
-                size: data.particleSize || 3,
+                size:
+                    Number(
+                        data.particleSize
+                    ) || 3,
+
                 vertexColors: true,
+
                 transparent: true,
+
                 opacity: 0.8,
+
                 depthWrite: false
             });
 
@@ -645,11 +817,15 @@ function createGalaxies() {
 
         group.userData = {
             type: "Galaxy",
+
             name: group.name,
+
             data
         };
 
         galaxyGroup.add(group);
+
+        objectMeshes.push(group);
 
         objectMap.set(
             group.name.toLowerCase(),
@@ -665,99 +841,99 @@ function createGalaxies() {
 
 function createBlackHoles() {
 
-    const objects = Object.values(
-        deepSpaceObjects || {}
-    ).filter(
-        item => item &&
-        (
-            item.type === "Black Hole" ||
-            item.type === "BlackHole"
+    const objects =
+        Array.isArray(deepSpaceObjects)
+            ? deepSpaceObjects
+            : Object.values(
+                deepSpaceObjects || {}
+            );
+
+    objects
+        .filter(data =>
+            data &&
+            (
+                data.type === "Black Hole" ||
+                data.type === "BlackHole"
+            )
         )
-    );
+        .forEach(data => {
 
-    objects.forEach(data => {
+            const group =
+                new THREE.Group();
 
-        const group = new THREE.Group();
+            const position =
+                data.position || {};
 
-        const position = data.position || {
-            x: 0,
-            y: 0,
-            z: 0
-        };
-
-        group.position.set(
-            position.x || 0,
-            position.y || 0,
-            position.z || 0
-        );
-
-        const coreGeometry =
-            new THREE.SphereGeometry(
-                data.radius || 20,
-                64,
-                64
+            group.position.set(
+                Number(position.x) || 0,
+                Number(position.y) || 0,
+                Number(position.z) || 0
             );
 
-        const coreMaterial =
-            new THREE.MeshBasicMaterial({
-                color: 0x000000
-            });
+            const radius =
+                Number(data.radius) || 20;
 
-        const core =
-            new THREE.Mesh(
-                coreGeometry,
-                coreMaterial
+            const core =
+                new THREE.Mesh(
+                    new THREE.SphereGeometry(
+                        radius,
+                        64,
+                        64
+                    ),
+                    new THREE.MeshBasicMaterial({
+                        color: 0x000000
+                    })
+                );
+
+            group.add(core);
+
+            const ring =
+                new THREE.Mesh(
+                    new THREE.RingGeometry(
+                        radius * 1.4,
+                        radius * 3.5,
+                        128
+                    ),
+                    new THREE.MeshBasicMaterial({
+                        color:
+                            COLORS.blackHoles.accretionDisk,
+
+                        transparent: true,
+
+                        opacity: 0.75,
+
+                        side: THREE.DoubleSide,
+
+                        depthWrite: false
+                    })
+                );
+
+            ring.rotation.x =
+                Math.PI / 2;
+
+            group.add(ring);
+
+            group.name =
+                data.name || "Black Hole";
+
+            group.userData = {
+                type: "Black Hole",
+
+                name: group.name,
+
+                data
+            };
+
+            blackHoleGroup.add(group);
+
+            objectMeshes.push(group);
+
+            objectMap.set(
+                group.name.toLowerCase(),
+                group
             );
-
-        group.add(core);
-
-        const ringGeometry =
-            new THREE.RingGeometry(
-                (data.radius || 20) * 1.4,
-                (data.radius || 20) * 3.5,
-                128
-            );
-
-        const ringMaterial =
-            new THREE.MeshBasicMaterial({
-                color:
-                    COLORS.blackHoles.accretionDisk,
-                transparent: true,
-                opacity: 0.75,
-                side: THREE.DoubleSide
-            });
-
-        const ring =
-            new THREE.Mesh(
-                ringGeometry,
-                ringMaterial
-            );
-
-        ring.rotation.x =
-            Math.PI / 2;
-
-        group.add(ring);
-
-        group.name =
-            data.name || "Black Hole";
-
-        group.userData = {
-            type: "Black Hole",
-            name: group.name,
-            data
-        };
-
-        blackHoleGroup.add(group);
-
-        objectMap.set(
-            group.name.toLowerCase(),
-            group
-        );
-    });
-}
-
-
-// ============================================================
+        });
+    // ============================================================
 // ASTEROID BELT
 // ============================================================
 
@@ -765,9 +941,14 @@ function createAsteroidBelt() {
 
     if (!asteroidBelt) return;
 
-    const count = asteroidBelt.count || 1000;
-    const minRadius = asteroidBelt.minRadius || 60;
-    const maxRadius = asteroidBelt.maxRadius || 85;
+    const count =
+        Number(asteroidBelt.count) || 1000;
+
+    const minRadius =
+        Number(asteroidBelt.minRadius) || 60;
+
+    const maxRadius =
+        Number(asteroidBelt.maxRadius) || 85;
 
     for (let i = 0; i < count; i++) {
 
@@ -779,33 +960,36 @@ function createAsteroidBelt() {
             );
 
         const angle =
-            Math.random() *
-            Math.PI *
-            2;
+            Math.random() * Math.PI * 2;
 
-        const geometry =
-            new THREE.SphereGeometry(
-                Math.random() * 0.7 + 0.2,
-                8,
-                8
-            );
-
-        const material =
-            new THREE.MeshStandardMaterial({
-                color:
-                    COLORS.asteroids.main
-            });
+        const size =
+            Math.random() * 0.7 + 0.2;
 
         const asteroid =
             new THREE.Mesh(
-                geometry,
-                material
+                new THREE.SphereGeometry(
+                    size,
+                    8,
+                    8
+                ),
+                new THREE.MeshStandardMaterial({
+                    color:
+                        COLORS.asteroids.main,
+
+                    roughness: 1
+                })
             );
 
         asteroid.position.set(
             Math.cos(angle) * radius,
             (Math.random() - 0.5) * 4,
             Math.sin(angle) * radius
+        );
+
+        asteroid.rotation.set(
+            Math.random() * Math.PI,
+            Math.random() * Math.PI,
+            Math.random() * Math.PI
         );
 
         asteroidGroup.add(asteroid);
@@ -821,9 +1005,14 @@ function createKuiperBelt() {
 
     if (!kuiperBelt) return;
 
-    const count = kuiperBelt.count || 700;
-    const minRadius = kuiperBelt.minRadius || 180;
-    const maxRadius = kuiperBelt.maxRadius || 230;
+    const count =
+        Number(kuiperBelt.count) || 700;
+
+    const minRadius =
+        Number(kuiperBelt.minRadius) || 180;
+
+    const maxRadius =
+        Number(kuiperBelt.maxRadius) || 230;
 
     for (let i = 0; i < count; i++) {
 
@@ -835,27 +1024,22 @@ function createKuiperBelt() {
             );
 
         const angle =
-            Math.random() *
-            Math.PI *
-            2;
+            Math.random() * Math.PI * 2;
 
-        const geometry =
-            new THREE.SphereGeometry(
-                Math.random() * 0.5 + 0.15,
-                8,
-                8
-            );
-
-        const material =
-            new THREE.MeshBasicMaterial({
-                color:
-                    COLORS.kuiperBelt.main
-            });
+        const size =
+            Math.random() * 0.5 + 0.15;
 
         const object =
             new THREE.Mesh(
-                geometry,
-                material
+                new THREE.SphereGeometry(
+                    size,
+                    8,
+                    8
+                ),
+                new THREE.MeshBasicMaterial({
+                    color:
+                        COLORS.kuiperBelt.main
+                })
             );
 
         object.position.set(
@@ -877,13 +1061,14 @@ function createOortCloud() {
 
     if (!oortCloud) return;
 
-    const count = oortCloud.count || 500;
+    const count =
+        Number(oortCloud.count) || 500;
 
     const minRadius =
-        oortCloud.minRadius || 350;
+        Number(oortCloud.minRadius) || 350;
 
     const maxRadius =
-        oortCloud.maxRadius || 500;
+        Number(oortCloud.maxRadius) || 500;
 
     for (let i = 0; i < count; i++) {
 
@@ -941,9 +1126,12 @@ function createComets() {
 
     if (!cometObjects) return;
 
-    const objects = Array.isArray(cometObjects)
-        ? cometObjects
-        : Object.values(cometObjects);
+    const objects =
+        Array.isArray(cometObjects)
+            ? cometObjects
+            : Object.values(
+                cometObjects || {}
+            );
 
     objects.forEach(data => {
 
@@ -953,19 +1141,15 @@ function createComets() {
             new THREE.Group();
 
         const radius =
-            data.radius || 1;
+            Number(data.radius) || 1;
 
         const position =
-            data.position || {
-                x: 0,
-                y: 0,
-                z: 0
-            };
+            data.position || {};
 
         group.position.set(
-            position.x || 0,
-            position.y || 0,
-            position.z || 0
+            Number(position.x) || 0,
+            Number(position.y) || 0,
+            Number(position.z) || 0
         );
 
         const nucleus =
@@ -977,14 +1161,16 @@ function createComets() {
                 ),
                 new THREE.MeshStandardMaterial({
                     color:
-                        COLORS.comets.nucleus
+                        COLORS.comets.nucleus,
+
+                    roughness: 0.9
                 })
             );
 
         group.add(nucleus);
 
         const tailLength =
-            data.tailLength || 25;
+            Number(data.tailLength) || 25;
 
         const tail =
             new THREE.Mesh(
@@ -998,9 +1184,14 @@ function createComets() {
                 new THREE.MeshBasicMaterial({
                     color:
                         COLORS.comets.tail,
+
                     transparent: true,
+
                     opacity: 0.25,
-                    side: THREE.DoubleSide
+
+                    side: THREE.DoubleSide,
+
+                    depthWrite: false
                 })
             );
 
@@ -1017,11 +1208,15 @@ function createComets() {
 
         group.userData = {
             type: "Comet",
+
             name: group.name,
+
             data
         };
 
         cometGroup.add(group);
+
+        objectMeshes.push(group);
 
         objectMap.set(
             group.name.toLowerCase(),
@@ -1037,18 +1232,38 @@ function createComets() {
 
 function createOrbits() {
 
-    allCelestialObjects.forEach(data => {
-
-        if (!data || !data.orbit) return;
-
-        const radius =
-            data.orbit.radius ||
-            Math.sqrt(
-                Math.pow(data.position?.x || 0, 2) +
-                Math.pow(data.position?.z || 0, 2)
+    const objects =
+        Array.isArray(allCelestialObjects)
+            ? allCelestialObjects
+            : Object.values(
+                allCelestialObjects || {}
             );
 
-        if (radius <= 1) return;
+    objects.forEach(data => {
+
+        if (!data || !data.orbit) {
+            return;
+        }
+
+        const position =
+            data.position || {};
+
+        const radius =
+            Number(data.orbit.radius) ||
+            Math.sqrt(
+                Math.pow(
+                    Number(position.x) || 0,
+                    2
+                ) +
+                Math.pow(
+                    Number(position.z) || 0,
+                    2
+                )
+            );
+
+        if (radius <= 1) {
+            return;
+        }
 
         const curve =
             new THREE.EllipseCurve(
@@ -1068,13 +1283,12 @@ function createOrbits() {
         const geometry =
             new THREE.BufferGeometry()
                 .setFromPoints(
-                    points.map(
-                        point =>
-                            new THREE.Vector3(
-                                point.x,
-                                0,
-                                point.y
-                            )
+                    points.map(point =>
+                        new THREE.Vector3(
+                            point.x,
+                            0,
+                            point.y
+                        )
                     )
                 );
 
@@ -1082,7 +1296,9 @@ function createOrbits() {
             new THREE.LineBasicMaterial({
                 color:
                     COLORS.orbits.default,
+
                 transparent: true,
+
                 opacity: 0.25
             });
 
@@ -1131,10 +1347,8 @@ function initializeEvents() {
         "universe:objectSelected",
         event => {
 
-            if (!event.detail) return;
-
             const name =
-                event.detail.name;
+                event.detail?.name;
 
             if (name) {
                 focusObjectByName(name);
@@ -1183,14 +1397,13 @@ function initializeEvents() {
 
     window.addEventListener(
         "universe:explore",
-        () => {
-            resetExplorer();
-        }
+        resetExplorer
     );
 
     window.addEventListener(
         "universe:resetCamera",
         () => {
+
             selectedObject = null;
             selectedData = null;
         }
@@ -1226,7 +1439,9 @@ function handleCanvasClick(event) {
             true
         );
 
-    if (!intersects.length) return;
+    if (!intersects.length) {
+        return;
+    }
 
     let object =
         intersects[0].object;
@@ -1235,10 +1450,13 @@ function handleCanvasClick(event) {
         object.parent &&
         !object.userData?.data
     ) {
-        object = object.parent;
+        object =
+            object.parent;
     }
 
-    if (!object.userData?.data) return;
+    if (!object.userData?.data) {
+        return;
+    }
 
     selectObject(object);
 }
@@ -1250,10 +1468,15 @@ function handleCanvasClick(event) {
 
 function selectObject(object) {
 
-    selectedObject = object;
+    selectedObject =
+        object;
 
     selectedData =
         object.userData.data;
+
+    updateSelectedStatus(
+        selectedData.name
+    );
 
     window.dispatchEvent(
         new CustomEvent(
@@ -1267,10 +1490,6 @@ function selectObject(object) {
             }
         )
     );
-
-    updateSelectedStatus(
-        selectedData.name
-    );
 }
 
 
@@ -1281,7 +1500,9 @@ function selectObject(object) {
 function searchObject(query) {
 
     const search =
-        query.toLowerCase().trim();
+        query
+            .toLowerCase()
+            .trim();
 
     if (!search) return;
 
@@ -1308,7 +1529,8 @@ function searchObject(query) {
         return;
     }
 
-    const object = match[1];
+    const object =
+        match[1];
 
     selectObject(object);
 
@@ -1325,6 +1547,8 @@ function searchObject(query) {
 
 function focusObjectByName(name) {
 
+    if (!name) return;
+
     const object =
         objectMap.get(
             name.toLowerCase()
@@ -1332,7 +1556,8 @@ function focusObjectByName(name) {
 
     if (!object) return;
 
-    selectedObject = object;
+    selectedObject =
+        object;
 
     selectedData =
         object.userData?.data || null;
@@ -1343,7 +1568,10 @@ function focusObjectByName(name) {
         10;
 
     const distance =
-        Math.max(radius * 5, 15);
+        Math.max(
+            radius * 5,
+            15
+        );
 
     focusCameraOnObject(
         object,
@@ -1352,6 +1580,10 @@ function focusObjectByName(name) {
     );
 
     if (selectedData) {
+
+        updateSelectedStatus(
+            selectedData.name
+        );
 
         window.dispatchEvent(
             new CustomEvent(
@@ -1375,7 +1607,9 @@ function focusObjectByName(name) {
 
 function resetExplorer() {
 
-    if (!camera || !controls) return;
+    if (!camera || !controls) {
+        return;
+    }
 
     camera.position.set(
         0,
@@ -1417,48 +1651,45 @@ function animate() {
     const time =
         performance.now() * 0.0001;
 
-    // Rotate planets
     objectMeshes.forEach(
         object => {
 
+            const data =
+                object.userData?.data;
+
+            if (!data) return;
+
             if (
-                object.userData?.data
+                data.type === "Planet" ||
+                data.type === "Moon" ||
+                data.type === "Star"
             ) {
-
-                const type =
-                    object.userData.data.type;
-
-                if (
-                    type === "Planet" ||
-                    type === "Moon" ||
-                    type === "Star"
-                ) {
-                    object.rotation.y +=
-                        0.0015;
-                }
+                object.rotation.y +=
+                    0.0015;
             }
         }
     );
 
-    // Rotate galaxies
     if (galaxyGroup) {
+
         galaxyGroup.rotation.y =
             time * 0.08;
     }
 
-    // Rotate nebulae
     if (nebulaGroup) {
+
         nebulaGroup.rotation.y =
             time * 0.02;
     }
 
-    // Rotate black holes
     if (blackHoleGroup) {
+
         blackHoleGroup.rotation.y =
             time * 0.4;
     }
 
     updateEffects();
+
     updateCamera();
 
     if (camera) {
@@ -1485,7 +1716,9 @@ function animate() {
 
 function handleResize() {
 
-    if (!camera || !renderer) return;
+    if (!camera || !renderer) {
+        return;
+    }
 
     camera.aspect =
         window.innerWidth /
@@ -1501,7 +1734,7 @@ function handleResize() {
 
 
 // ============================================================
-// LOADING
+// LOADING SCREEN
 // ============================================================
 
 function hideLoadingScreen() {
@@ -1519,12 +1752,12 @@ function hideLoadingScreen() {
             "hidden"
         );
 
-    }, 500);
+    }, 700);
 }
 
 
 // ============================================================
-// START APPLICATION
+// START
 // ============================================================
 
 if (
@@ -1555,3 +1788,4 @@ export {
     selectedObject,
     selectedData
 };
+    
