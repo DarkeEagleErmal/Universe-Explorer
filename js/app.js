@@ -1,4 +1,3 @@
-Sì. Questo è il nuovo js/app.js completo. Sostituisci tutto quello che hai dentro js/app.js con questo:
 import * as THREE from "three";
 
 import {
