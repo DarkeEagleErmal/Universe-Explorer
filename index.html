@@ -2,11 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Universe Explorer</title>
 
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="./style.css">
 
     <script type="importmap">
     {
@@ -20,9 +24,9 @@
 
 <body>
 
-    <!-- =====================================================
-         HOME
-    ====================================================== -->
+    <!-- =========================
+         HOME SCREEN
+    ========================== -->
 
     <section id="homeScreen" class="screen active">
 
@@ -30,24 +34,21 @@
 
         <div class="home-content">
 
-            <div class="eyebrow">
+            <div class="home-eyebrow">
                 INTERACTIVE 3D SPACE EXPLORATION
             </div>
 
             <h1>
-                UNIVERSE<br>
+                <span>UNIVERSE</span>
                 <span>EXPLORER</span>
             </h1>
 
-            <p>
-                Explore planets, moons, stars, galaxies and the deepest regions
-                of the Universe through an immersive 3D experience.
+            <p class="home-description">
+                Explore planets, stars, galaxies, nebulae and the deepest
+                regions of the universe through an immersive 3D experience.
             </p>
 
-            <button
-                id="exploreButton"
-                class="explore-button"
-            >
+            <button id="exploreButton" class="explore-button">
                 <span>EXPLORE</span>
                 <span class="button-arrow">→</span>
             </button>
@@ -55,192 +56,152 @@
         </div>
 
         <div class="home-footer">
-            <span>3D SPACE NAVIGATION SYSTEM</span>
-            <span>UNIVERSE EXPLORER © 2026</span>
+            <span>UNIVERSE EXPLORER</span>
+            <span>3D SPACE EXPERIENCE</span>
         </div>
 
     </section>
 
 
-    <!-- =====================================================
-         EXPLORER
-    ====================================================== -->
+    <!-- =========================
+         EXPLORER SCREEN
+    ========================== -->
 
     <section id="explorerScreen" class="screen hidden">
 
-        <!-- THREE.JS CANVAS -->
+        <!-- 3D CANVAS -->
         <div id="canvasContainer"></div>
 
 
-        <!-- =================================================
+        <!-- =========================
              TOP HUD
-        ================================================== -->
+        ========================== -->
 
-        <header class="top-hud">
+        <div class="top-hud">
 
-            <button
-                id="homeButton"
-                class="hud-button"
-            >
-                HOME
+            <button id="homeButton" class="hud-button">
+                ← HOME
             </button>
 
-
-            <div class="logo">
+            <div class="hud-logo">
                 <span>UNIVERSE</span>
                 <strong>EXPLORER</strong>
             </div>
 
-
-            <div class="search-wrapper">
+            <div class="search-container">
 
                 <input
                     id="searchInput"
                     type="text"
-                    placeholder="Search planets, stars, galaxies..."
+                    placeholder="Search the universe..."
                     autocomplete="off"
                 >
 
-                <button
-                    id="searchButton"
-                    aria-label="Search"
-                >
-                    ⌕
+                <button id="searchButton">
+                    SEARCH
                 </button>
 
                 <div id="searchResults"></div>
 
             </div>
 
-        </header>
+        </div>
 
 
-        <!-- =================================================
+        <!-- =========================
              LEFT CONTROLS
-        ================================================== -->
+        ========================== -->
 
-        <aside class="left-controls">
+        <div class="left-controls">
 
-            <button
-                id="solarSystemButton"
-                class="control-button active"
-            >
-                <span>◎</span>
+            <button id="solarSystemButton" class="control-button active">
                 SOLAR SYSTEM
             </button>
 
-
-            <button
-                id="freeModeButton"
-                class="control-button"
-            >
-                <span>✦</span>
+            <button id="freeModeButton" class="control-button">
                 FREE MODE
             </button>
 
-
-            <button
-                id="guidedModeButton"
-                class="control-button"
-            >
-                <span>◇</span>
+            <button id="guidedModeButton" class="control-button">
                 GUIDED MODE
             </button>
 
-
-            <button
-                id="tourButton"
-                class="control-button"
-            >
-                <span>▶</span>
-                SPACE TOUR
+            <button id="tourButton" class="control-button">
+                START TOUR
             </button>
 
-
-            <button
-                id="orbitsButton"
-                class="control-button active"
-            >
-                <span>◌</span>
+            <button id="orbitsButton" class="control-button active">
                 ORBITS
             </button>
 
-
-            <button
-                id="timeButton"
-                class="control-button"
-            >
-                <span>◷</span>
+            <button id="timeButton" class="control-button">
                 TIME ×1
             </button>
 
-        </aside>
+        </div>
 
 
-        <!-- =================================================
-             SPACE OBJECT FILTER
-        ================================================== -->
+        <!-- =========================
+             SPACE OBJECTS
+        ========================== -->
 
-        <div
-            id="spaceObjectsPanel"
-            class="space-objects-panel"
-        >
+        <div class="space-objects-panel">
 
-            <div class="space-objects-title">
-                DEEP SPACE
+            <div class="panel-title">
+                SPACE OBJECTS
             </div>
 
             <button
-                class="space-object-button active"
+                class="object-filter active"
                 data-object-type="all"
             >
-                ALL OBJECTS
+                ALL
             </button>
 
             <button
-                class="space-object-button"
+                class="object-filter"
                 data-object-type="planet"
             >
                 PLANETS
             </button>
 
             <button
-                class="space-object-button"
+                class="object-filter"
                 data-object-type="moon"
             >
                 MOONS
             </button>
 
             <button
-                class="space-object-button"
+                class="object-filter"
                 data-object-type="star"
             >
                 STARS
             </button>
 
             <button
-                class="space-object-button"
+                class="object-filter"
                 data-object-type="galaxy"
             >
                 GALAXIES
             </button>
 
             <button
-                class="space-object-button"
+                class="object-filter"
                 data-object-type="blackhole"
             >
                 BLACK HOLES
             </button>
 
             <button
-                class="space-object-button"
+                class="object-filter"
                 data-object-type="comet"
             >
                 COMETS
             </button>
 
             <button
-                class="space-object-button"
+                class="object-filter"
                 data-object-type="asteroid"
             >
                 ASTEROIDS
@@ -249,135 +210,110 @@
         </div>
 
 
-        <!-- =================================================
+        <!-- =========================
              NAVIGATION CONTROLS
-        ================================================== -->
+        ========================== -->
 
         <div class="navigation-controls">
 
-            <button
-                id="zoomIn"
-                class="round-button"
-                aria-label="Zoom in"
-            >
+            <button id="zoomIn" class="nav-button">
                 +
             </button>
 
-            <button
-                id="zoomOut"
-                class="round-button"
-                aria-label="Zoom out"
-            >
+            <button id="zoomOut" class="nav-button">
                 −
             </button>
 
-            <button
-                id="resetCamera"
-                class="round-button"
-                aria-label="Reset camera"
-            >
-                ⌂
+            <button id="resetCamera" class="nav-button reset">
+                ⟳
             </button>
 
         </div>
 
 
-        <!-- =================================================
-             COORDINATES
-        ================================================== -->
+        <!-- =========================
+             POSITION HUD
+        ========================== -->
 
         <div class="coordinates-panel">
 
             <div>
-                POSITION
+                <span class="hud-label">POSITION</span>
+                <span id="positionText">0.0 / 0.0 / 0.0</span>
             </div>
 
-            <strong id="positionText">
-                X 0.00 / Y 0.00 / Z 0.00
-            </strong>
-
             <div>
-                MODE:
-                <span id="modeText">
-                    SOLAR SYSTEM
-                </span>
+                <span class="hud-label">MODE</span>
+                <span id="modeText">FREE</span>
             </div>
 
         </div>
 
 
-        <!-- =================================================
-             SPACE MAP
-        ================================================== -->
+        <!-- =========================
+             MINI MAP
+        ========================== -->
 
         <div class="minimap">
 
             <div class="minimap-title">
-                SPACE MAP
+                NAVIGATION
             </div>
 
-            <div id="minimapCanvas"></div>
-
-            <span class="map-center"></span>
+            <div class="minimap-space">
+                <div class="minimap-center"></div>
+            </div>
 
         </div>
 
 
-        <!-- =================================================
-             DISTANCE / SCALE HUD
-        ================================================== -->
+        <!-- =========================
+             SCALE
+        ========================== -->
 
         <div class="scale-panel">
+            <span class="hud-label">SCALE</span>
+            <span id="scaleText">SOLAR SYSTEM</span>
+        </div>
 
-            <div class="scale-title">
-                DISTANCE SCALE
-            </div>
 
-            <strong id="scaleText">
+        <!-- =========================
+             REGION
+        ========================== -->
+
+        <div id="regionIndicator" class="region-indicator">
+
+            <span class="hud-label">
+                REGION
+            </span>
+
+            <span id="regionText">
                 SOLAR SYSTEM
-            </strong>
-
-            <div class="scale-line">
-                <span></span>
-            </div>
+            </span>
 
         </div>
 
 
-        <!-- =================================================
-             OBJECT INFO
-        ================================================== -->
+        <!-- =========================
+             INFORMATION PANEL
+        ========================== -->
 
-        <aside
-            id="infoPanel"
-            class="info-panel hidden"
-        >
+        <aside id="infoPanel" class="info-panel hidden">
 
-            <button
-                id="closeInfo"
-                class="close-info"
-                aria-label="Close"
-            >
+            <button id="closeInfo" class="close-info">
                 ×
             </button>
 
-
-            <div class="object-header">
-
-                <div>
-
-                    <span id="objectType">
-                        PLANET
-                    </span>
-
-                    <h2 id="objectName">
-                        Mars
-                    </h2>
-
-                </div>
-
+            <div id="objectType" class="info-object-type">
+                PLANET
             </div>
 
+            <h2 id="objectName">
+                Earth
+            </h2>
+
+
+            <!-- OBJECT PREVIEW -->
 
             <div class="object-preview">
 
@@ -386,61 +322,40 @@
             </div>
 
 
-            <div class="page-indicator">
+            <!-- PAGE INDICATOR -->
 
-                <span id="pageNumber">
-                    01
-                </span>
-
-                <div class="page-line"></div>
-
-                <span>
-                    04
-                </span>
-
+            <div class="info-page-indicator">
+                PAGE
+                <span id="pageNumber">1 / 4</span>
             </div>
 
 
             <!-- PAGE 1 -->
 
-            <div
-                class="info-page active"
-                data-page="1"
-            >
+            <div class="info-page active" data-page="1">
 
-                <h3>
-                    OVERVIEW
-                </h3>
+                <div class="info-grid">
 
+                    <div>
+                        <span>TYPE</span>
+                        <strong id="infoType">Planet</strong>
+                    </div>
 
-                <div class="data-row">
+                    <div>
+                        <span>NAME</span>
+                        <strong id="infoName">Earth</strong>
+                    </div>
 
-                    <span>
-                        TYPE
-                    </span>
+                    <div>
+                        <span>SIZE</span>
+                        <strong id="infoSize">12,742 km</strong>
+                    </div>
 
-                    <strong id="infoType">
-                        Planet
-                    </strong>
+                    <div>
+                        <span>MASS</span>
+                        <strong id="infoMass">5.97 × 10²⁴ kg</strong>
+                    </div>
 
-                </div>
-
-
-                <div class="data-row">
-
-                    <span>
-                        NAME
-                    </span>
-
-                    <strong id="infoName">
-                        Mars
-                    </strong>
-
-                </div>
-
-
-                <div class="source-label">
-                    SOURCE: NASA / ESA
                 </div>
 
             </div>
@@ -448,64 +363,33 @@
 
             <!-- PAGE 2 -->
 
-            <div
-                class="info-page"
-                data-page="2"
-            >
+            <div class="info-page" data-page="2">
 
-                <h3>
-                    PHYSICAL DATA
-                </h3>
+                <div class="info-grid">
 
+                    <div>
+                        <span>TEMPERATURE</span>
+                        <strong id="infoTemperature">15 °C</strong>
+                    </div>
 
-                <div class="data-row">
+                    <div>
+                        <span>GRAVITY</span>
+                        <strong id="infoGravity">9.81 m/s²</strong>
+                    </div>
 
-                    <span>
-                        SIZE
-                    </span>
+                    <div>
+                        <span>COMPOSITION</span>
+                        <strong id="infoComposition">
+                            Rocky
+                        </strong>
+                    </div>
 
-                    <strong id="infoSize">
-                        6,779 km
-                    </strong>
-
-                </div>
-
-
-                <div class="data-row">
-
-                    <span>
-                        MASS
-                    </span>
-
-                    <strong id="infoMass">
-                        6.39 × 10²³ kg
-                    </strong>
-
-                </div>
-
-
-                <div class="data-row">
-
-                    <span>
-                        TEMPERATURE
-                    </span>
-
-                    <strong id="infoTemperature">
-                        −63 °C
-                    </strong>
-
-                </div>
-
-
-                <div class="data-row">
-
-                    <span>
-                        GRAVITY
-                    </span>
-
-                    <strong id="infoGravity">
-                        3.71 m/s²
-                    </strong>
+                    <div>
+                        <span>ATMOSPHERE</span>
+                        <strong id="infoAtmosphere">
+                            Nitrogen / Oxygen
+                        </strong>
+                    </div>
 
                 </div>
 
@@ -514,64 +398,23 @@
 
             <!-- PAGE 3 -->
 
-            <div
-                class="info-page"
-                data-page="3"
-            >
+            <div class="info-page" data-page="3">
 
-                <h3>
-                    ASTRONOMICAL DATA
-                </h3>
+                <div class="info-grid">
 
+                    <div>
+                        <span>ROTATION</span>
+                        <strong id="infoRotation">
+                            23.9 hours
+                        </strong>
+                    </div>
 
-                <div class="data-row">
-
-                    <span>
-                        COMPOSITION
-                    </span>
-
-                    <strong id="infoComposition">
-                        Rock and iron
-                    </strong>
-
-                </div>
-
-
-                <div class="data-row">
-
-                    <span>
-                        ATMOSPHERE
-                    </span>
-
-                    <strong id="infoAtmosphere">
-                        CO₂ dominant
-                    </strong>
-
-                </div>
-
-
-                <div class="data-row">
-
-                    <span>
-                        ROTATION
-                    </span>
-
-                    <strong id="infoRotation">
-                        24.6 hours
-                    </strong>
-
-                </div>
-
-
-                <div class="data-row">
-
-                    <span>
-                        ORBITAL PERIOD
-                    </span>
-
-                    <strong id="infoOrbit">
-                        687 days
-                    </strong>
+                    <div>
+                        <span>ORBIT</span>
+                        <strong id="infoOrbit">
+                            365.25 days
+                        </strong>
+                    </div>
 
                 </div>
 
@@ -580,27 +423,17 @@
 
             <!-- PAGE 4 -->
 
-            <div
-                class="info-page"
-                data-page="4"
-            >
+            <div class="info-page" data-page="4">
 
-                <h3>
-                    DISCOVERY & MISSIONS
-                </h3>
+                <div class="facts-box">
 
+                    <span>INTERESTING FACTS</span>
 
-                <p
-                    id="infoFacts"
-                    class="facts"
-                >
-                    Mars has been explored by numerous robotic missions
-                    and remains one of the main targets for planetary science.
-                </p>
+                    <p id="infoFacts">
+                        Earth is the only known planet
+                        with life.
+                    </p>
 
-
-                <div class="source-label">
-                    NASA · ESA · SCIENTIFIC CATALOGUES
                 </div>
 
             </div>
@@ -621,16 +454,16 @@
             </div>
 
 
-            <!-- OBJECT ACTIONS -->
+            <!-- ACTIONS -->
 
-            <div class="object-actions">
+            <div class="info-actions">
 
                 <button id="focusObject">
                     FOCUS
                 </button>
 
                 <button id="favoriteObject">
-                    ☆
+                    ★
                 </button>
 
                 <button id="atmosphereButton">
@@ -642,143 +475,120 @@
         </aside>
 
 
-        <!-- =================================================
+        <!-- =========================
              GUIDED MODE
-        ================================================== -->
+        ========================== -->
 
-        <div
-            id="guidedPanel"
-            class="guided-panel hidden"
-        >
+        <div id="guidedPanel" class="guided-panel hidden">
 
-            <div class="guided-title">
-                GUIDED TOUR
+            <div class="guided-label">
+                GUIDED EXPLORATION
             </div>
 
             <h2 id="tourTitle">
-                Welcome to the Solar System
+                Welcome
             </h2>
 
             <p id="tourDescription">
-                Begin your journey through our planetary system.
+                Begin your journey through the universe.
             </p>
 
             <button id="tourNext">
-                NEXT DESTINATION →
+                NEXT →
             </button>
 
         </div>
 
 
-        <!-- =================================================
-             SPACE TOUR PROGRESS
-        ================================================== -->
+        <!-- =========================
+             TOUR PROGRESS
+        ========================== -->
 
-        <div
-            id="tourProgress"
-            class="tour-progress hidden"
-        >
+        <div id="tourProgress" class="tour-progress hidden">
 
-            <div class="tour-progress-label">
-                SPACE TOUR
+            <div class="tour-progress-top">
+
+                <span>
+                    EXPLORATION TOUR
+                </span>
+
+                <span id="tourProgressText">
+                    1 / 14
+                </span>
+
             </div>
 
             <div class="tour-progress-track">
-                <span id="tourProgressBar"></span>
-            </div>
 
-            <div id="tourProgressText">
-                01 / 10
-            </div>
-
-        </div>
-
-
-        <!-- =================================================
-             CURRENT REGION
-        ================================================== -->
-
-        <div
-            id="regionIndicator"
-            class="region-indicator"
-        >
-
-            <span class="region-dot"></span>
-
-            <div>
-
-                <small>
-                    CURRENT REGION
-                </small>
-
-                <strong id="regionText">
-                    SOLAR SYSTEM
-                </strong>
+                <div
+                    id="tourProgressBar"
+                    class="tour-progress-bar"
+                ></div>
 
             </div>
 
         </div>
 
 
-        <!-- =================================================
-             BOTTOM HUD
-        ================================================== -->
+        <!-- =========================
+             SELECTED OBJECT STATUS
+        ========================== -->
 
-        <footer class="bottom-hud">
+        <div id="selectedStatus" class="selected-status">
 
-            <div class="status">
+            <span class="status-dot"></span>
 
-                <span class="status-dot"></span>
-
-                SYSTEM ONLINE
-
-            </div>
-
-
-            <div id="selectedStatus">
+            <span>
                 NO OBJECT SELECTED
+            </span>
+
+        </div>
+
+
+        <!-- =========================
+             LOADING SCREEN
+        ========================== -->
+
+        <div id="loadingScreen" class="loading-screen">
+
+            <div class="loading-content">
+
+                <div class="loading-logo">
+                    UNIVERSE EXPLORER
+                </div>
+
+                <div class="loading-text">
+                    INITIALIZING UNIVERSE...
+                </div>
+
+                <div class="loading-bar">
+
+                    <div
+                        id="loadingProgress"
+                        class="loading-progress"
+                    ></div>
+
+                </div>
+
+                <div id="loadingPercentage">
+                    0%
+                </div>
+
             </div>
-
-
-            <div>
-                DRAG: ROTATE · WHEEL: ZOOM
-            </div>
-
-        </footer>
-
-
-        <!-- =================================================
-             LOADING
-        ================================================== -->
-
-        <div
-            id="loadingScreen"
-            class="loading-screen"
-        >
-
-            <div class="loader-ring"></div>
-
-            <div>
-                INITIALIZING UNIVERSE
-            </div>
-
-            <small>
-                LOADING 3D SPACE ENVIRONMENT
-            </small>
 
         </div>
 
     </section>
 
 
-    <!-- =====================================================
+    <!-- =========================
          APPLICATION
-    ====================================================== -->
+    ========================== -->
 
     <script
         type="module"
-        src="app.js"
+        src="./js/app.js"
     ></script>
 
 </body>
-    </html>
+</html>
