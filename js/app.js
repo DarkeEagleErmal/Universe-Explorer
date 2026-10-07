@@ -83,7 +83,7 @@ let cometGroup;
 // ============================================================
 
 function initializeApp() {
-
+initializeWelcome();
     createScene();
     createRenderer();
 
