@@ -552,32 +552,68 @@ button {
 
 .info-panel {
     position: absolute;
+
+    /*
+       Rimane a destra, ma leggermente più vicino
+       alla zona centrale dove viene mostrato l'oggetto.
+    */
     top: 90px;
-    right: 190px;
+    right: 170px;
+
     width: 350px;
     min-height: 470px;
     padding: 22px;
+
     border: 1px solid var(--border);
-    background: rgba(3,10,24,.88);
+
+    background:
+        rgba(3,10,24,.88);
+
     backdrop-filter: blur(20px);
-    box-shadow: 0 0 50px rgba(0,0,0,.4);
+
+    box-shadow:
+        0 0 50px rgba(0,0,0,.4),
+        0 0 25px rgba(67,140,255,.06);
+
     z-index: 30;
+
+    animation:
+        informationPanelIn .25s ease;
+}
+
+@keyframes informationPanelIn {
+
+    from {
+        opacity: 0;
+        transform: translateX(18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .close-info {
     position: absolute;
     top: 12px;
     right: 15px;
+
     width: 28px;
     height: 28px;
+
     border: 0;
     background: transparent;
+
     color: var(--muted);
     font-size: 22px;
+
+    transition: .2s ease;
 }
 
 .close-info:hover {
     color: var(--cyan);
+    transform: rotate(90deg);
 }
 
 .info-object-type {
@@ -588,25 +624,92 @@ button {
 
 .info-panel h2 {
     margin-top: 5px;
+
     font-size: 30px;
     font-weight: 400;
     letter-spacing: 1px;
+
+    text-shadow:
+        0 0 15px rgba(101,234,255,.08);
 }
 
+
+/* =========================================
+   CELESTIAL OBJECT PREVIEW
+========================================= */
+
 .object-preview {
-    height: 150px;
+    position: relative;
+
+    height: 170px;
     margin: 15px 0;
+
     display: flex;
     align-items: center;
     justify-content: center;
-    border-top: 1px solid rgba(255,255,255,.05);
-    border-bottom: 1px solid rgba(255,255,255,.05);
+
+    border-top:
+        1px solid rgba(255,255,255,.05);
+
+    border-bottom:
+        1px solid rgba(255,255,255,.05);
+
+    overflow: hidden;
+
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(70,130,200,.06),
+            transparent 65%
+        );
+}
+
+.object-preview::before {
+    content: "";
+
+    position: absolute;
+
+    width: 135px;
+    height: 135px;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(101,234,255,.06),
+            transparent 70%
+        );
+
+    filter: blur(8px);
+
+    pointer-events: none;
 }
 
 #objectPreviewSphere {
-    width: 100px;
-    height: 100px;
+    position: relative;
+
+    width: 150px;
+    height: 150px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    z-index: 2;
 }
+
+#objectPreviewSphere canvas {
+    display: block;
+
+    width: 150px !important;
+    height: 150px !important;
+}
+
+
+/* =========================================
+   INFORMATION PAGES
+========================================= */
 
 .info-page-indicator {
     margin-bottom: 12px;
@@ -625,6 +728,22 @@ button {
 
 .info-page.active {
     display: block;
+
+    animation:
+        informationPageIn .2s ease;
+}
+
+@keyframes informationPageIn {
+
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .info-grid {
@@ -674,18 +793,14 @@ button {
     font-size: 16px;
 }
 
-.info-actions {
-    display: flex;
-    gap: 6px;
-    margin-top: 10px;
-}
 
-.info-actions button {
-    flex: 1;
-    height: 32px;
-    color: var(--muted);
-    font-size: 7px;
-    letter-spacing: 1px;
+/* =========================================
+   UNUSED ACTION BUTTONS
+   FOCUS / FAVORITE / ATMOSPHERE
+========================================= */
+
+.info-actions {
+    display: none !important;
 }
 
 
@@ -944,6 +1059,16 @@ button {
 
     .object-preview {
         height: 100px;
+    }
+
+    #objectPreviewSphere {
+        width: 110px;
+        height: 110px;
+    }
+
+    #objectPreviewSphere canvas {
+        width: 110px !important;
+        height: 110px !important;
     }
 
     .guided-panel {
