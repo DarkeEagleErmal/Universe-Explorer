@@ -338,9 +338,8 @@ function createAllObjects() {
 
     createCelestialBodies();
 
-    // createDeepSpaceObjects() rimosso:
-    // la funzione non esisteva e causava un errore.
-
+    // createDeepSpaceObjects(scene);
+   
     createNebulaObjects();
 
     createGalaxyObjects();
