@@ -1,390 +1,605 @@
 import * as THREE from "three";
 import { COLORS } from "./colors.js";
 
+
+// ============================================================
+// GLOBAL EFFECTS
+// ============================================================
+
+let scene = null;
+
 let starField = null;
 let ambientParticles = null;
-let glowGroup = null;
 
-const animatedObjects = [];
+const glowObjects = [];
 
-// ============================================================
-// CREATE STAR TEXTURE
-// ============================================================
-
-function createStarTexture() {
-    const canvas = document.createElement("canvas");
-    canvas.width = 64;
-    canvas.height = 64;
-
-    const ctx = canvas.getContext("2d");
-
-    const gradient = ctx.createRadialGradient(
-        32, 32, 0,
-        32, 32, 32
-    );
-
-    gradient.addColorStop(0, "rgba(255,255,255,1)");
-    gradient.addColorStop(0.15, "rgba(255,255,255,1)");
-    gradient.addColorStop(0.35, "rgba(180,220,255,0.9)");
-    gradient.addColorStop(0.65, "rgba(120,180,255,0.35)");
-    gradient.addColorStop(1, "rgba(0,0,0,0)");
-
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 64, 64);
-
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.needsUpdate = true;
-
-    return texture;
-}
 
 // ============================================================
 // STAR FIELD
 // ============================================================
 
-function createStarField(scene) {
-    const starCount = 12000;
+function createStarField() {
 
-    const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(starCount * 3);
-    const colors = new Float32Array(starCount * 3);
-    const sizes = new Float32Array(starCount);
+    const starCount = 18000;
+
+    const positions = new Float32Array(
+        starCount * 3
+    );
+
+    const colors = new Float32Array(
+        starCount * 3
+    );
+
+    const sizes = new Float32Array(
+        starCount
+    );
 
     for (let i = 0; i < starCount; i++) {
-        const i3 = i * 3;
 
-        const radius = 250 + Math.random() * 4500;
-        const theta = Math.random() * Math.PI * 2;
-        const phi = Math.acos(
-            THREE.MathUtils.randFloatSpread(2)
-        );
+        // Large spherical distribution
+        const radius =
+            800 +
+            Math.random() * 7000;
 
-        positions[i3] =
-            radius * Math.sin(phi) * Math.cos(theta);
+        const theta =
+            Math.random() *
+            Math.PI * 2;
 
-        positions[i3 + 1] =
-            radius * Math.cos(phi);
+        const phi =
+            Math.acos(
+                THREE.MathUtils.randFloatSpread(2)
+            );
 
-        positions[i3 + 2] =
-            radius * Math.sin(phi) * Math.sin(theta);
+        const x =
+            radius *
+            Math.sin(phi) *
+            Math.cos(theta);
 
-        // Slight variation in star colors
-        const type = Math.random();
+        const y =
+            radius *
+            Math.cos(phi);
 
-        if (type < 0.72) {
-            colors[i3] = 1;
-            colors[i3 + 1] = 1;
-            colors[i3 + 2] = 1;
-        } else if (type < 0.88) {
-            colors[i3] = 0.55;
-            colors[i3 + 1] = 0.8;
-            colors[i3 + 2] = 1;
-        } else if (type < 0.96) {
-            colors[i3] = 1;
-            colors[i3 + 1] = 0.82;
-            colors[i3 + 2] = 0.55;
+        const z =
+            radius *
+            Math.sin(phi) *
+            Math.sin(theta);
+
+        const index = i * 3;
+
+        positions[index] = x;
+        positions[index + 1] = y;
+        positions[index + 2] = z;
+
+
+        // Slightly varied star colours
+        const brightness =
+            0.65 +
+            Math.random() * 0.35;
+
+        const type =
+            Math.random();
+
+        let color;
+
+        if (type < 0.70) {
+
+            // White
+            color = new THREE.Color(
+                COLORS.space.star
+            );
+
+        } else if (type < 0.85) {
+
+            // Blue-white
+            color = new THREE.Color(
+                COLORS.space.starBlue
+            );
+
+        } else if (type < 0.94) {
+
+            // Slightly warm
+            color = new THREE.Color(
+                0xffe9c7
+            );
+
         } else {
-            colors[i3] = 1;
-            colors[i3 + 1] = 0.55;
-            colors[i3 + 2] = 0.4;
+
+            // Soft reddish star
+            color = new THREE.Color(
+                0xffc0a0
+            );
         }
 
-        sizes[i] = 1.5 + Math.random() * 4;
+        colors[index] =
+            color.r * brightness;
+
+        colors[index + 1] =
+            color.g * brightness;
+
+        colors[index + 2] =
+            color.b * brightness;
+
+
+        // Very small points
+        sizes[i] =
+            0.8 +
+            Math.random() * 1.8;
     }
+
+
+    const geometry =
+        new THREE.BufferGeometry();
 
     geometry.setAttribute(
         "position",
-        new THREE.BufferAttribute(positions, 3)
+        new THREE.BufferAttribute(
+            positions,
+            3
+        )
     );
 
     geometry.setAttribute(
         "color",
-        new THREE.BufferAttribute(colors, 3)
+        new THREE.BufferAttribute(
+            colors,
+            3
+        )
     );
 
     geometry.setAttribute(
         "size",
-        new THREE.BufferAttribute(sizes, 1)
+        new THREE.BufferAttribute(
+            sizes,
+            1
+        )
     );
 
-    const material = new THREE.PointsMaterial({
-        size: 3,
-        map: createStarTexture(),
-        vertexColors: true,
-        transparent: true,
-        opacity: 0.95,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-        sizeAttenuation: true
-    });
 
-    starField = new THREE.Points(
-        geometry,
-        material
+    const material =
+        new THREE.PointsMaterial({
+
+            size: 1.7,
+
+            vertexColors: true,
+
+            transparent: true,
+
+            opacity: 0.9,
+
+            depthWrite: false,
+
+            blending:
+                THREE.AdditiveBlending,
+
+            sizeAttenuation: true
+        });
+
+
+    starField =
+        new THREE.Points(
+            geometry,
+            material
+        );
+
+    starField.name =
+        "Realistic Star Field";
+
+    scene.add(
+        starField
     );
-
-    starField.name = "RealisticStarField";
-
-    scene.add(starField);
 }
 
+
 // ============================================================
-// AMBIENT PARTICLES
+// AMBIENT SPACE PARTICLES
 // ============================================================
 
-function createAmbientParticles(scene) {
-    const count = 1800;
+function createAmbientParticles() {
 
-    const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(count * 3);
+    const count = 2500;
+
+    const positions =
+        new Float32Array(
+            count * 3
+        );
 
     for (let i = 0; i < count; i++) {
-        const i3 = i * 3;
 
-        positions[i3] =
-            THREE.MathUtils.randFloatSpread(2500);
+        const radius =
+            250 +
+            Math.random() * 2500;
 
-        positions[i3 + 1] =
-            THREE.MathUtils.randFloatSpread(2500);
+        const theta =
+            Math.random() *
+            Math.PI * 2;
 
-        positions[i3 + 2] =
-            THREE.MathUtils.randFloatSpread(2500);
+        const phi =
+            Math.acos(
+                THREE.MathUtils.randFloatSpread(2)
+            );
+
+        const index = i * 3;
+
+        positions[index] =
+            radius *
+            Math.sin(phi) *
+            Math.cos(theta);
+
+        positions[index + 1] =
+            radius *
+            Math.cos(phi);
+
+        positions[index + 2] =
+            radius *
+            Math.sin(phi) *
+            Math.sin(theta);
     }
+
+
+    const geometry =
+        new THREE.BufferGeometry();
 
     geometry.setAttribute(
         "position",
-        new THREE.BufferAttribute(positions, 3)
+        new THREE.BufferAttribute(
+            positions,
+            3
+        )
     );
 
-    const material = new THREE.PointsMaterial({
-        color: 0x8ac8ff,
-        size: 1.2,
-        transparent: true,
-        opacity: 0.22,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending
-    });
 
-    ambientParticles = new THREE.Points(
-        geometry,
-        material
+    const material =
+        new THREE.PointsMaterial({
+
+            color:
+                COLORS.effects.cyan,
+
+            size: 0.7,
+
+            transparent: true,
+
+            opacity: 0.22,
+
+            depthWrite: false,
+
+            blending:
+                THREE.AdditiveBlending
+        });
+
+
+    ambientParticles =
+        new THREE.Points(
+            geometry,
+            material
+        );
+
+    ambientParticles.name =
+        "Ambient Space Dust";
+
+    scene.add(
+        ambientParticles
     );
-
-    ambientParticles.name = "AmbientSpaceParticles";
-
-    scene.add(ambientParticles);
 }
 
+
 // ============================================================
-// GLOW GROUP
+// INITIALIZE EFFECTS
 // ============================================================
 
-function createGlowGroup(scene) {
-    glowGroup = new THREE.Group();
-    glowGroup.name = "SpaceGlowEffects";
+export function initializeEffects(
+    targetScene
+) {
 
-    scene.add(glowGroup);
+    scene =
+        targetScene;
+
+    if (!scene) {
+        return;
+    }
+
+    createStarField();
+
+    createAmbientParticles();
 }
 
-// ============================================================
-// INITIALIZE
-// ============================================================
-
-export function initializeEffects(scene) {
-    createStarField(scene);
-    createAmbientParticles(scene);
-    createGlowGroup(scene);
-}
 
 // ============================================================
-// UPDATE
+// UPDATE EFFECTS
 // ============================================================
 
-export function updateEffects(time = 0) {
+export function updateEffects() {
+
+    if (!scene) {
+        return;
+    }
+
+    const time =
+        performance.now() *
+        0.001;
+
+
+    // Very slow star-field movement
     if (starField) {
-        starField.rotation.y += 0.00001;
 
-        const material = starField.material;
+        starField.rotation.y =
+            time * 0.001;
 
-        // Subtle global twinkle
-        material.opacity =
-            0.88 + Math.sin(time * 0.001) * 0.07;
+        starField.rotation.x =
+            Math.sin(time * 0.03) *
+            0.002;
     }
 
+
+    // Very subtle space dust movement
     if (ambientParticles) {
-        ambientParticles.rotation.y += 0.000025;
-        ambientParticles.rotation.x += 0.000008;
+
+        ambientParticles.rotation.y =
+            -time * 0.002;
+
+        ambientParticles.rotation.x =
+            Math.sin(time * 0.02) *
+            0.003;
     }
 
-    animatedObjects.forEach((item) => {
-        if (item.update) {
-            item.update(time);
+
+    // Animate registered glow effects
+    glowObjects.forEach(
+        effect => {
+
+            if (!effect.object) {
+                return;
+            }
+
+            const pulse =
+                1 +
+                Math.sin(
+                    time *
+                    effect.speed
+                ) *
+                effect.amount;
+
+            effect.object.scale.set(
+                pulse,
+                pulse,
+                pulse
+            );
         }
-    });
+    );
 }
 
+
 // ============================================================
-// CREATE GLOW
+// GLOW
 // ============================================================
 
 export function createGlow(
+    parent,
     color = COLORS.effects.glow,
-    size = 10,
-    opacity = 0.35
+    radius = 10,
+    opacity = 0.18
 ) {
-    const group = new THREE.Group();
 
-    const texture = createStarTexture();
+    const geometry =
+        new THREE.SphereGeometry(
+            radius,
+            32,
+            32
+        );
 
-    const material = new THREE.SpriteMaterial({
-        map: texture,
-        color,
-        transparent: true,
-        opacity,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending
-    });
+    const material =
+        new THREE.MeshBasicMaterial({
 
-    const sprite = new THREE.Sprite(material);
+            color,
 
-    sprite.scale.set(
-        size,
-        size,
-        1
+            transparent: true,
+
+            opacity,
+
+            depthWrite: false,
+
+            side:
+                THREE.BackSide,
+
+            blending:
+                THREE.AdditiveBlending
+        });
+
+
+    const glow =
+        new THREE.Mesh(
+            geometry,
+            material
+        );
+
+    parent.add(
+        glow
     );
 
-    group.add(sprite);
 
-    if (glowGroup) {
-        glowGroup.add(group);
-    }
+    glowObjects.push({
+        object: glow,
+        speed: 1.2,
+        amount: 0.035
+    });
 
-    return group;
+
+    return glow;
 }
+
 
 // ============================================================
 // NEBULA GLOW
 // ============================================================
 
 export function createNebulaGlow(
+    parent,
     color,
-    size = 100,
-    opacity = 0.12
+    size = 100
 ) {
-    const geometry = new THREE.SphereGeometry(
-        size,
-        32,
-        32
+
+    const geometry =
+        new THREE.SphereGeometry(
+            size,
+            32,
+            32
+        );
+
+    const material =
+        new THREE.MeshBasicMaterial({
+
+            color,
+
+            transparent: true,
+
+            opacity: 0.06,
+
+            depthWrite: false,
+
+            side:
+                THREE.BackSide,
+
+            blending:
+                THREE.AdditiveBlending
+        });
+
+
+    const glow =
+        new THREE.Mesh(
+            geometry,
+            material
+        );
+
+    parent.add(
+        glow
     );
 
-    const material = new THREE.MeshBasicMaterial({
-        color,
-        transparent: true,
-        opacity,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-        side: THREE.BackSide
+
+    glowObjects.push({
+        object: glow,
+        speed: 0.35,
+        amount: 0.025
     });
 
-    const mesh = new THREE.Mesh(
-        geometry,
-        material
-    );
 
-    mesh.name = "NebulaGlow";
-
-    if (glowGroup) {
-        glowGroup.add(mesh);
-    }
-
-    return mesh;
+    return glow;
 }
+
 
 // ============================================================
 // ENERGY RING
 // ============================================================
 
 export function createEnergyRing(
+    parent,
     color = COLORS.effects.cyan,
     radius = 10
 ) {
-    const geometry = new THREE.RingGeometry(
-        radius * 0.92,
-        radius,
-        96
+
+    const geometry =
+        new THREE.RingGeometry(
+            radius * 1.15,
+            radius * 1.25,
+            96
+        );
+
+    const material =
+        new THREE.MeshBasicMaterial({
+
+            color,
+
+            transparent: true,
+
+            opacity: 0.35,
+
+            side:
+                THREE.DoubleSide,
+
+            depthWrite: false,
+
+            blending:
+                THREE.AdditiveBlending
+        });
+
+
+    const ring =
+        new THREE.Mesh(
+            geometry,
+            material
+        );
+
+    ring.rotation.x =
+        Math.PI / 2;
+
+    parent.add(
+        ring
     );
 
-    const material = new THREE.MeshBasicMaterial({
-        color,
-        transparent: true,
-        opacity: 0.5,
-        side: THREE.DoubleSide,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false
-    });
 
-    const ring = new THREE.Mesh(
-        geometry,
-        material
-    );
-
-    ring.name = "EnergyRing";
-
-    if (glowGroup) {
-        glowGroup.add(ring);
-    }
-
-    animatedObjects.push({
+    glowObjects.push({
         object: ring,
-
-        update(time) {
-            ring.rotation.z =
-                time * 0.00025;
-        }
+        speed: 1.8,
+        amount: 0.04
     });
+
 
     return ring;
 }
+
 
 // ============================================================
 // VISIBILITY
 // ============================================================
 
-export function setEffectsVisible(visible) {
+export function setEffectsVisible(
+    visible
+) {
+
     if (starField) {
-        starField.visible = visible;
+        starField.visible =
+            visible;
     }
 
     if (ambientParticles) {
-        ambientParticles.visible = visible;
-    }
-
-    if (glowGroup) {
-        glowGroup.visible = visible;
+        ambientParticles.visible =
+            visible;
     }
 }
+
 
 export function areEffectsVisible() {
+
     return (
-        starField?.visible ??
-        true
+        starField?.visible !== false
     );
 }
+
 
 // ============================================================
 // CLEAR
 // ============================================================
 
 export function clearEffects() {
+
+    if (!scene) {
+        return;
+    }
+
     if (starField) {
-        starField.parent?.remove(starField);
+
+        scene.remove(
+            starField
+        );
+
         starField.geometry.dispose();
         starField.material.dispose();
+
         starField = null;
     }
 
+
     if (ambientParticles) {
-        ambientParticles.parent?.remove(
+
+        scene.remove(
             ambientParticles
         );
 
@@ -394,10 +609,6 @@ export function clearEffects() {
         ambientParticles = null;
     }
 
-    if (glowGroup) {
-        glowGroup.parent?.remove(glowGroup);
-        glowGroup = null;
-    }
 
-    animatedObjects.length = 0;
+    glowObjects.length = 0;
 }
