@@ -1,418 +1,498 @@
-// =========================================================
-// UNIVERSE EXPLORER
-// explorationControls.js
-// All exploration controls
-// =========================================================
-
-const solarSystemButton = document.getElementById("solarSystemButton");
-const freeModeButton = document.getElementById("freeModeButton");
-const guidedModeButton = document.getElementById("guidedModeButton");
-const tourButton = document.getElementById("tourButton");
-const orbitsButton = document.getElementById("orbitsButton");
-const timeButton = document.getElementById("timeButton");
-
-const zoomInButton = document.getElementById("zoomIn");
-const zoomOutButton = document.getElementById("zoomOut");
-const resetCameraButton = document.getElementById("resetCamera");
-
-const spaceObjectButtons = document.querySelectorAll(
-    ".space-object-button"
-);
-
-
-// =========================================================
-// STATE
-// =========================================================
+// ============================================================
+// UNIVERSE EXPLORER — EXPLORATION CONTROLS
+// ============================================================
 
 let explorationMode = "FREE";
-let showOrbits = true;
+let orbitsVisible = true;
 let timeMultiplier = 1;
-let currentRegion = "SOLAR SYSTEM";
 let objectFilter = "all";
+let currentRegion = "Solar System";
 
-
-// =========================================================
+// ============================================================
 // EVENTS
-// =========================================================
+// ============================================================
 
 function emit(name, detail = {}) {
-
     window.dispatchEvent(
         new CustomEvent(name, {
             detail
         })
     );
-
 }
 
-
-// =========================================================
+// ============================================================
 // EXPLORATION MODE
-// =========================================================
+// ============================================================
 
 export function setExplorationMode(mode) {
-
-    explorationMode = mode.toUpperCase();
-
-    updateModeButtons();
+    explorationMode = String(mode || "FREE").toUpperCase();
 
     emit("universe:modeChanged", {
         mode: explorationMode
     });
 
-}
+    if (explorationMode === "SOLAR_SYSTEM") {
+        emit("universe:solarSystem", {
+            mode: explorationMode
+        });
+    }
 
+    if (explorationMode === "FREE") {
+        emit("universe:freeMode", {
+            mode: explorationMode
+        });
+    }
+
+    if (explorationMode === "GUIDED") {
+        emit("universe:guidedMode", {
+            mode: explorationMode
+        });
+    }
+}
 
 export function getExplorationMode() {
-
     return explorationMode;
-
 }
 
-
-// =========================================================
-// MODE BUTTONS
-// =========================================================
-
-function updateModeButtons() {
-
-    solarSystemButton?.classList.toggle(
-        "active",
-        currentRegion === "SOLAR SYSTEM"
-    );
-
-    freeModeButton?.classList.toggle(
-        "active",
-        explorationMode === "FREE"
-    );
-
-    guidedModeButton?.classList.toggle(
-        "active",
-        explorationMode === "GUIDED"
-    );
-
-}
-
-
-// =========================================================
-// SOLAR SYSTEM
-// =========================================================
-
-solarSystemButton?.addEventListener("click", () => {
-
-    currentRegion = "SOLAR SYSTEM";
-
-    setExplorationMode("FREE");
-
-    emit("universe:solarSystem");
-
-});
-
-
-// =========================================================
-// FREE MODE
-// =========================================================
-
-freeModeButton?.addEventListener("click", () => {
-
-    setExplorationMode("FREE");
-
-    emit("universe:freeMode");
-
-});
-
-
-// =========================================================
-// GUIDED MODE
-// =========================================================
-
-guidedModeButton?.addEventListener("click", () => {
-
-    setExplorationMode("GUIDED");
-
-    emit("universe:guidedMode");
-
-});
-
-
-// =========================================================
-// SPACE TOUR
-// =========================================================
-
-tourButton?.addEventListener("click", () => {
-
-    setExplorationMode("GUIDED");
-
-    emit("universe:startTour");
-
-});
-
-
-// =========================================================
+// ============================================================
 // ORBITS
-// =========================================================
+// ============================================================
 
 export function setOrbitsVisible(visible) {
-
-    showOrbits = Boolean(visible);
-
-    orbitsButton?.classList.toggle(
-        "active",
-        showOrbits
-    );
+    orbitsVisible = Boolean(visible);
 
     emit("universe:orbitsChanged", {
-        visible: showOrbits
+        visible: orbitsVisible
     });
-
 }
-
 
 export function areOrbitsVisible() {
-
-    return showOrbits;
-
+    return orbitsVisible;
 }
 
+export function toggleOrbits() {
+    setOrbitsVisible(!orbitsVisible);
+}
 
-orbitsButton?.addEventListener("click", () => {
+// ============================================================
+// TIME
+// ============================================================
 
-    setOrbitsVisible(!showOrbits);
+export function setTimeMultiplier(multiplier) {
+    const value = Number(multiplier);
 
-});
-
-
-// =========================================================
-// TIME SPEED
-// =========================================================
-
-const timeValues = [1, 5, 20];
-
-
-export function setTimeMultiplier(value) {
-
-    timeMultiplier = value;
-
-    if (timeButton) {
-
-        timeButton.innerHTML =
-            `<span>◷</span> TIME ×${timeMultiplier}`;
-
+    if (!Number.isFinite(value)) {
+        return;
     }
+
+    timeMultiplier = Math.max(
+        0,
+        Math.min(value, 1000)
+    );
 
     emit("universe:timeChanged", {
         multiplier: timeMultiplier
     });
 
+    emit("universe:timeMultiplierChanged", {
+        multiplier: timeMultiplier
+    });
 }
-
 
 export function getTimeMultiplier() {
-
     return timeMultiplier;
-
 }
 
-
-timeButton?.addEventListener("click", () => {
-
-    const currentIndex =
-        timeValues.indexOf(timeMultiplier);
-
-    const nextIndex =
-        (currentIndex + 1) % timeValues.length;
-
-    setTimeMultiplier(
-        timeValues[nextIndex]
-    );
-
-});
-
-
-// =========================================================
-// ZOOM
-// =========================================================
-
-zoomInButton?.addEventListener("click", () => {
-
-    emit("universe:zoomIn");
-
-});
-
-
-zoomOutButton?.addEventListener("click", () => {
-
-    emit("universe:zoomOut");
-
-});
-
-
-// =========================================================
-// RESET CAMERA
-// =========================================================
-
-resetCameraButton?.addEventListener("click", () => {
-
-    emit("universe:resetCamera");
-
-});
-
-
-// =========================================================
-// SPACE OBJECT FILTER
-// =========================================================
-
-export function setObjectFilter(type) {
-
-    objectFilter = type.toLowerCase();
-
-    spaceObjectButtons.forEach(button => {
-
-        button.classList.toggle(
-            "active",
-            button.dataset.objectType === objectFilter
+export function increaseTime() {
+    if (timeMultiplier < 1) {
+        setTimeMultiplier(1);
+    } else if (timeMultiplier < 10) {
+        setTimeMultiplier(timeMultiplier + 1);
+    } else if (timeMultiplier < 100) {
+        setTimeMultiplier(timeMultiplier + 10);
+    } else {
+        setTimeMultiplier(
+            Math.min(timeMultiplier * 2, 1000)
         );
-
-    });
-
-    emit("universe:objectFilterChanged", {
-        type: objectFilter
-    });
-
+    }
 }
 
+export function decreaseTime() {
+    if (timeMultiplier <= 1) {
+        setTimeMultiplier(0);
+    } else if (timeMultiplier <= 10) {
+        setTimeMultiplier(timeMultiplier - 1);
+    } else {
+        setTimeMultiplier(
+            Math.max(
+                1,
+                Math.floor(timeMultiplier / 2)
+            )
+        );
+    }
+}
+
+// ============================================================
+// OBJECT FILTER
+// ============================================================
+
+export function setObjectFilter(filter) {
+    objectFilter =
+        String(filter || "all")
+            .toLowerCase();
+
+    emit(
+        "universe:objectFilterChanged",
+        {
+            filter: objectFilter
+        }
+    );
+}
 
 export function getObjectFilter() {
-
     return objectFilter;
-
 }
 
-
-spaceObjectButtons.forEach(button => {
-
-    button.addEventListener("click", () => {
-
-        const type =
-            button.dataset.objectType || "all";
-
-        setObjectFilter(type);
-
-    });
-
-});
-
-
-// =========================================================
+// ============================================================
 // REGION
-// =========================================================
+// ============================================================
 
 export function setCurrentRegion(region) {
+    currentRegion =
+        String(
+            region || "Solar System"
+        );
 
-    currentRegion = region;
-
-    updateModeButtons();
-
-    emit("universe:regionChanged", {
-        region: currentRegion
-    });
-
+    emit(
+        "universe:regionChanged",
+        {
+            region: currentRegion
+        }
+    );
 }
-
 
 export function getCurrentRegion() {
-
     return currentRegion;
-
 }
 
-
-// =========================================================
-// KEYBOARD CONTROLS
-// =========================================================
-
-document.addEventListener("keydown", event => {
-
-    if (
-        event.target.tagName === "INPUT" ||
-        event.target.tagName === "TEXTAREA"
-    ) {
-        return;
-    }
-
-
-    switch (event.key.toLowerCase()) {
-
-        case "g":
-
-            setExplorationMode("GUIDED");
-
-            emit("universe:guidedMode");
-
-            break;
-
-
-        case "f":
-
-            setExplorationMode("FREE");
-
-            emit("universe:freeMode");
-
-            break;
-
-
-        case "r":
-
-            emit("universe:resetCamera");
-
-            break;
-
-
-        case "o":
-
-            setOrbitsVisible(!showOrbits);
-
-            break;
-
-
-        case "+":
-
-        case "=":
-
-            emit("universe:zoomIn");
-
-            break;
-
-
-        case "-":
-
-        case "_":
-
-            emit("universe:zoomOut");
-
-            break;
-
-    }
-
-});
-
-
-// =========================================================
-// INITIALIZE
-// =========================================================
+// ============================================================
+// INITIALIZE BUTTONS
+// ============================================================
 
 export function initializeExplorationControls() {
+    const solarSystemButton =
+        document.getElementById(
+            "solarSystemButton"
+        );
 
-    explorationMode = "FREE";
-    showOrbits = true;
-    timeMultiplier = 1;
-    currentRegion = "SOLAR SYSTEM";
-    objectFilter = "all";
+    const freeModeButton =
+        document.getElementById(
+            "freeModeButton"
+        );
 
-    updateModeButtons();
+    const guidedModeButton =
+        document.getElementById(
+            "guidedModeButton"
+        );
 
-    setOrbitsVisible(true);
-    setTimeMultiplier(1);
-    setObjectFilter("all");
+    const tourButton =
+        document.getElementById(
+            "tourButton"
+        );
 
+    const orbitsButton =
+        document.getElementById(
+            "orbitsButton"
+        );
+
+    const timeButton =
+        document.getElementById(
+            "timeButton"
+        );
+
+    const zoomInButton =
+        document.getElementById(
+            "zoomIn"
+        );
+
+    const zoomOutButton =
+        document.getElementById(
+            "zoomOut"
+        );
+
+    const resetButton =
+        document.getElementById(
+            "resetCamera"
+        );
+
+    // --------------------------------------------------------
+    // SOLAR SYSTEM
+    // --------------------------------------------------------
+
+    if (solarSystemButton) {
+        solarSystemButton.addEventListener(
+            "click",
+            () => {
+                setExplorationMode(
+                    "SOLAR_SYSTEM"
+                );
+            }
+        );
+    }
+
+    // --------------------------------------------------------
+    // FREE MODE
+    // --------------------------------------------------------
+
+    if (freeModeButton) {
+        freeModeButton.addEventListener(
+            "click",
+            () => {
+                setExplorationMode(
+                    "FREE"
+                );
+            }
+        );
+    }
+
+    // --------------------------------------------------------
+    // GUIDED MODE
+    // --------------------------------------------------------
+
+    if (guidedModeButton) {
+        guidedModeButton.addEventListener(
+            "click",
+            () => {
+                setExplorationMode(
+                    "GUIDED"
+                );
+            }
+        );
+    }
+
+    // --------------------------------------------------------
+    // TOUR
+    // --------------------------------------------------------
+
+    if (tourButton) {
+        tourButton.addEventListener(
+            "click",
+            () => {
+                setExplorationMode(
+                    "GUIDED"
+                );
+
+                emit(
+                    "universe:startTour"
+                );
+            }
+        );
+    }
+
+    // --------------------------------------------------------
+    // ORBITS
+    // --------------------------------------------------------
+
+    if (orbitsButton) {
+        orbitsButton.addEventListener(
+            "click",
+            () => {
+                toggleOrbits();
+
+                orbitsButton.classList.toggle(
+                    "active",
+                    orbitsVisible
+                );
+            }
+        );
+    }
+
+    // --------------------------------------------------------
+    // TIME
+    // --------------------------------------------------------
+
+    if (timeButton) {
+        timeButton.addEventListener(
+            "click",
+            () => {
+                increaseTime();
+
+                timeButton.classList.add(
+                    "active"
+                );
+
+                setTimeout(() => {
+                    timeButton.classList.remove(
+                        "active"
+                    );
+                }, 250);
+            }
+        );
+    }
+
+    // --------------------------------------------------------
+    // ZOOM
+    // --------------------------------------------------------
+
+    if (zoomInButton) {
+        zoomInButton.addEventListener(
+            "click",
+            () => {
+                emit(
+                    "universe:zoomIn"
+                );
+            }
+        );
+    }
+
+    if (zoomOutButton) {
+        zoomOutButton.addEventListener(
+            "click",
+            () => {
+                emit(
+                    "universe:zoomOut"
+                );
+            }
+        );
+    }
+
+    // --------------------------------------------------------
+    // RESET CAMERA
+    // --------------------------------------------------------
+
+    if (resetButton) {
+        resetButton.addEventListener(
+            "click",
+            () => {
+                emit(
+                    "universe:resetCamera"
+                );
+            }
+        );
+    }
+
+    // --------------------------------------------------------
+    // OBJECT FILTERS
+    // --------------------------------------------------------
+
+    const filterButtons =
+        document.querySelectorAll(
+            "[data-object-type]"
+        );
+
+    filterButtons.forEach(
+        button => {
+            button.addEventListener(
+                "click",
+                () => {
+                    const filter =
+                        button.dataset.objectType ||
+                        "all";
+
+                    setObjectFilter(
+                        filter
+                    );
+
+                    filterButtons.forEach(
+                        item => {
+                            item.classList.toggle(
+                                "active",
+                                item === button
+                            );
+                        }
+                    );
+                }
+            );
+        }
+    );
+
+    // --------------------------------------------------------
+    // KEYBOARD
+    // --------------------------------------------------------
+
+    document.addEventListener(
+        "keydown",
+        event => {
+            if (
+                event.target instanceof
+                    HTMLInputElement ||
+                event.target instanceof
+                    HTMLTextAreaElement
+            ) {
+                return;
+            }
+
+            switch (
+                event.key.toLowerCase()
+            ) {
+                case "g":
+                    setExplorationMode(
+                        "GUIDED"
+                    );
+                    break;
+
+                case "f":
+                    setExplorationMode(
+                        "FREE"
+                    );
+                    break;
+
+                case "s":
+                    setExplorationMode(
+                        "SOLAR_SYSTEM"
+                    );
+                    break;
+
+                case "o":
+                    toggleOrbits();
+                    break;
+
+                case "+":
+                case "=":
+                    emit(
+                        "universe:zoomIn"
+                    );
+                    break;
+
+                case "-":
+                case "_":
+                    emit(
+                        "universe:zoomOut"
+                    );
+                    break;
+
+                case "r":
+                    emit(
+                        "universe:resetCamera"
+                    );
+                    break;
+
+                case "t":
+                    setExplorationMode(
+                        "GUIDED"
+                    );
+
+                    emit(
+                        "universe:startTour"
+                    );
+                    break;
+            }
+        }
+    );
+
+    // --------------------------------------------------------
+    // INITIAL STATE
+    // --------------------------------------------------------
+
+    setExplorationMode(
+        explorationMode
+    );
+
+    setObjectFilter(
+        objectFilter
+    );
+
+    setOrbitsVisible(
+        orbitsVisible
+    );
 }
