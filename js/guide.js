@@ -1,67 +1,168 @@
-import {
-    getCelestialObject
-} from "./celestialBodies.js";
-
-let guidedMode = false;
-let tourActive = false;
-let currentTourIndex = 0;
+// ============================================================
+// UNIVERSE EXPLORER — GUIDE & TOUR
+// ============================================================
 
 const tourObjects = [
-    "Sun",
-    "Mercury",
-    "Venus",
-    "Earth",
-    "Moon",
-    "Mars",
-    "Jupiter",
-    "Saturn",
-    "Uranus",
-    "Neptune",
-    "Pluto",
-    "Sirius",
-    "Andromeda"
+    {
+        name: "Sun",
+        type: "Star",
+        description:
+            "The star at the center of our Solar System. Its gravity keeps the planets in orbit."
+    },
+    {
+        name: "Mercury",
+        type: "Planet",
+        description:
+            "The smallest planet and the closest planet to the Sun."
+    },
+    {
+        name: "Venus",
+        type: "Planet",
+        description:
+            "A rocky planet with a thick atmosphere and extremely high surface temperatures."
+    },
+    {
+        name: "Earth",
+        type: "Planet",
+        description:
+            "Our home planet and the only world currently known to support life."
+    },
+    {
+        name: "Moon",
+        type: "Moon",
+        description:
+            "Earth's natural satellite. It influences Earth's tides and completes an orbit around our planet."
+    },
+    {
+        name: "Mars",
+        type: "Planet",
+        description:
+            "The Red Planet, known for its iron-rich surface and ancient geological features."
+    },
+    {
+        name: "Jupiter",
+        type: "Planet",
+        description:
+            "The largest planet in the Solar System, famous for its enormous storms and many moons."
+    },
+    {
+        name: "Saturn",
+        type: "Planet",
+        description:
+            "A gas giant famous for its spectacular system of icy rings."
+    },
+    {
+        name: "Uranus",
+        type: "Planet",
+        description:
+            "An ice giant with a highly tilted rotation axis and a cold atmosphere."
+    },
+    {
+        name: "Neptune",
+        type: "Planet",
+        description:
+            "The most distant major planet in the Solar System, with powerful winds and a deep blue appearance."
+    },
+    {
+        name: "Pluto",
+        type: "Dwarf Planet",
+        description:
+            "A dwarf planet located in the distant Kuiper Belt beyond Neptune."
+    },
+    {
+        name: "Sirius",
+        type: "Star",
+        description:
+            "The brightest star in Earth's night sky when viewed from the Solar System."
+    },
+    {
+        name: "Andromeda",
+        type: "Galaxy",
+        description:
+            "A large spiral galaxy and one of the closest major galaxies to the Milky Way."
+    },
+    {
+        name: "Triangulum",
+        type: "Galaxy",
+        description:
+            "A spiral galaxy belonging to the Local Group of galaxies."
+    },
+    {
+        name: "Black Hole",
+        type: "Black Hole",
+        description:
+            "A region of spacetime where gravity is so strong that light cannot escape once it passes the event horizon."
+    },
+    {
+        name: "Deep Space Black Hole",
+        type: "Black Hole",
+        description:
+            "A distant black hole surrounded by an intense region of gravitational influence."
+    },
+    {
+        name: "Purple Nebula",
+        type: "Nebula",
+        description:
+            "A vast cloud of gas and dust represented here as a luminous deep-space nebula."
+    },
+    {
+        name: "Blue Nebula",
+        type: "Nebula",
+        description:
+            "A large cloud of interstellar material glowing with blue light."
+    },
+    {
+        name: "Magenta Nebula",
+        type: "Nebula",
+        description:
+            "A colorful interstellar cloud made of gas and cosmic dust."
+    },
+    {
+        name: "Deep Blue Nebula",
+        type: "Nebula",
+        description:
+            "A distant, dark-blue region of interstellar gas and dust."
+    },
+    {
+        name: "Comet",
+        type: "Comet",
+        description:
+            "An icy body that can develop a glowing coma and tail when approaching a star."
+    },
+    {
+        name: "Asteroid Belt",
+        type: "Asteroid",
+        description:
+            "A large population of rocky objects located mainly between the orbits of Mars and Jupiter."
+    },
+    {
+        name: "Kuiper Belt",
+        type: "Region",
+        description:
+            "A distant region beyond Neptune containing many icy bodies and dwarf planets."
+    },
+    {
+        name: "Oort Cloud",
+        type: "Region",
+        description:
+            "A theoretical distant reservoir of icy objects surrounding the Solar System."
+    }
 ];
 
-const tourDescriptions = {
-    Sun:
-        "The star at the center of our Solar System. Its immense gravity keeps the planets in orbit.",
+// ============================================================
+// STATE
+// ============================================================
 
-    Mercury:
-        "The smallest planet and the closest planet to the Sun.",
+let currentTourIndex = 0;
+let tourActive = false;
 
-    Venus:
-        "A rocky planet with an extremely hot surface and a dense atmosphere.",
+// ============================================================
+// HELPERS
+// ============================================================
 
-    Earth:
-        "Our home planet and the only world currently known to support life.",
-
-    Moon:
-        "Earth's natural satellite. Its gravity influences Earth's tides.",
-
-    Mars:
-        "The Red Planet, a cold rocky world with evidence of ancient water.",
-
-    Jupiter:
-        "The largest planet in the Solar System, famous for its enormous storms.",
-
-    Saturn:
-        "A gas giant surrounded by a spectacular system of icy rings.",
-
-    Uranus:
-        "An ice giant that rotates almost sideways compared with the other planets.",
-
-    Neptune:
-        "The most distant major planet in the Solar System, with extremely powerful winds.",
-
-    Pluto:
-        "A dwarf planet located in the distant Kuiper Belt.",
-
-    Sirius:
-        "The brightest star in Earth's night sky and one of our closest stellar neighbors.",
-
-    Andromeda:
-        "A massive spiral galaxy located approximately 2.5 million light-years from the Milky Way."
-};
+function getElement(id) {
+    return document.getElementById(id);
+}
 
 function emit(name, detail = {}) {
     window.dispatchEvent(
@@ -71,328 +172,369 @@ function emit(name, detail = {}) {
     );
 }
 
-export function initializeGuide() {
-    const guidedButton =
-        document.getElementById(
-            "guidedModeButton"
-        );
+// ============================================================
+// TOUR DISPLAY
+// ============================================================
 
-    const tourButton =
-        document.getElementById(
-            "tourButton"
-        );
-
-    const nextButton =
-        document.getElementById(
-            "tourNext"
-        );
-
-    guidedButton?.addEventListener(
-        "click",
-        () => {
-            startGuidedMode();
-        }
-    );
-
-    tourButton?.addEventListener(
-        "click",
-        () => {
-            startTour();
-        }
-    );
-
-    nextButton?.addEventListener(
-        "click",
-        () => {
-            nextTourObject();
-        }
-    );
-
-    window.addEventListener(
-        "universe:guidedMode",
-        startGuidedMode
-    );
-
-    window.addEventListener(
-        "universe:startTour",
-        startTour
-    );
-
-    window.addEventListener(
-        "universe:freeMode",
-        stopGuide
-    );
-
-    updateGuidedPanel();
-    updateTourProgress();
-}
-
-export function startGuidedMode() {
-    guidedMode = true;
-    tourActive = false;
-
-    currentTourIndex = 0;
-
-    emit(
-        "universe:guideStarted"
-    );
-
-    updateGuidedPanel();
-    updateTourProgress();
-}
-
-export function stopGuide() {
-    guidedMode = false;
-    tourActive = false;
-
-    hideGuidedPanel();
-    hideTourProgress();
-
-    emit(
-        "universe:guideStopped"
-    );
-}
-
-export function startTour() {
-    guidedMode = true;
-    tourActive = true;
-    currentTourIndex = 0;
-
-    updateGuidedPanel();
-    updateTourProgress();
-
-    focusCurrentTourObject();
-}
-
-export function nextTourObject() {
-    if (!tourActive) return;
-
-    if (
-        currentTourIndex >=
-        tourObjects.length - 1
-    ) {
-        finishTour();
-        return;
-    }
-
-    currentTourIndex++;
-
-    updateGuidedPanel();
-    updateTourProgress();
-
-    focusCurrentTourObject();
-}
-
-export function previousTourObject() {
-    if (!tourActive) return;
-
-    if (currentTourIndex <= 0) return;
-
-    currentTourIndex--;
-
-    updateGuidedPanel();
-    updateTourProgress();
-
-    focusCurrentTourObject();
-}
-
-function focusCurrentTourObject() {
-    const name =
+function updateTourDisplay() {
+    const object =
         tourObjects[currentTourIndex];
 
-    const data =
-        getCelestialObject(name);
-
-    if (!data) return;
-
-    emit(
-        "universe:tourObject",
-        {
-            name,
-            data,
-            index: currentTourIndex
-        }
-    );
-
-    emit(
-        "universe:searchObject",
-        {
-            name
-        }
-    );
-
-    emit(
-        "universe:focusObjectByName",
-        {
-            name
-        }
-    );
-}
-
-function updateGuidedPanel() {
-    const panel =
-        document.getElementById(
-            "guidedPanel"
-        );
+    if (!object) return;
 
     const title =
-        document.getElementById(
-            "tourTitle"
-        );
+        getElement("tourTitle");
 
     const description =
-        document.getElementById(
-            "tourDescription"
-        );
-
-    const nextButton =
-        document.getElementById(
-            "tourNext"
-        );
-
-    if (!panel) return;
-
-    if (!guidedMode) {
-        hideGuidedPanel();
-        return;
-    }
-
-    panel.classList.remove(
-        "hidden"
-    );
-
-    if (!tourActive) {
-        if (title) {
-            title.textContent =
-                "GUIDED MODE";
-        }
-
-        if (description) {
-            description.textContent =
-                "Explore the Universe freely. Select any celestial object to discover more information.";
-        }
-
-        if (nextButton) {
-            nextButton.textContent =
-                "START TOUR";
-        }
-
-        return;
-    }
-
-    const name =
-        tourObjects[currentTourIndex];
-
-    if (title) {
-        title.textContent =
-            name.toUpperCase();
-    }
-
-    if (description) {
-        description.textContent =
-            tourDescriptions[name] ||
-            "Explore this celestial object and discover its properties.";
-    }
-
-    if (nextButton) {
-        nextButton.textContent =
-            currentTourIndex >=
-            tourObjects.length - 1
-                ? "FINISH TOUR"
-                : "NEXT OBJECT";
-    }
-}
-
-function updateTourProgress() {
-    const progress =
-        document.getElementById(
-            "tourProgress"
-        );
-
-    const progressBar =
-        document.getElementById(
-            "tourProgressBar"
-        );
+        getElement("tourDescription");
 
     const progressText =
-        document.getElementById(
-            "tourProgressText"
-        );
+        getElement("tourProgressText");
 
-    if (!tourActive) {
-        hideTourProgress();
-        return;
-    }
+    const progressBar =
+        getElement("tourProgressBar");
 
-    if (progress) {
-        progress.classList.remove(
-            "hidden"
-        );
-    }
-
-    const current =
+    const progress =
         currentTourIndex + 1;
 
     const total =
         tourObjects.length;
 
-    const percentage =
-        (current / total) * 100;
+    if (title) {
+        title.textContent =
+            object.name;
+    }
 
-    if (progressBar) {
-        progressBar.style.width =
-            `${percentage}%`;
+    if (description) {
+        description.textContent =
+            object.description;
     }
 
     if (progressText) {
         progressText.textContent =
-            `${current} / ${total}`;
+            `${progress} / ${total}`;
+    }
+
+    if (progressBar) {
+        progressBar.style.width =
+            `${(progress / total) * 100}%`;
+    }
+
+    emit(
+        "universe:tourObject",
+        {
+            name: object.name,
+            type: object.type,
+            index: currentTourIndex,
+            total,
+            description:
+                object.description
+        }
+    );
+}
+
+// ============================================================
+// START TOUR
+// ============================================================
+
+function startTour() {
+    currentTourIndex = 0;
+    tourActive = true;
+
+    const panel =
+        getElement("guidedPanel");
+
+    if (panel) {
+        panel.classList.add("active");
+        panel.style.display = "block";
+    }
+
+    updateTourDisplay();
+
+    emit(
+        "universe:tourStarted",
+        {
+            total:
+                tourObjects.length
+        }
+    );
+}
+
+// ============================================================
+// NEXT
+// ============================================================
+
+function nextTourObject() {
+    if (!tourActive) {
+        startTour();
+        return;
+    }
+
+    if (
+        currentTourIndex <
+        tourObjects.length - 1
+    ) {
+        currentTourIndex++;
+
+        updateTourDisplay();
+        return;
+    }
+
+    finishTour();
+}
+
+// ============================================================
+// PREVIOUS
+// ============================================================
+
+function previousTourObject() {
+    if (!tourActive) {
+        startTour();
+        return;
+    }
+
+    if (currentTourIndex > 0) {
+        currentTourIndex--;
+
+        updateTourDisplay();
     }
 }
 
-function hideGuidedPanel() {
-    const panel =
-        document.getElementById(
-            "guidedPanel"
-        );
-
-    panel?.classList.add(
-        "hidden"
-    );
-}
-
-function hideTourProgress() {
-    const progress =
-        document.getElementById(
-            "tourProgress"
-        );
-
-    progress?.classList.add(
-        "hidden"
-    );
-}
+// ============================================================
+// FINISH
+// ============================================================
 
 function finishTour() {
     tourActive = false;
 
-    updateGuidedPanel();
-    hideTourProgress();
+    const title =
+        getElement("tourTitle");
+
+    const description =
+        getElement("tourDescription");
+
+    const progressText =
+        getElement("tourProgressText");
+
+    const progressBar =
+        getElement("tourProgressBar");
+
+    if (title) {
+        title.textContent =
+            "Tour Complete";
+    }
+
+    if (description) {
+        description.textContent =
+            "You have explored the main objects of Universe Explorer.";
+    }
+
+    if (progressText) {
+        progressText.textContent =
+            `${tourObjects.length} / ${tourObjects.length}`;
+    }
+
+    if (progressBar) {
+        progressBar.style.width =
+            "100%";
+    }
 
     emit(
-        "universe:tourFinished"
+        "universe:tourCompleted"
     );
 }
 
-export function isGuidedMode() {
-    return guidedMode;
+// ============================================================
+// RESET
+// ============================================================
+
+function resetTour() {
+    currentTourIndex = 0;
+    tourActive = false;
 }
 
-export function isTourActive() {
-    return tourActive;
+// ============================================================
+// GUIDED MODE
+// ============================================================
+
+function openGuidedMode() {
+    const panel =
+        getElement("guidedPanel");
+
+    if (panel) {
+        panel.classList.add("active");
+        panel.style.display = "block";
+    }
+
+    emit(
+        "universe:guidedOpened"
+    );
 }
 
-export function getCurrentTourIndex() {
-    return currentTourIndex;
+// ============================================================
+// CLOSE GUIDED MODE
+// ============================================================
+
+function closeGuidedMode() {
+    const panel =
+        getElement("guidedPanel");
+
+    if (panel) {
+        panel.classList.remove("active");
+        panel.style.display = "none";
+    }
+
+    tourActive = false;
+
+    emit(
+        "universe:guidedClosed"
+    );
+}
+
+// ============================================================
+// INITIALIZE
+// ============================================================
+
+export function initializeGuide() {
+    const guidedPanel =
+        getElement("guidedPanel");
+
+    const guidedModeButton =
+        getElement("guidedModeButton");
+
+    const tourButton =
+        getElement("tourButton");
+
+    const tourNext =
+        getElement("tourNext");
+
+    const previousPage =
+        getElement("previousPage");
+
+    // --------------------------------------------------------
+    // GUIDED MODE
+    // --------------------------------------------------------
+
+    if (guidedModeButton) {
+        guidedModeButton.addEventListener(
+            "click",
+            () => {
+                openGuidedMode();
+            }
+        );
+    }
+
+    // --------------------------------------------------------
+    // TOUR BUTTON
+    // --------------------------------------------------------
+
+    if (tourButton) {
+        tourButton.addEventListener(
+            "click",
+            () => {
+                startTour();
+            }
+        );
+    }
+
+    // --------------------------------------------------------
+    // NEXT TOUR OBJECT
+    // --------------------------------------------------------
+
+    if (tourNext) {
+        tourNext.addEventListener(
+            "click",
+            () => {
+                nextTourObject();
+            }
+        );
+    }
+
+    // --------------------------------------------------------
+    // PREVIOUS
+    // --------------------------------------------------------
+
+    if (previousPage) {
+        previousPage.addEventListener(
+            "click",
+            () => {
+                if (tourActive) {
+                    previousTourObject();
+                }
+            }
+        );
+    }
+
+    // --------------------------------------------------------
+    // EXTERNAL TOUR EVENT
+    // --------------------------------------------------------
+
+    window.addEventListener(
+        "universe:startTour",
+        () => {
+            startTour();
+        }
+    );
+
+    // --------------------------------------------------------
+    // CLOSE INFO / ESCAPE
+    // --------------------------------------------------------
+
+    window.addEventListener(
+        "universe:guidedClosed",
+        () => {
+            if (guidedPanel) {
+                guidedPanel.classList.remove(
+                    "active"
+                );
+            }
+        }
+    );
+
+    document.addEventListener(
+        "keydown",
+        event => {
+            if (
+                event.target instanceof
+                    HTMLInputElement ||
+                event.target instanceof
+                    HTMLTextAreaElement
+            ) {
+                return;
+            }
+
+            if (!tourActive) return;
+
+            if (
+                event.key === "ArrowRight" ||
+                event.key === "Enter"
+            ) {
+                nextTourObject();
+            }
+
+            if (
+                event.key === "ArrowLeft"
+            ) {
+                previousTourObject();
+            }
+
+            if (
+                event.key === "Escape"
+            ) {
+                closeGuidedMode();
+            }
+        }
+    );
+
+    resetTour();
+}
+
+// ============================================================
+// PUBLIC FUNCTIONS
+// ============================================================
+
+export function getTourObjects() {
+    return [...tourObjects];
 }
 
 export function getCurrentTourObject() {
@@ -401,30 +543,22 @@ export function getCurrentTourObject() {
     ];
 }
 
-export function resetGuide() {
-    guidedMode = false;
-    tourActive = false;
-    currentTourIndex = 0;
-
-    hideGuidedPanel();
-    hideTourProgress();
+export function getCurrentTourIndex() {
+    return currentTourIndex;
 }
 
-window.addEventListener(
-    "keydown",
-    event => {
-        if (!tourActive) return;
+export function isTourActive() {
+    return tourActive;
+}
 
-        if (event.key === "ArrowRight") {
-            nextTourObject();
-        }
+export function startGuideTour() {
+    startTour();
+}
 
-        if (event.key === "ArrowLeft") {
-            previousTourObject();
-        }
+export function nextGuideObject() {
+    nextTourObject();
+}
 
-        if (event.key === "Escape") {
-            stopGuide();
-        }
-    }
-);
+export function previousGuideObject() {
+    previousTourObject();
+}
