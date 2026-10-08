@@ -1,134 +1,312 @@
 import * as THREE from "three";
-import { COLORS } from "./colors.js";
-
-
-// ============================================================
-// GLOBAL EFFECTS
-// ============================================================
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 
 let scene = null;
+let camera = null;
+let renderer = null;
+let composer = null;
 
 let starField = null;
-let ambientParticles = null;
+let dustField = null;
+let meteorField = null;
 
-const glowObjects = [];
+let sunCorona = null;
+let sunLight = null;
+let bloomPass = null;
+
+let starData = [];
+let meteorData = [];
+
+let effectsGroup = null;
+
+const clock = new THREE.Clock();
+
+const EFFECT_SETTINGS = {
+    stars: 18000,
+    dust: 2600,
+    meteors: 3,
+
+    starTwinkle: 0.035,
+    dustMovement: 0.001,
+    nebulaMovement: 0.00015,
+
+    bloomStrength: 0.75,
+    bloomRadius: 0.55,
+    bloomThreshold: 0.72,
+
+    sunLightIntensity: 4.0,
+
+    adaptiveQuality: true
+};
 
 
-// ============================================================
-// STAR FIELD
-// ============================================================
+/* =========================================================
+   TEXTURES
+========================================================= */
+
+function createSoftCircleTexture() {
+    const canvas = document.createElement("canvas");
+    canvas.width = 128;
+    canvas.height = 128;
+
+    const ctx = canvas.getContext("2d");
+
+    const gradient = ctx.createRadialGradient(
+        64,
+        64,
+        0,
+        64,
+        64,
+        64
+    );
+
+    gradient.addColorStop(0, "rgba(255,255,255,1)");
+    gradient.addColorStop(0.12, "rgba(255,255,255,1)");
+    gradient.addColorStop(0.35, "rgba(255,255,255,0.65)");
+    gradient.addColorStop(0.7, "rgba(255,255,255,0.12)");
+    gradient.addColorStop(1, "rgba(255,255,255,0)");
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 128, 128);
+
+    return new THREE.CanvasTexture(canvas);
+}
+
+function createGlowTexture() {
+    const canvas = document.createElement("canvas");
+    canvas.width = 256;
+    canvas.height = 256;
+
+    const ctx = canvas.getContext("2d");
+
+    const gradient = ctx.createRadialGradient(
+        128,
+        128,
+        0,
+        128,
+        128,
+        128
+    );
+
+    gradient.addColorStop(0, "rgba(255,255,255,1)");
+    gradient.addColorStop(0.15, "rgba(255,240,180,0.9)");
+    gradient.addColorStop(0.35, "rgba(255,190,80,0.45)");
+    gradient.addColorStop(0.65, "rgba(255,120,30,0.12)");
+    gradient.addColorStop(1, "rgba(255,80,0,0)");
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 256, 256);
+
+    return new THREE.CanvasTexture(canvas);
+}
+
+
+/* =========================================================
+   STAR FIELD
+========================================================= */
 
 function createStarField() {
+    const geometry = new THREE.BufferGeometry();
 
-    const starCount = 18000;
+    const positions = new Float32Array(EFFECT_SETTINGS.stars * 3);
+    const colors = new Float32Array(EFFECT_SETTINGS.stars * 3);
+    const sizes = new Float32Array(EFFECT_SETTINGS.stars);
+
+    const color = new THREE.Color();
+
+    for (let i = 0; i < EFFECT_SETTINGS.stars; i++) {
+
+        const radius =
+            500 +
+            Math.pow(Math.random(), 0.55) * 8000;
+
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(
+            THREE.MathUtils.randFloatSpread(2)
+        );
+
+        const x = radius * Math.sin(phi) * Math.cos(theta);
+        const y = radius * Math.cos(phi);
+        const z = radius * Math.sin(phi) * Math.sin(theta);
+
+        positions[i * 3] = x;
+        positions[i * 3 + 1] = y;
+        positions[i * 3 + 2] = z;
+
+        /*
+         * Stellar colors based loosely on temperature.
+         */
+
+        const temperature = Math.random();
+
+        if (temperature < 0.15) {
+            // blue
+            color.setRGB(
+                0.55,
+                0.72,
+                1.0
+            );
+        } else if (temperature < 0.38) {
+            // white-blue
+            color.setRGB(
+                0.78,
+                0.88,
+                1.0
+            );
+        } else if (temperature < 0.70) {
+            // white
+            color.setRGB(
+                1.0,
+                0.98,
+                0.92
+            );
+        } else if (temperature < 0.90) {
+            // yellow
+            color.setRGB(
+                1.0,
+                0.86,
+                0.55
+            );
+        } else {
+            // orange/red
+            color.setRGB(
+                1.0,
+                0.55,
+                0.30
+            );
+        }
+
+        colors[i * 3] = color.r;
+        colors[i * 3 + 1] = color.g;
+        colors[i * 3 + 2] = color.b;
+
+        /*
+         * Most stars are tiny.
+         * A small percentage are larger.
+         */
+
+        const brightStar = Math.random() < 0.025;
+
+        sizes[i] = brightStar
+            ? THREE.MathUtils.randFloat(2.0, 4.5)
+            : THREE.MathUtils.randFloat(0.35, 1.8);
+
+        starData.push({
+            phase: Math.random() * Math.PI * 2,
+            speed: THREE.MathUtils.randFloat(
+                0.15,
+                0.8
+            ),
+            baseSize: sizes[i]
+        });
+    }
+
+    geometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(positions, 3)
+    );
+
+    geometry.setAttribute(
+        "color",
+        new THREE.BufferAttribute(colors, 3)
+    );
+
+    geometry.setAttribute(
+        "size",
+        new THREE.BufferAttribute(sizes, 1)
+    );
+
+    const material = new THREE.PointsMaterial({
+        size: 1.5,
+        map: createSoftCircleTexture(),
+        transparent: true,
+        opacity: 0.88,
+        vertexColors: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        sizeAttenuation: true
+    });
+
+    starField = new THREE.Points(
+        geometry,
+        material
+    );
+
+    starField.name = "RealisticStarField";
+
+    effectsGroup.add(starField);
+}
+
+
+/* =========================================================
+   SPACE DUST
+========================================================= */
+
+function createSpaceDust() {
+    const geometry = new THREE.BufferGeometry();
+
+    const count = EFFECT_SETTINGS.dust;
 
     const positions = new Float32Array(
-        starCount * 3
+        count * 3
     );
 
     const colors = new Float32Array(
-        starCount * 3
+        count * 3
     );
 
-    const sizes = new Float32Array(
-        starCount
-    );
+    const color = new THREE.Color();
 
-    for (let i = 0; i < starCount; i++) {
+    for (let i = 0; i < count; i++) {
 
-        // Large spherical distribution
-        const radius =
-            800 +
-            Math.random() * 7000;
+        const radius = THREE.MathUtils.randFloat(
+            80,
+            2500
+        );
 
         const theta =
             Math.random() *
-            Math.PI * 2;
+            Math.PI *
+            2;
 
         const phi =
             Math.acos(
                 THREE.MathUtils.randFloatSpread(2)
             );
 
-        const x =
+        positions[i * 3] =
             radius *
             Math.sin(phi) *
             Math.cos(theta);
 
-        const y =
+        positions[i * 3 + 1] =
             radius *
             Math.cos(phi);
 
-        const z =
+        positions[i * 3 + 2] =
             radius *
             Math.sin(phi) *
             Math.sin(theta);
 
-        const index = i * 3;
-
-        positions[index] = x;
-        positions[index + 1] = y;
-        positions[index + 2] = z;
-
-
-        // Slightly varied star colours
         const brightness =
-            0.65 +
-            Math.random() * 0.35;
-
-        const type =
-            Math.random();
-
-        let color;
-
-        if (type < 0.70) {
-
-            // White
-            color = new THREE.Color(
-                COLORS.space.star
+            THREE.MathUtils.randFloat(
+                0.08,
+                0.30
             );
 
-        } else if (type < 0.85) {
+        color.setRGB(
+            brightness,
+            brightness * 0.9,
+            brightness * 1.1
+        );
 
-            // Blue-white
-            color = new THREE.Color(
-                COLORS.space.starBlue
-            );
-
-        } else if (type < 0.94) {
-
-            // Slightly warm
-            color = new THREE.Color(
-                0xffe9c7
-            );
-
-        } else {
-
-            // Soft reddish star
-            color = new THREE.Color(
-                0xffc0a0
-            );
-        }
-
-        colors[index] =
-            color.r * brightness;
-
-        colors[index + 1] =
-            color.g * brightness;
-
-        colors[index + 2] =
-            color.b * brightness;
-
-
-        // Very small points
-        sizes[i] =
-            0.8 +
-            Math.random() * 1.8;
+        colors[i * 3] = color.r;
+        colors[i * 3 + 1] = color.g;
+        colors[i * 3 + 2] = color.b;
     }
-
-
-    const geometry =
-        new THREE.BufferGeometry();
 
     geometry.setAttribute(
         "position",
@@ -146,98 +324,163 @@ function createStarField() {
         )
     );
 
-    geometry.setAttribute(
-        "size",
-        new THREE.BufferAttribute(
-            sizes,
-            1
-        )
-    );
-
-
-    const material =
+    dustField = new THREE.Points(
+        geometry,
         new THREE.PointsMaterial({
-
-            size: 1.7,
-
-            vertexColors: true,
-
+            size: 0.7,
+            map: createSoftCircleTexture(),
             transparent: true,
-
-            opacity: 0.9,
-
+            opacity: 0.20,
+            vertexColors: true,
             depthWrite: false,
-
-            blending:
-                THREE.AdditiveBlending,
-
-            sizeAttenuation: true
-        });
-
-
-    starField =
-        new THREE.Points(
-            geometry,
-            material
-        );
-
-    starField.name =
-        "Realistic Star Field";
-
-    scene.add(
-        starField
+            blending: THREE.AdditiveBlending
+        })
     );
+
+    dustField.name = "InterstellarDust";
+
+    effectsGroup.add(dustField);
 }
 
 
-// ============================================================
-// AMBIENT SPACE PARTICLES
-// ============================================================
+/* =========================================================
+   SUN LIGHT
+========================================================= */
 
-function createAmbientParticles() {
+function createSunLighting() {
 
-    const count = 2500;
+    sunLight = new THREE.PointLight(
+        0xffd27a,
+        EFFECT_SETTINGS.sunLightIntensity,
+        0,
+        1.8
+    );
+
+    sunLight.position.set(
+        0,
+        0,
+        0
+    );
+
+    sunLight.castShadow = true;
+
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
+
+    sunLight.shadow.camera.near = 0.1;
+    sunLight.shadow.camera.far = 10000;
+
+    scene.add(sunLight);
+
+    const ambient = new THREE.AmbientLight(
+        0x536b91,
+        0.055
+    );
+
+    scene.add(ambient);
+}
+
+
+/* =========================================================
+   SOLAR CORONA
+========================================================= */
+
+function createSolarCorona() {
+
+    const texture = createGlowTexture();
+
+    const material = new THREE.SpriteMaterial({
+        map: texture,
+        color: 0xffb347,
+        transparent: true,
+        opacity: 0.30,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+    });
+
+    sunCorona = new THREE.Sprite(material);
+
+    sunCorona.name = "SolarCorona";
+
+    sunCorona.position.set(
+        0,
+        0,
+        0
+    );
+
+    sunCorona.scale.set(
+        16,
+        16,
+        1
+    );
+
+    effectsGroup.add(sunCorona);
+}
+
+
+/* =========================================================
+   SMALL SOLAR PLASMA
+========================================================= */
+
+function createSolarPlasma() {
+
+    const count = 700;
+
+    const geometry =
+        new THREE.BufferGeometry();
 
     const positions =
-        new Float32Array(
-            count * 3
+        new Float32Array(count * 3);
+
+    const colors =
+        new Float32Array(count * 3);
+
+    const color =
+        new THREE.Color(
+            0xffc45c
         );
 
     for (let i = 0; i < count; i++) {
 
         const radius =
-            250 +
-            Math.random() * 2500;
+            THREE.MathUtils.randFloat(
+                3.8,
+                7.5
+            );
 
         const theta =
             Math.random() *
-            Math.PI * 2;
+            Math.PI *
+            2;
 
         const phi =
             Math.acos(
                 THREE.MathUtils.randFloatSpread(2)
             );
 
-        const index = i * 3;
-
-        positions[index] =
+        positions[i * 3] =
             radius *
             Math.sin(phi) *
             Math.cos(theta);
 
-        positions[index + 1] =
+        positions[i * 3 + 1] =
             radius *
             Math.cos(phi);
 
-        positions[index + 2] =
+        positions[i * 3 + 2] =
             radius *
             Math.sin(phi) *
             Math.sin(theta);
+
+        colors[i * 3] =
+            color.r;
+
+        colors[i * 3 + 1] =
+            color.g;
+
+        colors[i * 3 + 2] =
+            color.b;
     }
-
-
-    const geometry =
-        new THREE.BufferGeometry();
 
     geometry.setAttribute(
         "position",
@@ -247,368 +490,558 @@ function createAmbientParticles() {
         )
     );
 
+    geometry.setAttribute(
+        "color",
+        new THREE.BufferAttribute(
+            colors,
+            3
+        )
+    );
 
-    const material =
-        new THREE.PointsMaterial({
-
-            color:
-                COLORS.effects.cyan,
-
-            size: 0.7,
-
-            transparent: true,
-
-            opacity: 0.22,
-
-            depthWrite: false,
-
-            blending:
-                THREE.AdditiveBlending
-        });
-
-
-    ambientParticles =
+    const plasma =
         new THREE.Points(
             geometry,
-            material
+            new THREE.PointsMaterial({
+                size: 0.7,
+                map: createSoftCircleTexture(),
+                transparent: true,
+                opacity: 0.22,
+                vertexColors: true,
+                depthWrite: false,
+                blending:
+                    THREE.AdditiveBlending
+            })
         );
 
-    ambientParticles.name =
-        "Ambient Space Dust";
+    plasma.name =
+        "SolarPlasma";
 
-    scene.add(
-        ambientParticles
+    effectsGroup.add(plasma);
+}
+
+
+/* =========================================================
+   METEORS
+========================================================= */
+
+function createMeteorField() {
+
+    const group =
+        new THREE.Group();
+
+    group.name =
+        "OccasionalMeteors";
+
+    for (
+        let i = 0;
+        i < EFFECT_SETTINGS.meteors;
+        i++
+    ) {
+
+        const geometry =
+            new THREE.BufferGeometry();
+
+        const points =
+            new Float32Array([
+                0, 0, 0,
+                -4, 0, 0
+            ]);
+
+        geometry.setAttribute(
+            "position",
+            new THREE.BufferAttribute(
+                points,
+                3
+            )
+        );
+
+        const meteor =
+            new THREE.Line(
+                geometry,
+                new THREE.LineBasicMaterial({
+                    color: 0xdff6ff,
+                    transparent: true,
+                    opacity: 0
+                })
+            );
+
+        meteor.position.set(
+            THREE.MathUtils.randFloatSpread(
+                1500
+            ),
+            THREE.MathUtils.randFloatSpread(
+                900
+            ),
+            THREE.MathUtils.randFloatSpread(
+                1500
+            )
+        );
+
+        meteorData.push({
+            object: meteor,
+            velocity:
+                new THREE.Vector3(
+                    THREE.MathUtils.randFloat(
+                        -3,
+                        3
+                    ),
+                    THREE.MathUtils.randFloat(
+                        -2,
+                        2
+                    ),
+                    THREE.MathUtils.randFloat(
+                        -3,
+                        3
+                    )
+                ),
+            timer:
+                Math.random() * 20,
+            duration:
+                THREE.MathUtils.randFloat(
+                    0.15,
+                    0.45
+                ),
+            cooldown:
+                THREE.MathUtils.randFloat(
+                    7,
+                    20
+                )
+        });
+
+        group.add(meteor);
+    }
+
+    meteorField = group;
+
+    effectsGroup.add(
+        meteorField
     );
 }
 
 
-// ============================================================
-// INITIALIZE EFFECTS
-// ============================================================
+/* =========================================================
+   BLOOM
+========================================================= */
+
+function createBloom() {
+
+    const renderPass =
+        new RenderPass(
+            scene,
+            camera
+        );
+
+    bloomPass =
+        new UnrealBloomPass(
+            new THREE.Vector2(
+                window.innerWidth,
+                window.innerHeight
+            ),
+            EFFECT_SETTINGS.bloomStrength,
+            EFFECT_SETTINGS.bloomRadius,
+            EFFECT_SETTINGS.bloomThreshold
+        );
+
+    composer =
+        new EffectComposer(
+            renderer
+        );
+
+    composer.addPass(
+        renderPass
+    );
+
+    composer.addPass(
+        bloomPass
+    );
+
+    composer.addPass(
+        new OutputPass()
+    );
+}
+
+
+/* =========================================================
+   STAR TWINKLE
+========================================================= */
+
+function updateStars(time) {
+
+    if (!starField) return;
+
+    const sizes =
+        starField.geometry
+            .attributes
+            .size
+            .array;
+
+    for (
+        let i = 0;
+        i < starData.length;
+        i++
+    ) {
+
+        const star =
+            starData[i];
+
+        const variation =
+            Math.sin(
+                time *
+                star.speed +
+                star.phase
+            ) *
+            EFFECT_SETTINGS.starTwinkle;
+
+        sizes[i] =
+            Math.max(
+                0.2,
+                star.baseSize *
+                (1 + variation)
+            );
+    }
+
+    starField.geometry
+        .attributes
+        .size
+        .needsUpdate = true;
+}
+
+
+/* =========================================================
+   SOLAR EFFECT UPDATE
+========================================================= */
+
+function updateSolarEffects(time) {
+
+    if (sunCorona) {
+
+        const pulse =
+            1 +
+            Math.sin(
+                time * 0.35
+            ) *
+            0.025;
+
+        sunCorona.scale.set(
+            16 * pulse,
+            16 * pulse,
+            1
+        );
+
+        sunCorona.material.opacity =
+            0.27 +
+            Math.sin(
+                time * 0.45
+            ) *
+            0.025;
+    }
+}
+
+
+/* =========================================================
+   METEOR UPDATE
+========================================================= */
+
+function updateMeteors(delta) {
+
+    if (!meteorField) return;
+
+    for (
+        const meteorDataItem
+        of meteorData
+    ) {
+
+        meteorDataItem.timer +=
+            delta;
+
+        const meteor =
+            meteorDataItem.object;
+
+        if (
+            meteorDataItem.timer >
+            meteorDataItem.cooldown
+        ) {
+
+            meteorDataItem.timer = 0;
+
+            meteorDataItem.cooldown =
+                THREE.MathUtils.randFloat(
+                    7,
+                    20
+                );
+
+            meteor.position.set(
+                THREE.MathUtils.randFloatSpread(
+                    1500
+                ),
+                THREE.MathUtils.randFloatSpread(
+                    900
+                ),
+                THREE.MathUtils.randFloatSpread(
+                    1500
+                )
+            );
+
+            meteor.material.opacity =
+                0.9;
+        }
+
+        if (
+            meteor.material.opacity >
+            0
+        ) {
+
+            meteor.position.addScaledVector(
+                meteorDataItem.velocity,
+                delta * 80
+            );
+
+            meteor.material.opacity -=
+                delta * 2.5;
+        }
+    }
+}
+
+
+/* =========================================================
+   INITIALIZATION
+========================================================= */
 
 export function initializeEffects(
-    targetScene
+    targetScene,
+    targetCamera,
+    targetRenderer
 ) {
 
     scene =
         targetScene;
 
-    if (!scene) {
-        return;
-    }
+    camera =
+        targetCamera;
+
+    renderer =
+        targetRenderer;
+
+    effectsGroup =
+        new THREE.Group();
+
+    effectsGroup.name =
+        "UniverseEffects";
+
+    scene.add(
+        effectsGroup
+    );
 
     createStarField();
+    createSpaceDust();
+    createSunLighting();
+    createSolarCorona();
+    createSolarPlasma();
+    createMeteorField();
+    createBloom();
 
-    createAmbientParticles();
+    return {
+        composer,
+        effectsGroup
+    };
 }
 
 
-// ============================================================
-// UPDATE EFFECTS
-// ============================================================
+/* =========================================================
+   ANIMATION
+========================================================= */
 
 export function updateEffects() {
 
-    if (!scene) {
+    if (!scene) return;
+
+    const delta =
+        Math.min(
+            clock.getDelta(),
+            0.05
+        );
+
+    const elapsed =
+        clock.elapsedTime;
+
+    updateStars(
+        elapsed
+    );
+
+    updateSolarEffects(
+        elapsed
+    );
+
+    updateMeteors(
+        delta
+    );
+
+    if (dustField) {
+
+        dustField.rotation.y +=
+            delta *
+            EFFECT_SETTINGS.dustMovement;
+    }
+
+    if (starField) {
+
+        starField.rotation.y +=
+            delta *
+            0.000015;
+    }
+}
+
+
+/* =========================================================
+   RENDER
+========================================================= */
+
+export function renderEffects() {
+
+    if (composer) {
+        composer.render();
+    } else if (
+        renderer &&
+        scene &&
+        camera
+    ) {
+        renderer.render(
+            scene,
+            camera
+        );
+    }
+}
+
+
+/* =========================================================
+   RESIZE
+========================================================= */
+
+export function resizeEffects(
+    width,
+    height
+) {
+
+    if (!camera) return;
+
+    if (composer) {
+        composer.setSize(
+            width,
+            height
+        );
+    }
+
+    if (bloomPass) {
+        bloomPass.resolution.set(
+            width,
+            height
+        );
+    }
+}
+
+
+/* =========================================================
+   QUALITY
+========================================================= */
+
+export function setEffectsQuality(
+    quality = "high"
+) {
+
+    if (!starField || !dustField) {
         return;
     }
 
-    const time =
-        performance.now() *
-        0.001;
+    if (quality === "low") {
 
+        starField.material.size =
+            1.2;
 
-    // Very slow star-field movement
-    if (starField) {
+        starField.material.opacity =
+            0.75;
 
-        starField.rotation.y =
-            time * 0.001;
+        dustField.material.opacity =
+            0.10;
 
-        starField.rotation.x =
-            Math.sin(time * 0.03) *
-            0.002;
+        if (bloomPass) {
+            bloomPass.strength =
+                0.45;
+        }
+
+    } else if (
+        quality === "medium"
+    ) {
+
+        starField.material.size =
+            1.4;
+
+        starField.material.opacity =
+            0.82;
+
+        dustField.material.opacity =
+            0.15;
+
+        if (bloomPass) {
+            bloomPass.strength =
+                0.60;
+        }
+
+    } else {
+
+        starField.material.size =
+            1.5;
+
+        starField.material.opacity =
+            0.88;
+
+        dustField.material.opacity =
+            0.20;
+
+        if (bloomPass) {
+            bloomPass.strength =
+                EFFECT_SETTINGS.bloomStrength;
+        }
     }
+}
 
 
-    // Very subtle space dust movement
-    if (ambientParticles) {
+/* =========================================================
+   CLEANUP
+========================================================= */
 
-        ambientParticles.rotation.y =
-            -time * 0.002;
+export function disposeEffects() {
 
-        ambientParticles.rotation.x =
-            Math.sin(time * 0.02) *
-            0.003;
-    }
+    if (!effectsGroup) return;
 
+    effectsGroup.traverse(
+        object => {
 
-    // Animate registered glow effects
-    glowObjects.forEach(
-        effect => {
-
-            if (!effect.object) {
-                return;
+            if (object.geometry) {
+                object.geometry.dispose();
             }
 
-            const pulse =
-                1 +
-                Math.sin(
-                    time *
-                    effect.speed
-                ) *
-                effect.amount;
+            if (object.material) {
 
-            effect.object.scale.set(
-                pulse,
-                pulse,
-                pulse
-            );
+                if (
+                    object.material.map
+                ) {
+                    object.material.map.dispose();
+                }
+
+                object.material.dispose();
+            }
         }
     );
-}
 
-
-// ============================================================
-// GLOW
-// ============================================================
-
-export function createGlow(
-    parent,
-    color = COLORS.effects.glow,
-    radius = 10,
-    opacity = 0.18
-) {
-
-    const geometry =
-        new THREE.SphereGeometry(
-            radius,
-            32,
-            32
-        );
-
-    const material =
-        new THREE.MeshBasicMaterial({
-
-            color,
-
-            transparent: true,
-
-            opacity,
-
-            depthWrite: false,
-
-            side:
-                THREE.BackSide,
-
-            blending:
-                THREE.AdditiveBlending
-        });
-
-
-    const glow =
-        new THREE.Mesh(
-            geometry,
-            material
-        );
-
-    parent.add(
-        glow
+    scene.remove(
+        effectsGroup
     );
 
-
-    glowObjects.push({
-        object: glow,
-        speed: 1.2,
-        amount: 0.035
-    });
-
-
-    return glow;
-}
-
-
-// ============================================================
-// NEBULA GLOW
-// ============================================================
-
-export function createNebulaGlow(
-    parent,
-    color,
-    size = 100
-) {
-
-    const geometry =
-        new THREE.SphereGeometry(
-            size,
-            32,
-            32
-        );
-
-    const material =
-        new THREE.MeshBasicMaterial({
-
-            color,
-
-            transparent: true,
-
-            opacity: 0.06,
-
-            depthWrite: false,
-
-            side:
-                THREE.BackSide,
-
-            blending:
-                THREE.AdditiveBlending
-        });
-
-
-    const glow =
-        new THREE.Mesh(
-            geometry,
-            material
-        );
-
-    parent.add(
-        glow
-    );
-
-
-    glowObjects.push({
-        object: glow,
-        speed: 0.35,
-        amount: 0.025
-    });
-
-
-    return glow;
-}
-
-
-// ============================================================
-// ENERGY RING
-// ============================================================
-
-export function createEnergyRing(
-    parent,
-    color = COLORS.effects.cyan,
-    radius = 10
-) {
-
-    const geometry =
-        new THREE.RingGeometry(
-            radius * 1.15,
-            radius * 1.25,
-            96
-        );
-
-    const material =
-        new THREE.MeshBasicMaterial({
-
-            color,
-
-            transparent: true,
-
-            opacity: 0.35,
-
-            side:
-                THREE.DoubleSide,
-
-            depthWrite: false,
-
-            blending:
-                THREE.AdditiveBlending
-        });
-
-
-    const ring =
-        new THREE.Mesh(
-            geometry,
-            material
-        );
-
-    ring.rotation.x =
-        Math.PI / 2;
-
-    parent.add(
-        ring
-    );
-
-
-    glowObjects.push({
-        object: ring,
-        speed: 1.8,
-        amount: 0.04
-    });
-
-
-    return ring;
-}
-
-
-// ============================================================
-// VISIBILITY
-// ============================================================
-
-export function setEffectsVisible(
-    visible
-) {
-
-    if (starField) {
-        starField.visible =
-            visible;
-    }
-
-    if (ambientParticles) {
-        ambientParticles.visible =
-            visible;
-    }
-}
-
-
-export function areEffectsVisible() {
-
-    return (
-        starField?.visible !== false
-    );
-}
-
-
-// ============================================================
-// CLEAR
-// ============================================================
-
-export function clearEffects() {
-
-    if (!scene) {
-        return;
-    }
-
-    if (starField) {
-
-        scene.remove(
-            starField
-        );
-
-        starField.geometry.dispose();
-        starField.material.dispose();
-
-        starField = null;
-    }
-
-
-    if (ambientParticles) {
-
-        scene.remove(
-            ambientParticles
-        );
-
-        ambientParticles.geometry.dispose();
-        ambientParticles.material.dispose();
-
-        ambientParticles = null;
-    }
-
-
-    glowObjects.length = 0;
+    effectsGroup = null;
+    starField = null;
+    dustField = null;
+    meteorField = null;
+    sunCorona = null;
+    sunLight = null;
+    composer = null;
 }
