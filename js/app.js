@@ -328,7 +328,6 @@ function createOrbit(radius) {
     57,
     69,
     82
-].forEach(radius => createOrbit(radius, scene));
 // ============================================================
 // DEEP SPACE OBJECTS
 // ============================================================
@@ -336,6 +335,17 @@ function createOrbit(radius) {
 function createAllObjects() {
 
     createCelestialBodies();
+    [
+    7,
+    11,
+    15,
+    20,
+    32,
+    45,
+    57,
+    69,
+    82
+].forEach(radius => createOrbit(radius, scene));
 
     // createDeepSpaceObjects(scene);
    
