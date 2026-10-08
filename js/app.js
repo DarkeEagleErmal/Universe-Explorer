@@ -310,9 +310,7 @@ function createOrbit(radius) {
             material
         );
 
-    solarSystemGroup.add(
-        line
-    );
+   scene.add(line);
 
     orbitLines.push(
         line
