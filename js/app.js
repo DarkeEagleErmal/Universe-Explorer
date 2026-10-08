@@ -1,7 +1,6 @@
 import * as THREE from "three";
 
-import { initializeWelcome } from "./welcome.js";
-
+import { initializeWelcome, showHome } from "./welcome.js";
 import {
     initializeExplorationControls,
     setExplorationMode
@@ -13,18 +12,9 @@ import {
     updateCamera
 } from "./camera.js";
 
-import {
-    initializeInformation
-} from "./information.js";
-
-import {
-    initializeGuide
-} from "./guide.js";
-
-import {
-    initializeEffects,
-    updateEffects
-} from "./effects.js";
+import { initializeInformation } from "./information.js";
+import { initializeGuide } from "./guide.js";
+import { initializeEffects, updateEffects } from "./effects.js";
 
 import {
     initializeInterface,
@@ -50,9 +40,8 @@ import {
 
 import { COLORS } from "./colors.js";
 
-
 // ============================================================
-// GLOBAL VARIABLES
+// GLOBAL STATE
 // ============================================================
 
 let scene;
@@ -77,20 +66,97 @@ let blackHoleGroup;
 let asteroidGroup;
 let cometGroup;
 
+const orbitLines = [];
+
+let currentFilter = "all";
+let currentTimeMultiplier = 1;
+
+// ============================================================
+// TEXTURES
+// ============================================================
+
+function createSoftCircleTexture() {
+    const canvas = document.createElement("canvas");
+    canvas.width = 128;
+    canvas.height = 128;
+
+    const context = canvas.getContext("2d");
+
+    const gradient = context.createRadialGradient(
+        64,
+        64,
+        0,
+        64,
+        64,
+        64
+    );
+
+    gradient.addColorStop(0, "rgba(255,255,255,1)");
+    gradient.addColorStop(0.25, "rgba(255,255,255,0.95)");
+    gradient.addColorStop(0.55, "rgba(255,255,255,0.45)");
+    gradient.addColorStop(0.8, "rgba(255,255,255,0.12)");
+    gradient.addColorStop(1, "rgba(255,255,255,0)");
+
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, 128, 128);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+
+    return texture;
+}
+
+function createNebulaTexture() {
+    const canvas = document.createElement("canvas");
+    canvas.width = 256;
+    canvas.height = 256;
+
+    const context = canvas.getContext("2d");
+
+    context.clearRect(0, 0, 256, 256);
+
+    for (let i = 0; i < 18; i++) {
+        const x = 40 + Math.random() * 176;
+        const y = 40 + Math.random() * 176;
+        const radius = 30 + Math.random() * 70;
+
+        const gradient = context.createRadialGradient(
+            x,
+            y,
+            0,
+            x,
+            y,
+            radius
+        );
+
+        gradient.addColorStop(0, "rgba(255,255,255,0.18)");
+        gradient.addColorStop(0.4, "rgba(255,255,255,0.08)");
+        gradient.addColorStop(1, "rgba(255,255,255,0)");
+
+        context.fillStyle = gradient;
+        context.beginPath();
+        context.arc(x, y, radius, 0, Math.PI * 2);
+        context.fill();
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+
+    return texture;
+}
+
+const softCircleTexture = createSoftCircleTexture();
+const nebulaTexture = createNebulaTexture();
 
 // ============================================================
 // INITIALIZATION
 // ============================================================
 
 function initializeApp() {
-initializeWelcome();
     createScene();
     createRenderer();
 
-    const cameraData = initializeCamera(
-        scene,
-        renderer
-    );
+    const cameraData = initializeCamera(scene, renderer);
 
     camera = cameraData.camera;
     controls = cameraData.controls;
@@ -128,13 +194,11 @@ initializeWelcome();
     hideLoadingScreen();
 }
 
-
 // ============================================================
 // SCENE
 // ============================================================
 
 function createScene() {
-
     scene = new THREE.Scene();
 
     scene.background = new THREE.Color(
@@ -143,119 +207,88 @@ function createScene() {
 
     scene.fog = new THREE.FogExp2(
         COLORS.space.background,
-        0.00008
+        0.000025
     );
 
-    const ambientLight =
-        new THREE.AmbientLight(
-            COLORS.lighting.ambient,
-            0.7
-        );
+    const ambientLight = new THREE.AmbientLight(
+        COLORS.lighting.ambient,
+        0.35
+    );
 
     scene.add(ambientLight);
 
-    const sunLight =
-        new THREE.PointLight(
-            COLORS.lighting.sunlight,
-            6,
-            1000000
-        );
+    const sunLight = new THREE.PointLight(
+        COLORS.lighting.sunlight,
+        4,
+        0,
+        2
+    );
 
     sunLight.position.set(0, 0, 0);
 
     scene.add(sunLight);
 }
 
-
 // ============================================================
 // RENDERER
 // ============================================================
 
 function createRenderer() {
+    const container = document.getElementById("canvasContainer");
 
-    const container =
-        document.getElementById(
-            "canvasContainer"
-        );
+    if (!container) {
+        console.error("canvasContainer not found.");
+        return;
+    }
 
-    renderer =
-        new THREE.WebGLRenderer({
-            antialias: true,
-            alpha: false
-        });
+    renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: false
+    });
 
     renderer.setPixelRatio(
         Math.min(window.devicePixelRatio, 2)
     );
 
     renderer.setSize(
-        window.innerWidth,
-        window.innerHeight
+        container.clientWidth || window.innerWidth,
+        container.clientHeight || window.innerHeight
     );
 
-    renderer.outputColorSpace =
-        THREE.SRGBColorSpace;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    if (container) {
-
-        container.innerHTML = "";
-
-        container.appendChild(
-            renderer.domElement
-        );
-    }
+    container.innerHTML = "";
+    container.appendChild(renderer.domElement);
 }
 
-
 // ============================================================
-// UNIVERSE GROUPS
+// GROUPS
 // ============================================================
 
 function createUniverseGroups() {
+    solarSystem = new THREE.Group();
+    solarSystem.name = "Solar System";
 
-    solarSystem =
-        new THREE.Group();
+    deepSpaceGroup = new THREE.Group();
+    deepSpaceGroup.name = "Deep Space";
 
-    solarSystem.name =
-        "Solar System";
+    galaxyGroup = new THREE.Group();
+    galaxyGroup.name = "Galaxies";
 
-    deepSpaceGroup =
-        new THREE.Group();
+    nebulaGroup = new THREE.Group();
+    nebulaGroup.name = "Nebulae";
 
-    deepSpaceGroup.name =
-        "Deep Space";
+    blackHoleGroup = new THREE.Group();
+    blackHoleGroup.name = "Black Holes";
 
-    galaxyGroup =
-        new THREE.Group();
+    asteroidGroup = new THREE.Group();
+    asteroidGroup.name = "Asteroids";
 
-    galaxyGroup.name =
-        "Galaxies";
-
-    nebulaGroup =
-        new THREE.Group();
-
-    nebulaGroup.name =
-        "Nebulae";
-
-    blackHoleGroup =
-        new THREE.Group();
-
-    blackHoleGroup.name =
-        "Black Holes";
-
-    asteroidGroup =
-        new THREE.Group();
-
-    asteroidGroup.name =
-        "Asteroids";
-
-    cometGroup =
-        new THREE.Group();
-
-    cometGroup.name =
-        "Comets";
+    cometGroup = new THREE.Group();
+    cometGroup.name = "Comets";
 
     scene.add(solarSystem);
     scene.add(deepSpaceGroup);
@@ -266,289 +299,234 @@ function createUniverseGroups() {
     scene.add(cometGroup);
 }
 
-
 // ============================================================
 // CELESTIAL BODIES
 // ============================================================
 
 function createCelestialBodies() {
-
     const objects = [
         ...(Array.isArray(allCelestialObjects)
             ? allCelestialObjects
-            : Object.values(allCelestialObjects || {})),
+            : []),
 
         ...(Array.isArray(moonObjects)
             ? moonObjects
-            : Object.values(moonObjects || {}))
+            : [])
     ];
 
     objects.forEach(data => {
+        if (!data || !data.name) return;
 
-        if (!data || !data.name) {
-            return;
-        }
+        const radius = Math.max(
+            Number(data.radius) || 1,
+            0.3
+        );
 
-        const radius =
-            Math.max(
-                Number(data.radius) || 1,
-                0.5
-            );
+        const geometry = new THREE.SphereGeometry(
+            radius,
+            64,
+            64
+        );
 
-        const geometry =
-            new THREE.SphereGeometry(
-                radius,
-                64,
-                64
-            );
+        let material;
 
-        const material =
-            new THREE.MeshStandardMaterial({
-                color:
-                    data.color || 0xffffff,
+        const type = String(data.type || "").toLowerCase();
 
-                roughness: 0.7,
-
+        if (type === "star" || data.name.toLowerCase() === "sun") {
+            material = new THREE.MeshBasicMaterial({
+                color: data.color || COLORS.sun.surface
+            });
+        } else {
+            material = new THREE.MeshStandardMaterial({
+                color: data.color || 0xffffff,
+                roughness: 0.82,
                 metalness: 0.02
             });
-
-        const mesh =
-            new THREE.Mesh(
-                geometry,
-                material
-            );
-
-        mesh.name =
-            data.name;
-
-        if (data.position) {
-
-            mesh.position.set(
-                Number(data.position.x) || 0,
-                Number(data.position.y) || 0,
-                Number(data.position.z) || 0
-            );
         }
 
-        mesh.userData = {
-            type:
-                data.type || "Planet",
+        const mesh = new THREE.Mesh(
+            geometry,
+            material
+        );
 
-            name:
-                data.name,
-
-            data
+        const position = data.position || {
+            x: 0,
+            y: 0,
+            z: 0
         };
 
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
+        mesh.position.set(
+            Number(position.x) || 0,
+            Number(position.y) || 0,
+            Number(position.z) || 0
+        );
+
+        mesh.userData = {
+            type: data.type || "Planet",
+            name: data.name,
+            data
+        };
 
         solarSystem.add(mesh);
 
         objectMeshes.push(mesh);
-
         objectMap.set(
             data.name.toLowerCase(),
             mesh
         );
 
-        if (data.name === "Earth") {
-
-            createEarthAtmosphere(
-                mesh,
-                radius
-            );
+        if (data.name.toLowerCase() === "earth") {
+            createEarthAtmosphere(mesh, radius);
         }
 
-        if (data.name === "Sun") {
-
-            createSunGlow(
-                mesh,
-                radius
-            );
+        if (data.name.toLowerCase() === "sun") {
+            createSunGlow(mesh, radius);
         }
 
-        if (data.name === "Saturn") {
-
-            createSaturnRings(
-                mesh,
-                radius
-            );
+        if (data.name.toLowerCase() === "saturn") {
+            createSaturnRings(mesh, radius);
         }
     });
 }
-
 
 // ============================================================
 // EARTH ATMOSPHERE
 // ============================================================
 
-function createEarthAtmosphere(
-    parent,
-    radius
-) {
+function createEarthAtmosphere(parent, radius) {
+    const geometry = new THREE.SphereGeometry(
+        radius * 1.06,
+        64,
+        64
+    );
 
-    const geometry =
-        new THREE.SphereGeometry(
-            radius * 1.08,
-            64,
-            64
-        );
+    const material = new THREE.MeshBasicMaterial({
+        color:
+            COLORS.planets?.earth?.atmosphere ||
+            0x55aaff,
+        transparent: true,
+        opacity: 0.16,
+        side: THREE.BackSide,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+    });
 
-    const material =
-        new THREE.MeshBasicMaterial({
-            color:
-                COLORS.planets.earth.atmosphere,
-
-            transparent: true,
-
-            opacity: 0.18,
-
-            side: THREE.BackSide,
-
-            depthWrite: false
-        });
-
-    const atmosphere =
-        new THREE.Mesh(
-            geometry,
-            material
-        );
+    const atmosphere = new THREE.Mesh(
+        geometry,
+        material
+    );
 
     parent.add(atmosphere);
 }
-
 
 // ============================================================
 // SUN GLOW
 // ============================================================
 
-function createSunGlow(
-    parent,
-    radius
-) {
+function createSunGlow(parent, radius) {
+    const geometry = new THREE.SphereGeometry(
+        radius * 1.25,
+        48,
+        48
+    );
 
-    const geometry =
-        new THREE.SphereGeometry(
-            radius * 1.5,
-            32,
-            32
-        );
+    const material = new THREE.MeshBasicMaterial({
+        color:
+            COLORS.sun.glow ||
+            0xffaa33,
+        transparent: true,
+        opacity: 0.12,
+        side: THREE.BackSide,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+    });
 
-    const material =
-        new THREE.MeshBasicMaterial({
-            color:
-                COLORS.sun.glow,
-
-            transparent: true,
-
-            opacity: 0.16,
-
-            side: THREE.BackSide,
-
-            depthWrite: false
-        });
-
-    const glow =
-        new THREE.Mesh(
-            geometry,
-            material
-        );
+    const glow = new THREE.Mesh(
+        geometry,
+        material
+    );
 
     parent.add(glow);
 }
-
 
 // ============================================================
 // SATURN RINGS
 // ============================================================
 
-function createSaturnRings(
-    parent,
-    radius
-) {
+function createSaturnRings(parent, radius) {
+    const geometry = new THREE.RingGeometry(
+        radius * 1.35,
+        radius * 2.25,
+        128
+    );
 
-    const geometry =
-        new THREE.RingGeometry(
-            radius * 1.45,
-            radius * 2.4,
-            128
-        );
+    const material = new THREE.MeshBasicMaterial({
+        color:
+            COLORS.planets?.saturn?.rings ||
+            0xd8c6a2,
+        transparent: true,
+        opacity: 0.7,
+        side: THREE.DoubleSide,
+        depthWrite: false
+    });
 
-    const material =
-        new THREE.MeshBasicMaterial({
-            color:
-                COLORS.planets.saturn.rings,
+    const rings = new THREE.Mesh(
+        geometry,
+        material
+    );
 
-            transparent: true,
-
-            opacity: 0.8,
-
-            side: THREE.DoubleSide,
-
-            depthWrite: false
-        });
-
-    const rings =
-        new THREE.Mesh(
-            geometry,
-            material
-        );
-
-    rings.rotation.x =
-        Math.PI / 2;
+    rings.rotation.x = Math.PI / 2;
 
     parent.add(rings);
 }
-
 
 // ============================================================
 // DEEP SPACE
 // ============================================================
 
 function createDeepSpace() {
+    if (!Array.isArray(deepSpaceObjects)) return;
 
-    const objects =
-        Array.isArray(deepSpaceObjects)
-            ? deepSpaceObjects
-            : Object.values(
-                deepSpaceObjects || {}
-            );
+    deepSpaceObjects.forEach(data => {
+        if (!data || !data.name) return;
 
-    objects.forEach(data => {
+        const type = String(
+            data.type || ""
+        ).toLowerCase();
 
-        if (!data || !data.name) {
+        // Black holes are created separately.
+        if (
+            type.includes("black") &&
+            type.includes("hole")
+        ) {
             return;
         }
 
-        const position =
-            data.position || {};
+        const position = data.position || {
+            x: 0,
+            y: 0,
+            z: 0
+        };
 
-        const radius =
-            Number(data.radius) || 30;
+        const size = Number(data.radius || data.size) || 10;
 
-        const geometry =
-            new THREE.SphereGeometry(
-                radius,
-                32,
-                32
-            );
+        const geometry = new THREE.SphereGeometry(
+            size,
+            32,
+            32
+        );
 
-        const material =
-            new THREE.MeshBasicMaterial({
-                color:
-                    data.color || 0xffffff,
+        const material = new THREE.MeshBasicMaterial({
+            color: data.color || 0xffffff,
+            transparent: true,
+            opacity: 0.08,
+            depthWrite: false
+        });
 
-                transparent: true,
-
-                opacity: 0.75
-            });
-
-        const mesh =
-            new THREE.Mesh(
-                geometry,
-                material
-            );
+        const mesh = new THREE.Mesh(
+            geometry,
+            material
+        );
 
         mesh.position.set(
             Number(position.x) || 0,
@@ -556,23 +534,15 @@ function createDeepSpace() {
             Number(position.z) || 0
         );
 
-        mesh.name =
-            data.name;
-
         mesh.userData = {
-            type:
-                data.type || "Deep Space Object",
-
-            name:
-                data.name,
-
+            type: data.type || "Deep Space Object",
+            name: data.name,
             data
         };
 
         deepSpaceGroup.add(mesh);
 
         objectMeshes.push(mesh);
-
         objectMap.set(
             data.name.toLowerCase(),
             mesh
@@ -580,113 +550,27 @@ function createDeepSpace() {
     });
 }
 
-
 // ============================================================
 // NEBULAE
 // ============================================================
 
 function createNebulae() {
+    if (!Array.isArray(nebulaObjects)) return;
 
-    const objects =
-        Array.isArray(nebulaObjects)
-            ? nebulaObjects
-            : Object.values(
-                nebulaObjects || {}
-            );
+    nebulaObjects.forEach(data => {
+        if (!data || !data.name) return;
 
-    objects.forEach(data => {
-
-        if (!data) {
-            return;
-        }
-
-        const position =
-            data.position || {};
-
-        const size =
-            Number(data.size) || 300;
-
-        const geometry =
-            new THREE.SphereGeometry(
-                size,
-                32,
-                32
-            );
-
-        const material =
-            new THREE.MeshBasicMaterial({
-                color:
-                    data.color ||
-                    COLORS.nebulae.purple,
-
-                transparent: true,
-
-                opacity: 0.12,
-
-                depthWrite: false,
-
-                side: THREE.DoubleSide
-            });
-
-        const mesh =
-            new THREE.Mesh(
-                geometry,
-                material
-            );
-
-        mesh.position.set(
-            Number(position.x) || 0,
-            Number(position.y) || 0,
-            Number(position.z) || 0
-        );
-
-        mesh.name =
-            data.name || "Nebula";
-
-        mesh.userData = {
-            type: "Nebula",
-
-            name: mesh.name,
-
-            data
+        const position = data.position || {
+            x: 0,
+            y: 0,
+            z: 0
         };
 
-        nebulaGroup.add(mesh);
+        const size = Number(data.size) || 300;
 
-        objectMeshes.push(mesh);
+        const group = new THREE.Group();
 
-        objectMap.set(
-            mesh.name.toLowerCase(),
-            mesh
-        );
-    });
-}
-
-
-// ============================================================
-// GALAXIES
-// ============================================================
-
-function createGalaxies() {
-
-    const objects =
-        Array.isArray(galaxyObjects)
-            ? galaxyObjects
-            : Object.values(
-                galaxyObjects || {}
-            );
-
-    objects.forEach(data => {
-
-        if (!data) {
-            return;
-        }
-
-        const group =
-            new THREE.Group();
-
-        const position =
-            data.position || {};
+        group.name = data.name;
 
         group.position.set(
             Number(position.x) || 0,
@@ -694,11 +578,157 @@ function createGalaxies() {
             Number(position.z) || 0
         );
 
-        const particleCount =
-            Number(data.count) || 2500;
+        group.userData = {
+            type: data.type || "Nebula",
+            name: data.name,
+            data
+        };
 
-        const size =
-            Number(data.size) || 500;
+        const color = data.color || 0x8b5cff;
+
+        // Cloud layers
+        for (let i = 0; i < 42; i++) {
+            const material = new THREE.SpriteMaterial({
+                map: nebulaTexture,
+                color,
+                transparent: true,
+                opacity:
+                    0.035 +
+                    Math.random() * 0.035,
+                depthWrite: false,
+                blending: THREE.AdditiveBlending
+            });
+
+            const cloud = new THREE.Sprite(
+                material
+            );
+
+            const layerSize =
+                size *
+                (0.25 + Math.random() * 0.45);
+
+            cloud.scale.set(
+                layerSize,
+                layerSize *
+                    (0.65 + Math.random() * 0.7),
+                1
+            );
+
+            cloud.position.set(
+                (Math.random() - 0.5) * size,
+                (Math.random() - 0.5) * size * 0.55,
+                (Math.random() - 0.5) * size
+            );
+
+            cloud.material.rotation =
+                Math.random() * Math.PI;
+
+            group.add(cloud);
+        }
+
+        // Invisible clickable volume
+        const hitGeometry =
+            new THREE.SphereGeometry(
+                size * 0.9,
+                24,
+                24
+            );
+
+        const hitMaterial =
+            new THREE.MeshBasicMaterial({
+                transparent: true,
+                opacity: 0,
+                depthWrite: false
+            });
+
+        const hitMesh = new THREE.Mesh(
+            hitGeometry,
+            hitMaterial
+        );
+
+        hitMesh.userData = group.userData;
+
+        group.add(hitMesh);
+
+        nebulaGroup.add(group);
+
+        objectMeshes.push(hitMesh);
+
+        objectMap.set(
+            data.name.toLowerCase(),
+            hitMesh
+        );
+    });
+}
+
+// ============================================================
+// GALAXIES
+// ============================================================
+
+function createGalaxies() {
+    if (!Array.isArray(galaxyObjects)) return;
+
+    galaxyObjects.forEach(data => {
+        if (!data || !data.name) return;
+
+        const position = data.position || {
+            x: 0,
+            y: 0,
+            z: 0
+        };
+
+        const size = Number(data.size) || 500;
+
+        const group = new THREE.Group();
+
+        group.name = data.name;
+
+        group.position.set(
+            Number(position.x) || 0,
+            Number(position.y) || 0,
+            Number(position.z) || 0
+        );
+
+        group.userData = {
+            type: data.type || "Galaxy",
+            name: data.name,
+            data
+        };
+
+        // ----------------------------------------------------
+        // CENTRAL CORE
+        // ----------------------------------------------------
+
+        const coreMaterial =
+            new THREE.SpriteMaterial({
+                map: softCircleTexture,
+                color:
+                    data.coreColor ||
+                    0xffe8b0,
+                transparent: true,
+                opacity: 0.85,
+                depthWrite: false,
+                blending: THREE.AdditiveBlending
+            });
+
+        const core = new THREE.Sprite(
+            coreMaterial
+        );
+
+        core.scale.set(
+            size * 0.22,
+            size * 0.22,
+            1
+        );
+
+        group.add(core);
+
+        // ----------------------------------------------------
+        // SPIRAL STARS
+        // ----------------------------------------------------
+
+        const particleCount =
+            Number(data.count) || 6000;
 
         const positions =
             new Float32Array(
@@ -710,63 +740,96 @@ function createGalaxies() {
                 particleCount * 3
             );
 
-        const color =
-            new THREE.Color(
-                data.color ||
-                COLORS.galaxies.andromeda
-            );
+        const galaxyColors = [
+            new THREE.Color(0xffffff),
+            new THREE.Color(0xffe9bd),
+            new THREE.Color(0xaed8ff),
+            new THREE.Color(0x9fc5ff),
+            new THREE.Color(0xffc7a0)
+        ];
 
-        for (
-            let i = 0;
-            i < particleCount;
-            i++
-        ) {
+        const arms = 4;
+
+        for (let i = 0; i < particleCount; i++) {
+            const index = i * 3;
+
+            const arm =
+                i % arms;
 
             const radius =
                 Math.pow(
                     Math.random(),
-                    0.65
-                ) * size;
+                    0.55
+                ) *
+                size *
+                0.48;
 
-            const angle =
-                Math.random() *
+            const armAngle =
+                (arm / arms) *
                 Math.PI *
-                2 +
-                radius * 0.008;
+                2;
+
+            const spiralAngle =
+                armAngle +
+                radius *
+                0.018;
+
+            const spread =
+                (Math.random() - 0.5) *
+                Math.max(
+                    4,
+                    radius * 0.13
+                );
 
             const x =
-                Math.cos(angle) *
-                radius;
+                Math.cos(
+                    spiralAngle
+                ) *
+                    radius +
+                spread;
 
             const z =
-                Math.sin(angle) *
-                radius;
+                Math.sin(
+                    spiralAngle
+                ) *
+                    radius +
+                spread;
 
             const y =
                 (Math.random() - 0.5) *
-                size *
-                0.08;
+                Math.max(
+                    4,
+                    size * 0.025
+                ) *
+                (1 - radius / size);
 
-            const index =
-                i * 3;
+            positions[index] = x;
+            positions[index + 1] = y;
+            positions[index + 2] = z;
 
-            positions[index] =
-                x;
+            const starColor =
+                galaxyColors[
+                    Math.floor(
+                        Math.random() *
+                            galaxyColors.length
+                    )
+                ];
 
-            positions[index + 1] =
-                y;
-
-            positions[index + 2] =
-                z;
+            const brightness =
+                0.45 +
+                Math.random() * 0.55;
 
             colors[index] =
-                color.r;
+                starColor.r *
+                brightness;
 
             colors[index + 1] =
-                color.g;
+                starColor.g *
+                brightness;
 
             colors[index + 2] =
-                color.b;
+                starColor.b *
+                brightness;
         }
 
         const geometry =
@@ -790,169 +853,304 @@ function createGalaxies() {
 
         const material =
             new THREE.PointsMaterial({
+                map: softCircleTexture,
                 size:
-                    Number(
-                        data.particleSize
-                    ) || 3,
-
+                    Number(data.particleSize) ||
+                    2.4,
                 vertexColors: true,
-
                 transparent: true,
-
-                opacity: 0.8,
-
-                depthWrite: false
+                opacity: 0.85,
+                depthWrite: false,
+                blending:
+                    THREE.AdditiveBlending,
+                sizeAttenuation: true
             });
 
-        const points =
+        const stars =
             new THREE.Points(
                 geometry,
                 material
             );
 
-        group.add(points);
+        group.add(stars);
 
-        group.name =
-            data.name || "Galaxy";
+        // ----------------------------------------------------
+        // GALAXY GLOW
+        // ----------------------------------------------------
 
-        group.userData = {
-            type: "Galaxy",
+        const glowMaterial =
+            new THREE.SpriteMaterial({
+                map: softCircleTexture,
+                color:
+                    data.glowColor ||
+                    0x9fc8ff,
+                transparent: true,
+                opacity: 0.12,
+                depthWrite: false,
+                blending: THREE.AdditiveBlending
+            });
 
-            name: group.name,
+        const glow =
+            new THREE.Sprite(
+                glowMaterial
+            );
 
-            data
-        };
+        glow.scale.set(
+            size * 0.8,
+            size * 0.8,
+            1
+        );
+
+        group.add(glow);
+
+        // ----------------------------------------------------
+        // CLICKABLE HIT AREA
+        // ----------------------------------------------------
+
+        const hitGeometry =
+            new THREE.SphereGeometry(
+                size * 0.55,
+                24,
+                24
+            );
+
+        const hitMaterial =
+            new THREE.MeshBasicMaterial({
+                transparent: true,
+                opacity: 0,
+                depthWrite: false
+            });
+
+        const hitMesh =
+            new THREE.Mesh(
+                hitGeometry,
+                hitMaterial
+            );
+
+        hitMesh.userData =
+            group.userData;
+
+        group.add(hitMesh);
 
         galaxyGroup.add(group);
 
-        objectMeshes.push(group);
+        objectMeshes.push(hitMesh);
 
         objectMap.set(
-            group.name.toLowerCase(),
-            group
+            data.name.toLowerCase(),
+            hitMesh
         );
     });
 }
-
 
 // ============================================================
 // BLACK HOLES
 // ============================================================
 
 function createBlackHoles() {
+    if (!Array.isArray(deepSpaceObjects)) return;
 
-    const objects =
-        Array.isArray(deepSpaceObjects)
-            ? deepSpaceObjects
-            : Object.values(
-                deepSpaceObjects || {}
-            );
+    deepSpaceObjects.forEach(data => {
+        if (!data || !data.name) return;
 
-    objects
-        .filter(data =>
-            data &&
-            (
-                data.type === "Black Hole" ||
-                data.type === "BlackHole"
-            )
-        )
-        .forEach(data => {
+        const type =
+            String(
+                data.type || ""
+            ).toLowerCase();
 
-            const group =
-                new THREE.Group();
+        if (
+            !type.includes("black") ||
+            !type.includes("hole")
+        ) {
+            return;
+        }
 
-            const position =
-                data.position || {};
-
-            group.position.set(
-                Number(position.x) || 0,
-                Number(position.y) || 0,
-                Number(position.z) || 0
-            );
-
-            const radius =
-                Number(data.radius) || 20;
-
-            const core =
-                new THREE.Mesh(
-                    new THREE.SphereGeometry(
-                        radius,
-                        64,
-                        64
-                    ),
-                    new THREE.MeshBasicMaterial({
-                        color: 0x000000
-                    })
-                );
-
-            group.add(core);
-
-            const ring =
-                new THREE.Mesh(
-                    new THREE.RingGeometry(
-                        radius * 1.4,
-                        radius * 3.5,
-                        128
-                    ),
-                    new THREE.MeshBasicMaterial({
-                        color:
-                            COLORS.blackHoles.accretionDisk,
-
-                        transparent: true,
-
-                        opacity: 0.75,
-
-                        side: THREE.DoubleSide,
-
-                        depthWrite: false
-                    })
-                );
-
-            ring.rotation.x =
-                Math.PI / 2;
-
-            group.add(ring);
-
-            group.name =
-                data.name || "Black Hole";
-
-            group.userData = {
-                type: "Black Hole",
-
-                name: group.name,
-
-                data
+        const position =
+            data.position || {
+                x: 0,
+                y: 0,
+                z: 0
             };
 
-            blackHoleGroup.add(group);
+        const radius =
+            Number(data.radius) || 12;
 
-            objectMeshes.push(group);
+        const group =
+            new THREE.Group();
 
-            objectMap.set(
-                group.name.toLowerCase(),
-                group
+        group.name = data.name;
+
+        group.position.set(
+            Number(position.x) || 0,
+            Number(position.y) || 0,
+            Number(position.z) || 0
+        );
+
+        group.userData = {
+            type: data.type || "Black Hole",
+            name: data.name,
+            data
+        };
+
+        // ----------------------------------------------------
+        // DARK CORE
+        // ----------------------------------------------------
+
+        const coreGeometry =
+            new THREE.SphereGeometry(
+                radius,
+                48,
+                48
             );
-        });
-        }
-    // ============================================================
+
+        const coreMaterial =
+            new THREE.MeshBasicMaterial({
+                color: 0x000000
+            });
+
+        const core =
+            new THREE.Mesh(
+                coreGeometry,
+                coreMaterial
+            );
+
+        group.add(core);
+
+        // ----------------------------------------------------
+        // ACCRETION DISK
+        // ----------------------------------------------------
+
+        const diskGeometry =
+            new THREE.RingGeometry(
+                radius * 1.35,
+                radius * 3.8,
+                128
+            );
+
+        const diskMaterial =
+            new THREE.MeshBasicMaterial({
+                color:
+                    data.accretionColor ||
+                    COLORS.blackHoles?.accretionDisk ||
+                    0xff6b22,
+                transparent: true,
+                opacity: 0.8,
+                side: THREE.DoubleSide,
+                depthWrite: false,
+                blending:
+                    THREE.AdditiveBlending
+            });
+
+        const disk =
+            new THREE.Mesh(
+                diskGeometry,
+                diskMaterial
+            );
+
+        disk.rotation.x =
+            Math.PI / 2;
+
+        group.add(disk);
+
+        // ----------------------------------------------------
+        // OUTER GLOW
+        // ----------------------------------------------------
+
+        const glowGeometry =
+            new THREE.RingGeometry(
+                radius * 3.4,
+                radius * 4.8,
+                128
+            );
+
+        const glowMaterial =
+            new THREE.MeshBasicMaterial({
+                color:
+                    COLORS.blackHoles?.glow ||
+                    0xff8a3d,
+                transparent: true,
+                opacity: 0.16,
+                side: THREE.DoubleSide,
+                depthWrite: false,
+                blending:
+                    THREE.AdditiveBlending
+            });
+
+        const glow =
+            new THREE.Mesh(
+                glowGeometry,
+                glowMaterial
+            );
+
+        glow.rotation.x =
+            Math.PI / 2;
+
+        group.add(glow);
+
+        // ----------------------------------------------------
+        // CLICK AREA
+        // ----------------------------------------------------
+
+        const hitGeometry =
+            new THREE.SphereGeometry(
+                radius * 5,
+                24,
+                24
+            );
+
+        const hitMaterial =
+            new THREE.MeshBasicMaterial({
+                transparent: true,
+                opacity: 0,
+                depthWrite: false
+            });
+
+        const hitMesh =
+            new THREE.Mesh(
+                hitGeometry,
+                hitMaterial
+            );
+
+        hitMesh.userData =
+            group.userData;
+
+        group.add(hitMesh);
+
+        blackHoleGroup.add(group);
+
+        objectMeshes.push(hitMesh);
+
+        objectMap.set(
+            data.name.toLowerCase(),
+            hitMesh
+        );
+    });
+}
+
+// ============================================================
 // ASTEROID BELT
 // ============================================================
 
 function createAsteroidBelt() {
-
     if (!asteroidBelt) return;
 
     const count =
-        Number(asteroidBelt.count) || 1000;
+        Math.min(
+            Number(asteroidBelt.count) || 500,
+            600
+        );
 
     const minRadius =
-        Number(asteroidBelt.minRadius) || 60;
+        Number(
+            asteroidBelt.minRadius
+        ) || 60;
 
     const maxRadius =
-        Number(asteroidBelt.maxRadius) || 85;
+        Number(
+            asteroidBelt.maxRadius
+        ) || 85;
 
     for (let i = 0; i < count; i++) {
-
         const radius =
             THREE.MathUtils.lerp(
                 minRadius,
@@ -961,30 +1159,57 @@ function createAsteroidBelt() {
             );
 
         const angle =
-            Math.random() * Math.PI * 2;
+            Math.random() *
+            Math.PI *
+            2;
 
-        const size =
-            Math.random() * 0.7 + 0.2;
+        const y =
+            (Math.random() - 0.5) *
+            5;
+
+        const geometry =
+            new THREE.IcosahedronGeometry(
+                1,
+                0
+            );
+
+        const material =
+            new THREE.MeshStandardMaterial({
+                color:
+                    0x77736c +
+                    Math.floor(
+                        Math.random() *
+                        0x252525
+                    ),
+                roughness: 1
+            });
 
         const asteroid =
             new THREE.Mesh(
-                new THREE.SphereGeometry(
-                    size,
-                    8,
-                    8
-                ),
-                new THREE.MeshStandardMaterial({
-                    color:
-                        COLORS.asteroids.main,
-
-                    roughness: 1
-                })
+                geometry,
+                material
             );
 
+        const size =
+            0.15 +
+            Math.random() *
+            0.65;
+
+        asteroid.scale.set(
+            size *
+                (0.7 + Math.random() * 0.6),
+            size *
+                (0.7 + Math.random() * 0.6),
+            size *
+                (0.7 + Math.random() * 0.6)
+        );
+
         asteroid.position.set(
-            Math.cos(angle) * radius,
-            (Math.random() - 0.5) * 4,
-            Math.sin(angle) * radius
+            Math.cos(angle) *
+                radius,
+            y,
+            Math.sin(angle) *
+                radius
         );
 
         asteroid.rotation.set(
@@ -993,30 +1218,41 @@ function createAsteroidBelt() {
             Math.random() * Math.PI
         );
 
-        asteroidGroup.add(asteroid);
+        asteroidGroup.add(
+            asteroid
+        );
     }
 }
-
 
 // ============================================================
 // KUIPER BELT
 // ============================================================
 
 function createKuiperBelt() {
-
     if (!kuiperBelt) return;
 
     const count =
-        Number(kuiperBelt.count) || 700;
+        Math.min(
+            Number(kuiperBelt.count) || 350,
+            400
+        );
 
     const minRadius =
-        Number(kuiperBelt.minRadius) || 180;
+        Number(
+            kuiperBelt.minRadius
+        ) || 180;
 
     const maxRadius =
-        Number(kuiperBelt.maxRadius) || 230;
+        Number(
+            kuiperBelt.maxRadius
+        ) || 230;
+
+    const positions =
+        new Float32Array(
+            count * 3
+        );
 
     for (let i = 0; i < count; i++) {
-
         const radius =
             THREE.MathUtils.lerp(
                 minRadius,
@@ -1025,54 +1261,86 @@ function createKuiperBelt() {
             );
 
         const angle =
-            Math.random() * Math.PI * 2;
+            Math.random() *
+            Math.PI *
+            2;
 
-        const size =
-            Math.random() * 0.5 + 0.15;
+        const index = i * 3;
 
-        const object =
-            new THREE.Mesh(
-                new THREE.SphereGeometry(
-                    size,
-                    8,
-                    8
-                ),
-                new THREE.MeshBasicMaterial({
-                    color:
-                        COLORS.kuiperBelt.main
-                })
-            );
+        positions[index] =
+            Math.cos(angle) *
+            radius;
 
-        object.position.set(
-            Math.cos(angle) * radius,
-            (Math.random() - 0.5) * 8,
-            Math.sin(angle) * radius
+        positions[index + 1] =
+            (Math.random() - 0.5) *
+            8;
+
+        positions[index + 2] =
+            Math.sin(angle) *
+            radius;
+    }
+
+    const geometry =
+        new THREE.BufferGeometry();
+
+    geometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(
+            positions,
+            3
+        )
+    );
+
+    const material =
+        new THREE.PointsMaterial({
+            map: softCircleTexture,
+            color:
+                COLORS.asteroids?.dark ||
+                0x8f8f8f,
+            size: 1.3,
+            transparent: true,
+            opacity: 0.38,
+            depthWrite: false
+        });
+
+    const points =
+        new THREE.Points(
+            geometry,
+            material
         );
 
-        deepSpaceGroup.add(object);
-    }
+    deepSpaceGroup.add(points);
 }
-
 
 // ============================================================
 // OORT CLOUD
 // ============================================================
 
 function createOortCloud() {
-
     if (!oortCloud) return;
 
     const count =
-        Number(oortCloud.count) || 500;
+        Math.min(
+            Number(oortCloud.count) || 180,
+            220
+        );
 
     const minRadius =
-        Number(oortCloud.minRadius) || 350;
+        Number(
+            oortCloud.minRadius
+        ) || 350;
 
     const maxRadius =
-        Number(oortCloud.maxRadius) || 500;
+        Number(
+            oortCloud.maxRadius
+        ) || 500;
+
+    const positions =
+        new Float32Array(
+            count * 3
+        );
 
     for (let i = 0; i < count; i++) {
-
         const radius =
             THREE.MathUtils.lerp(
                 minRadius,
@@ -1081,71 +1349,88 @@ function createOortCloud() {
             );
 
         const theta =
-            Math.random() * Math.PI * 2;
+            Math.random() *
+            Math.PI *
+            2;
 
         const phi =
             Math.acos(
                 THREE.MathUtils.randFloatSpread(2)
             );
 
-        const object =
-            new THREE.Mesh(
-                new THREE.SphereGeometry(
-                    0.2,
-                    6,
-                    6
-                ),
-                new THREE.MeshBasicMaterial({
-                    color:
-                        COLORS.oortCloud.main
-                })
-            );
+        const index = i * 3;
 
-        object.position.set(
+        positions[index] =
             radius *
             Math.sin(phi) *
-            Math.cos(theta),
+            Math.cos(theta);
 
+        positions[index + 1] =
             radius *
-            Math.cos(phi),
+            Math.cos(phi);
 
+        positions[index + 2] =
             radius *
             Math.sin(phi) *
-            Math.sin(theta)
+            Math.sin(theta);
+    }
+
+    const geometry =
+        new THREE.BufferGeometry();
+
+    geometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(
+            positions,
+            3
+        )
+    );
+
+    const material =
+        new THREE.PointsMaterial({
+            map: softCircleTexture,
+            color:
+                COLORS.oortCloud?.main ||
+                0x9fc8ff,
+            size: 1.2,
+            transparent: true,
+            opacity: 0.2,
+            depthWrite: false
+        });
+
+    const points =
+        new THREE.Points(
+            geometry,
+            material
         );
 
-        deepSpaceGroup.add(object);
-    }
+    deepSpaceGroup.add(points);
 }
-
 
 // ============================================================
 // COMETS
 // ============================================================
 
 function createComets() {
+    if (!Array.isArray(cometObjects)) return;
 
-    if (!cometObjects) return;
+    cometObjects.forEach(data => {
+        if (!data || !data.name) return;
 
-    const objects =
-        Array.isArray(cometObjects)
-            ? cometObjects
-            : Object.values(
-                cometObjects || {}
-            );
+        const position =
+            data.position || {
+                x: 0,
+                y: 0,
+                z: 0
+            };
 
-    objects.forEach(data => {
-
-        if (!data) return;
+        const radius =
+            Number(data.radius) || 2;
 
         const group =
             new THREE.Group();
 
-        const radius =
-            Number(data.radius) || 1;
-
-        const position =
-            data.position || {};
+        group.name = data.name;
 
         group.position.set(
             Number(position.x) || 0,
@@ -1153,46 +1438,51 @@ function createComets() {
             Number(position.z) || 0
         );
 
+        group.userData = {
+            type: data.type || "Comet",
+            name: data.name,
+            data
+        };
+
         const nucleus =
             new THREE.Mesh(
-                new THREE.SphereGeometry(
+                new THREE.IcosahedronGeometry(
                     radius,
-                    24,
-                    24
+                    1
                 ),
                 new THREE.MeshStandardMaterial({
                     color:
-                        COLORS.comets.nucleus,
-
-                    roughness: 0.9
+                        COLORS.comets?.nucleus ||
+                        0xbab7ae,
+                    roughness: 1
                 })
             );
 
         group.add(nucleus);
 
         const tailLength =
-            Number(data.tailLength) || 25;
+            Number(data.tailLength) ||
+            radius * 8;
 
         const tail =
             new THREE.Mesh(
                 new THREE.ConeGeometry(
-                    radius * 2,
+                    radius * 1.8,
                     tailLength,
-                    16,
+                    32,
                     1,
                     true
                 ),
                 new THREE.MeshBasicMaterial({
                     color:
-                        COLORS.comets.tail,
-
+                        COLORS.comets?.tail ||
+                        0xaed8ff,
                     transparent: true,
-
-                    opacity: 0.25,
-
+                    opacity: 0.16,
+                    depthWrite: false,
                     side: THREE.DoubleSide,
-
-                    depthWrite: false
+                    blending:
+                        THREE.AdditiveBlending
                 })
             );
 
@@ -1204,67 +1494,64 @@ function createComets() {
 
         group.add(tail);
 
-        group.name =
-            data.name || "Comet";
+        const hit =
+            new THREE.Mesh(
+                new THREE.SphereGeometry(
+                    radius * 5,
+                    20,
+                    20
+                ),
+                new THREE.MeshBasicMaterial({
+                    transparent: true,
+                    opacity: 0,
+                    depthWrite: false
+                })
+            );
 
-        group.userData = {
-            type: "Comet",
+        hit.userData =
+            group.userData;
 
-            name: group.name,
-
-            data
-        };
+        group.add(hit);
 
         cometGroup.add(group);
 
-        objectMeshes.push(group);
+        objectMeshes.push(hit);
 
         objectMap.set(
-            group.name.toLowerCase(),
-            group
+            data.name.toLowerCase(),
+            hit
         );
     });
 }
-
 
 // ============================================================
 // ORBITS
 // ============================================================
 
 function createOrbits() {
+    if (!Array.isArray(allCelestialObjects)) {
+        return;
+    }
 
-    const objects =
-        Array.isArray(allCelestialObjects)
-            ? allCelestialObjects
-            : Object.values(
-                allCelestialObjects || {}
-            );
-
-    objects.forEach(data => {
-
-        if (!data || !data.orbit) {
-            return;
-        }
+    allCelestialObjects.forEach(data => {
+        if (!data || !data.orbit) return;
 
         const position =
-            data.position || {};
+            data.position || {
+                x: 0,
+                z: 0
+            };
 
         const radius =
-            Number(data.orbit.radius) ||
+            Number(
+                data.orbit.radius
+            ) ||
             Math.sqrt(
-                Math.pow(
-                    Number(position.x) || 0,
-                    2
-                ) +
-                Math.pow(
-                    Number(position.z) || 0,
-                    2
-                )
+                (Number(position.x) || 0) ** 2 +
+                (Number(position.z) || 0) ** 2
             );
 
-        if (radius <= 1) {
-            return;
-        }
+        if (!radius) return;
 
         const curve =
             new THREE.EllipseCurve(
@@ -1279,27 +1566,25 @@ function createOrbits() {
             );
 
         const points =
-            curve.getPoints(128);
+            curve.getPoints(256);
 
         const geometry =
-            new THREE.BufferGeometry()
-                .setFromPoints(
-                    points.map(point =>
-                        new THREE.Vector3(
-                            point.x,
-                            0,
-                            point.y
-                        )
+            new THREE.BufferGeometry().setFromPoints(
+                points.map(point =>
+                    new THREE.Vector3(
+                        point.x,
+                        0,
+                        point.y
                     )
-                );
+                )
+            );
 
         const material =
             new THREE.LineBasicMaterial({
                 color:
-                    COLORS.orbits.default,
-
+                    COLORS.orbits?.default ||
+                    0x315a7a,
                 transparent: true,
-
                 opacity: 0.25
             });
 
@@ -1309,35 +1594,42 @@ function createOrbits() {
                 material
             );
 
+        line.userData = {
+            type: "Orbit",
+            planet: data.name
+        };
+
         solarSystem.add(line);
+
+        orbitLines.push(line);
     });
 }
-
 
 // ============================================================
 // RAYCASTER
 // ============================================================
 
 function initializeRaycaster() {
-
     raycaster =
         new THREE.Raycaster();
+
+    raycaster.params.Points.threshold = 8;
 
     mouse =
         new THREE.Vector2();
 }
-
 
 // ============================================================
 // EVENTS
 // ============================================================
 
 function initializeEvents() {
-
-    renderer.domElement.addEventListener(
-        "click",
-        handleCanvasClick
-    );
+    if (renderer) {
+        renderer.domElement.addEventListener(
+            "pointerdown",
+            handleCanvasClick
+        );
+    }
 
     window.addEventListener(
         "resize",
@@ -1347,137 +1639,199 @@ function initializeEvents() {
     window.addEventListener(
         "universe:objectSelected",
         event => {
-
-            const name =
-                event.detail?.name;
-
-            if (name) {
-                focusObjectByName(name);
-            }
+            selectedData =
+                event.detail?.data ||
+                event.detail ||
+                null;
         }
     );
 
     window.addEventListener(
         "universe:search",
         event => {
-
-            const query =
-                event.detail?.query;
-
-            if (query) {
-                searchObject(query);
-            }
+            searchObject(
+                event.detail?.query ||
+                event.detail ||
+                ""
+            );
         }
     );
 
     window.addEventListener(
         "universe:focusObjectByName",
         event => {
-
-            const name =
-                event.detail?.name;
-
-            if (name) {
-                focusObjectByName(name);
-            }
+            focusObjectByName(
+                event.detail?.name ||
+                event.detail
+            );
         }
     );
 
     window.addEventListener(
         "universe:tourObject",
         event => {
-
-            const name =
-                event.detail?.name;
-
-            if (name) {
-                focusObjectByName(name);
-            }
+            focusObjectByName(
+                event.detail?.name ||
+                event.detail
+            );
         }
     );
 
     window.addEventListener(
-        "universe:explore",
+        "universe:resetCamera",
         resetExplorer
     );
 
     window.addEventListener(
-        "universe:resetCamera",
-        () => {
+        "universe:objectFilterChanged",
+        event => {
+            const filter =
+                event.detail?.filter ||
+                event.detail ||
+                "all";
 
+            applyObjectFilter(filter);
+        }
+    );
+
+    window.addEventListener(
+        "universe:orbitsChanged",
+        event => {
+            const visible =
+                event.detail?.visible ??
+                event.detail ??
+                true;
+
+            setOrbitsVisible(
+                Boolean(visible)
+            );
+        }
+    );
+
+    window.addEventListener(
+        "universe:timeChanged",
+        event => {
+            currentTimeMultiplier =
+                Number(
+                    event.detail?.multiplier ??
+                    event.detail
+                ) || 1;
+        }
+    );
+
+    window.addEventListener(
+        "universe:timeMultiplierChanged",
+        event => {
+            currentTimeMultiplier =
+                Number(
+                    event.detail?.multiplier ??
+                    event.detail
+                ) || 1;
+        }
+    );
+
+    window.addEventListener(
+        "universe:solarSystem",
+        () => {
+            showSolarSystemMode();
+        }
+    );
+
+    window.addEventListener(
+        "universe:freeMode",
+        () => {
+            showFreeMode();
+        }
+    );
+
+    window.addEventListener(
+        "universe:guidedMode",
+        () => {
+            showGuidedMode();
+        }
+    );
+
+    window.addEventListener(
+        "universe:home",
+        () => {
             selectedObject = null;
             selectedData = null;
         }
     );
 }
 
-
 // ============================================================
-// CANVAS CLICK
+// CLICK
 // ============================================================
 
 function handleCanvasClick(event) {
+    if (!renderer || !camera || !raycaster) {
+        return;
+    }
 
     const rect =
         renderer.domElement.getBoundingClientRect();
 
     mouse.x =
         ((event.clientX - rect.left) /
-            rect.width) * 2 - 1;
+            rect.width) *
+            2 -
+        1;
 
     mouse.y =
-        -((event.clientY - rect.top) /
-            rect.height) * 2 + 1;
+        -(
+            (event.clientY - rect.top) /
+            rect.height
+        ) *
+            2 +
+        1;
 
     raycaster.setFromCamera(
         mouse,
         camera
     );
 
-    const intersects =
+    const intersections =
         raycaster.intersectObjects(
             objectMeshes,
             true
         );
 
-    if (!intersects.length) {
+    if (!intersections.length) {
         return;
     }
 
-    let object =
-        intersects[0].object;
+    let target =
+        intersections[0].object;
 
     while (
-        object.parent &&
-        !object.userData?.data
+        target &&
+        !target.userData?.data
     ) {
-        object =
-            object.parent;
+        target =
+            target.parent;
     }
 
-    if (!object.userData?.data) {
-        return;
+    if (
+        target &&
+        target.userData?.data
+    ) {
+        selectObject(target);
     }
-
-    selectObject(object);
 }
-
 
 // ============================================================
 // SELECT OBJECT
 // ============================================================
 
 function selectObject(object) {
+    if (!object) return;
 
-    selectedObject =
-        object;
+    selectedObject = object;
 
     selectedData =
-        object.userData.data;
-
-    updateSelectedStatus(
-        selectedData.name
-    );
+        object.userData?.data ||
+        null;
 
     window.dispatchEvent(
         new CustomEvent(
@@ -1485,129 +1839,241 @@ function selectObject(object) {
             {
                 detail: {
                     object,
-                    data: selectedData,
-                    name: selectedData.name
+                    data: selectedData
                 }
             }
         )
     );
-}
 
+    updateSelectedStatus(
+        object.userData?.name ||
+        "Unknown"
+    );
+}
 
 // ============================================================
 // SEARCH
 // ============================================================
 
 function searchObject(query) {
+    if (!query) return;
 
     const search =
-        query
-            .toLowerCase()
-            .trim();
+        String(query)
+            .trim()
+            .toLowerCase();
 
     if (!search) return;
 
-    const match =
-        [...objectMap.entries()]
-            .find(
-                ([name]) =>
-                    name.includes(search)
+    const matches = [];
+
+    objectMap.forEach(
+        (object, key) => {
+            if (
+                key.includes(search)
+            ) {
+                matches.push({
+                    name:
+                        object.userData?.name ||
+                        key,
+                    type:
+                        object.userData?.type ||
+                        "Object"
+                });
+            }
+        }
+    );
+
+    window.dispatchEvent(
+        new CustomEvent(
+            "universe:searchResults",
+            {
+                detail: {
+                    results: matches
+                }
+            }
+        )
+    );
+
+    if (matches.length > 0) {
+        const first =
+            objectMap.get(
+                matches[0].name.toLowerCase()
             );
 
-    if (!match) {
+        if (first) {
+            selectObject(first);
 
-        window.dispatchEvent(
-            new CustomEvent(
-                "universe:searchResults",
-                {
-                    detail: {
-                        results: []
-                    }
-                }
-            )
-        );
-
-        return;
+            focusCameraOnObject(
+                first,
+                getObjectFocusDistance(
+                    first
+                ),
+                1000
+            );
+        }
     }
-
-    const object =
-        match[1];
-
-    selectObject(object);
-
-    focusObjectByName(
-        object.userData?.data?.name ||
-        object.name
-    );
 }
 
-
 // ============================================================
-// FOCUS OBJECT
+// FOCUS
 // ============================================================
 
 function focusObjectByName(name) {
-
     if (!name) return;
 
+    const key =
+        String(name)
+            .trim()
+            .toLowerCase();
+
     const object =
-        objectMap.get(
-            name.toLowerCase()
-        );
+        objectMap.get(key);
 
-    if (!object) return;
+    if (!object) {
+        searchObject(key);
+        return;
+    }
 
-    selectedObject =
-        object;
-
-    selectedData =
-        object.userData?.data || null;
-
-    const radius =
-        object.geometry?.parameters?.radius ||
-        selectedData?.radius ||
-        10;
-
-    const distance =
-        Math.max(
-            radius * 5,
-            15
-        );
+    selectObject(object);
 
     focusCameraOnObject(
         object,
-        distance,
+        getObjectFocusDistance(
+            object
+        ),
         1200
     );
+}
 
-    if (selectedData) {
+function getObjectFocusDistance(object) {
+    const radius =
+        Number(
+            object.userData?.data?.radius
+        ) || 10;
 
-        updateSelectedStatus(
-            selectedData.name
-        );
+    return Math.max(
+        radius * 4,
+        12
+    );
+}
 
-        window.dispatchEvent(
-            new CustomEvent(
-                "universe:objectSelected",
-                {
-                    detail: {
-                        object,
-                        data: selectedData,
-                        name: selectedData.name
-                    }
-                }
-            )
-        );
+// ============================================================
+// FILTERS
+// ============================================================
+
+function applyObjectFilter(filter) {
+    currentFilter =
+        String(filter || "all")
+            .toLowerCase();
+
+    objectMeshes.forEach(object => {
+        if (!object) return;
+
+        const type =
+            String(
+                object.userData?.type ||
+                ""
+            ).toLowerCase();
+
+        if (
+            currentFilter === "all"
+        ) {
+            object.visible = true;
+            return;
+        }
+
+        object.visible =
+            type === currentFilter ||
+            type.includes(
+                currentFilter
+            );
+    });
+
+    // Groups without direct userData
+    // remain visible so their contents work.
+    if (currentFilter === "all") {
+        solarSystem.visible = true;
+        deepSpaceGroup.visible = true;
+        galaxyGroup.visible = true;
+        nebulaGroup.visible = true;
+        blackHoleGroup.visible = true;
+        asteroidGroup.visible = true;
+        cometGroup.visible = true;
     }
 }
 
+// ============================================================
+// MODES
+// ============================================================
+
+function showSolarSystemMode() {
+    solarSystem.visible = true;
+
+    deepSpaceGroup.visible = false;
+    galaxyGroup.visible = false;
+    nebulaGroup.visible = false;
+    blackHoleGroup.visible = false;
+
+    asteroidGroup.visible = true;
+    cometGroup.visible = true;
+
+    if (camera) {
+        camera.position.set(
+            0,
+            80,
+            180
+        );
+    }
+
+    if (controls) {
+        controls.target.set(
+            0,
+            0,
+            0
+        );
+
+        controls.update();
+    }
+}
+
+function showFreeMode() {
+    solarSystem.visible = true;
+    deepSpaceGroup.visible = true;
+    galaxyGroup.visible = true;
+    nebulaGroup.visible = true;
+    blackHoleGroup.visible = true;
+    asteroidGroup.visible = true;
+    cometGroup.visible = true;
+}
+
+function showGuidedMode() {
+    solarSystem.visible = true;
+    deepSpaceGroup.visible = true;
+    galaxyGroup.visible = true;
+    nebulaGroup.visible = true;
+    blackHoleGroup.visible = true;
+    asteroidGroup.visible = true;
+    cometGroup.visible = true;
+}
 
 // ============================================================
-// RESET EXPLORER
+// ORBITS VISIBILITY
+// ============================================================
+
+function setOrbitsVisible(visible) {
+    orbitLines.forEach(
+        line => {
+            line.visible = visible;
+        }
+    );
+}
+
+// ============================================================
+// RESET
 // ============================================================
 
 function resetExplorer() {
-
     if (!camera || !controls) {
         return;
     }
@@ -1629,80 +2095,108 @@ function resetExplorer() {
     selectedObject = null;
     selectedData = null;
 
-    updatePosition(
-        camera.position
-    );
-
-    updateScale(
-        camera.position.length()
+    window.dispatchEvent(
+        new CustomEvent(
+            "universe:closeInfo"
+        )
     );
 }
 
+// ============================================================
+// RESIZE
+// ============================================================
+
+function handleResize() {
+    if (!camera || !renderer) {
+        return;
+    }
+
+    const container =
+        document.getElementById(
+            "canvasContainer"
+        );
+
+    const width =
+        container?.clientWidth ||
+        window.innerWidth;
+
+    const height =
+        container?.clientHeight ||
+        window.innerHeight;
+
+    camera.aspect =
+        width / height;
+
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(
+        width,
+        height
+    );
+}
 
 // ============================================================
 // ANIMATION
 // ============================================================
 
 function animate() {
-
     requestAnimationFrame(
         animate
     );
 
-    const time =
-        performance.now() * 0.0001;
+    const delta =
+        0.01 *
+        currentTimeMultiplier;
 
     objectMeshes.forEach(
         object => {
-
-            const data =
-                object.userData?.data;
-
-            if (!data) return;
+            const type =
+                String(
+                    object.userData?.type ||
+                    ""
+                ).toLowerCase();
 
             if (
-                data.type === "Planet" ||
-                data.type === "Moon" ||
-                data.type === "Star"
+                type === "planet" ||
+                type === "moon" ||
+                type === "star"
             ) {
-                object.rotation.y +=
-                    0.0015;
+                if (
+                    object.geometry instanceof
+                    THREE.SphereGeometry
+                ) {
+                    object.rotation.y +=
+                        delta * 0.15;
+                }
             }
         }
     );
 
     if (galaxyGroup) {
-
-        galaxyGroup.rotation.y =
-            time * 0.08;
+        galaxyGroup.rotation.y +=
+            delta * 0.004;
     }
 
     if (nebulaGroup) {
-
-        nebulaGroup.rotation.y =
-            time * 0.02;
+        nebulaGroup.rotation.y +=
+            delta * 0.001;
     }
 
     if (blackHoleGroup) {
+        blackHoleGroup.rotation.y +=
+            delta * 0.02;
+    }
 
-        blackHoleGroup.rotation.y =
-            time * 0.4;
+    if (cometGroup) {
+        cometGroup.rotation.y +=
+            delta * 0.003;
     }
 
     updateEffects();
-
     updateCamera();
 
-    if (camera) {
-
-        updatePosition(
-            camera.position
-        );
-
-        updateScale(
-            camera.position.length()
-        );
-    }
+    updatePosition();
+    updateScale();
 
     renderer.render(
         scene,
@@ -1710,52 +2204,24 @@ function animate() {
     );
 }
 
-
 // ============================================================
-// RESIZE
-// ============================================================
-
-function handleResize() {
-
-    if (!camera || !renderer) {
-        return;
-    }
-
-    camera.aspect =
-        window.innerWidth /
-        window.innerHeight;
-
-    camera.updateProjectionMatrix();
-
-    renderer.setSize(
-        window.innerWidth,
-        window.innerHeight
-    );
-}
-
-
-// ============================================================
-// LOADING SCREEN
+// LOADING
 // ============================================================
 
 function hideLoadingScreen() {
-
-    const loading =
+    const loadingScreen =
         document.getElementById(
             "loadingScreen"
         );
 
-    if (!loading) return;
+    if (!loadingScreen) return;
 
     setTimeout(() => {
-
-        loading.classList.add(
+        loadingScreen.classList.add(
             "hidden"
         );
-
     }, 700);
 }
-
 
 // ============================================================
 // START
@@ -1765,17 +2231,13 @@ if (
     document.readyState ===
     "loading"
 ) {
-
     document.addEventListener(
         "DOMContentLoaded",
         initializeApp
     );
-
 } else {
-
     initializeApp();
 }
-
 
 // ============================================================
 // EXPORTS
@@ -1789,4 +2251,3 @@ export {
     selectedObject,
     selectedData
 };
-    
