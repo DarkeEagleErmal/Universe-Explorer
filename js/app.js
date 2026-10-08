@@ -318,7 +318,7 @@ function createOrbit(radius) {
 }
 
 
-[
+const orbitRadii = [
     7,
     11,
     15,
@@ -328,6 +328,9 @@ function createOrbit(radius) {
     57,
     69,
     82
+];
+orbitRadii.forEach(radius => 
+createOrbit(radius, scene));
 // ============================================================
 // DEEP SPACE OBJECTS
 // ============================================================
