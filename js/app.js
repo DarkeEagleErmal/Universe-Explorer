@@ -328,7 +328,7 @@ function createOrbit(radius) {
     57,
     69,
     82
-].forEach(createOrbit);
+].forEach(radius => createOrbit(radius, scene));
 // ============================================================
 // DEEP SPACE OBJECTS
 // ============================================================
