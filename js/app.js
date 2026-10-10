@@ -277,98 +277,47 @@ function createSaturnRings(
 
 function createOrbit(radius, targetScene = scene) {
 
-    const curve =
-        new THREE.EllipseCurve(
-            0,
-            0,
-            radius,
-            radius,
-            0,
-            Math.PI * 2,
-            false,
-            0
-        );
-
-    const points =
-        curve.getPoints(160);
-
-    const geometry =
-        new THREE.BufferGeometry()
-            .setFromPoints(
-                          point => {
-                const angle = point.x;
-                return new THREE.Vector3(
-                    Math.cos(angle) * radius,
-                    0,
-                    Math.sin(angle) * radius
-                );
-            }
-        )
+    const curve = new THREE.EllipseCurve(
+        0,
+        0,
+        radius,
+        radius,
+        0,
+        Math.PI * 2,
+        false,
+        0
     );
 
-    const points =
-        curve.getPoints(160);
+    const points = curve.getPoints(160);
 
-    const geometry =
-        new THREE.BufferGeometry()
-            .setFromPoints(
-                points.map(
-                    point =>
-                        new THREE.Vector3(
-                            point.x,
-                            0,
-                            point.y
-                        )
+    const geometry = new THREE.BufferGeometry()
+        .setFromPoints(
+            points.map(
+                point => new THREE.Vector3(
+                    point.x,
+                    0,
+                    point.y
                 )
-            );
-
-    const material =
-        new THREE.LineBasicMaterial({
-            color: 0x35506b,
-            transparent: true,
-            opacity: 0.35
-        });
-
-    const line =
-        new THREE.LineLoop(
-            geometry,
-            material
+            )
         );
+
+    const material = new THREE.LineBasicMaterial({
+        color: 0x35506b,
+        transparent: true,
+        opacity: 0.35
+    });
+
+    const line = new THREE.LineLoop(
+        geometry,
+        material
+    );
 
     if (!targetScene) return;
+
     targetScene.add(line);
 
-    orbitLines.push(
-        line
-    );
+    orbitLines.push(line);
 }
-
-
-const orbitRadii = [
-    7,
-    11,
-    15,
-    20,
-    32,
-    45,
-    57,
-    69,
-    82
-];
-
-
-function createAllOrbits(targetScene = scene) {
-
-    if (!targetScene) {
-        console.warn("Scene non inizializzata: orbite rimandate.");
-        return;
-    }
-
-    orbitRadii.forEach(radius => {
-        createOrbit(radius, targetScene);
-    });
-}
-
 
 // ============================================================
 // DEEP SPACE OBJECTS
