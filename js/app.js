@@ -344,19 +344,19 @@ if (!scene) {
 
     // createDeepSpaceObjects(scene);
    
-    createNebulaObjects();
+    createNebulaObjects(scene);
 
-    createGalaxyObjects();
+    createGalaxyObjects(scene);
 
-    createBlackHoleObjects();
+    createBlackHoleObjects(scene);
 
-    createCometObjects();
+    createCometObjects(scene);
 
-    createAsteroidRegion();
+    createAsteroidRegion(scene);
 
-    createKuiperRegion();
+    createKuiperRegion(scene);
 
-    createOortRegion();
+    createOortRegion(scene);
 }
 
 
