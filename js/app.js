@@ -2738,30 +2738,44 @@ function finishLoading() {
 // ============================================================
 
 function startApplication() {
+    console.log("Universe Explorer: starting...");
 
     try {
-
         initializeScene();
+
+        console.log("Scene initialized");
 
         initializeModules();
 
-        showSolarSystem();
+        console.log("Modules initialized");
 
-        finishLoading();
+        showSolarSystem();
 
         animate();
 
-    } catch (error) {
+        console.log("Animation started");
 
+        finishLoading();
+
+    } catch (error) {
         console.error(
             "Universe Explorer initialization error:",
             error
         );
 
-        if (loadingScreen) {
+        const percentage =
+            document.getElementById("loadingPercentage");
 
-            loadingScreen.style.opacity =
-                "1";
+        const loadingText =
+            document.getElementById("loadingText");
+
+        if (percentage) {
+            percentage.textContent = "ERROR";
+        }
+
+        if (loadingText) {
+            loadingText.textContent =
+                "Initialization failed. Check the console.";
         }
     }
 }
