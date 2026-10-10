@@ -2732,6 +2732,92 @@ function finishLoading() {
     );
 }
 
+// ============================================================
+// INITIALIZE 3D SCENE
+// ============================================================
+
+function initializeScene() {
+
+    // Create the Three.js scene
+    scene = new THREE.Scene();
+
+    scene.background = new THREE.Color(0x02030a);
+
+    // Create the camera
+    camera = new THREE.PerspectiveCamera(
+        60,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000000
+    );
+
+    camera.position.set(0, 15, 40);
+
+    // Create the renderer
+    renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: false
+    });
+
+    renderer.setSize(
+        window.innerWidth,
+        window.innerHeight
+    );
+
+    renderer.setPixelRatio(
+        Math.min(window.devicePixelRatio, 2)
+    );
+
+    renderer.shadowMap.enabled = true;
+
+    renderer.shadowMap.type =
+        THREE.PCFSoftShadowMap;
+
+    // Add the renderer to the page
+    const container =
+        document.getElementById("universeContainer") ||
+        document.getElementById("scene-container") ||
+        document.getElementById("app");
+
+    if (!container) {
+        throw new Error(
+            "3D container not found in index.html"
+        );
+    }
+
+    container.appendChild(
+        renderer.domElement
+    );
+
+    // Create basic lighting
+    const ambientLight =
+        new THREE.AmbientLight(0xffffff, 0.7);
+
+    scene.add(ambientLight);
+
+    const sunlight =
+        new THREE.PointLight(0xffffff, 3, 0);
+
+    sunlight.position.set(0, 0, 0);
+
+    scene.add(sunlight);
+
+    // Handle window resizing
+    window.addEventListener("resize", () => {
+
+        camera.aspect =
+            window.innerWidth / window.innerHeight;
+
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(
+            window.innerWidth,
+            window.innerHeight
+        );
+
+    });
+
+}
 
 // ============================================================
 // START APPLICATION
