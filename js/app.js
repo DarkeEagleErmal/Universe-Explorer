@@ -295,20 +295,16 @@ function createOrbit(radius, targetScene = scene) {
     const geometry =
         new THREE.BufferGeometry()
             .setFromPoints(
-                points.map(
-                    point =>
-                        new THREE.Vector3(
-                            point.x,
-                                    new THREE.EllipseCurve(
-            0,
-            0,
-            radius,
-            radius,
-            0,
-            Math.PI * 2,
-            false,
-            0
-        );
+                          point => {
+                const angle = point.x;
+                return new THREE.Vector3(
+                    Math.cos(angle) * radius,
+                    0,
+                    Math.sin(angle) * radius
+                );
+            }
+        )
+    );
 
     const points =
         curve.getPoints(160);
