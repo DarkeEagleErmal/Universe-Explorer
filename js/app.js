@@ -2747,58 +2747,6 @@ function initializeModules() {
 }
 
 
-// ============================================================
-// LOADING
-// ============================================================
-
-function finishLoading() {
-
-    if (!loadingScreen) {
-        return;
-    }
-
-    const progress =
-        document.getElementById(
-            "loadingProgress"
-        );
-
-    const percentage =
-        document.getElementById(
-            "loadingPercentage"
-        );
-
-    if (progress) {
-        progress.style.width = "100%";
-    }
-
-    if (percentage) {
-        percentage.textContent = "100%";
-    }
-
-    setTimeout(
-        () => {
-
-            loadingScreen.style.opacity = "0";
-
-            loadingScreen.style.pointerEvents =
-                "none";
-
-            setTimeout(
-                () => {
-
-                    loadingScreen.classList.add(
-                        "hidden"
-                    );
-
-                },
-                500
-            );
-
-        },
-        450
-    );
-}
-
 
 // ============================================================
 // INITIALIZE 3D SCENE
