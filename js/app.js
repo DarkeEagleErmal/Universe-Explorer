@@ -336,6 +336,11 @@ createOrbit(radius, scene));
 // ============================================================
 
 function createAllObjects() {
+   const scene = window.scene;
+if (!scene) {
+    console.error("Scene non inizializzata!");
+    return;
+}
 
     // createDeepSpaceObjects(scene);
    
