@@ -2387,18 +2387,14 @@ window.addEventListener(
     "resize",
     () => {
 
-        if (
-            !camera ||
-            !renderer
-        ) {
-            return;
-        }
+     if (!window.camera || !window.renderer) {
+    return;
+}
 
-        camera.aspect =
-            window.innerWidth /
-            window.innerHeight;
+window.camera.aspect =
+    window.innerWidth / window.innerHeight;
 
-        camera.updateProjectionMatrix();
+window.camera.updateProjectionMatrix();
 
         renderer.setSize(
             window.innerWidth,
@@ -2751,8 +2747,8 @@ function finishLoading() {
 function initializeScene() {
 
     // Create the Three.js scene
-    scene = new THREE.Scene();
-
+window.scene = new THREE.Scene();
+const scene = window.scene;
     scene.background = new THREE.Color(0x02030a);
 
     // Create the camera
