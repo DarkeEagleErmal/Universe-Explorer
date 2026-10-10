@@ -2693,6 +2693,30 @@ function animate() {
     );
 }
 
+// ============================================================
+// DEEP SPACE OBJECTS
+// ============================================================
+
+function createAllObjects() {
+    const scene = window.scene;
+
+    if (!scene) {
+        console.error("Scene non inizializzata!");
+        return;
+    }
+
+    console.log("Scena trovata:", scene);
+
+    createNebulaObjects(scene);
+    createGalaxyObjects(scene);
+    createBlackHoleObjects(scene);
+    createCometObjects(scene);
+    createAsteroidRegion(scene);
+    createKuiperRegion(scene);
+    createOortRegion(scene);
+
+    console.log("Creazione oggetti completata.");
+}
 
 // ============================================================
 // MODULE INITIALIZATION
