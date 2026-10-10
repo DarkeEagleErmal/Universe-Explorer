@@ -329,8 +329,15 @@ const orbitRadii = [
     69,
     82
 ];
-orbitRadii.forEach(radius => 
-createOrbit(radius, scene));
+const scene = window.scene;
+
+if (scene) {
+    orbitRadii.forEach(radius => {
+        createOrbit(radius, scene);
+    });
+} else {
+    console.error("Scene non inizializzata!");
+}
 // ============================================================
 // DEEP SPACE OBJECTS
 // ============================================================
