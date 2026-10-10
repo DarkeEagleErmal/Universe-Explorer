@@ -1,4 +1,12 @@
 import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+// Shared Three.js objects. They are created in initializeScene().
+let scene = null;
+let camera = null;
+let renderer = null;
+let controls = null;
+
 // ============================================================
 // CREATE CELESTIAL BODIES
 // ============================================================
@@ -267,10 +275,31 @@ function createSaturnRings(
 // ORBITS
 // ============================================================
 
-function createOrbit(radius) {
+function createOrbit(radius, targetScene = scene) {
 
     const curve =
         new THREE.EllipseCurve(
+            0,
+            0,
+            radius,
+            radius,
+            0,
+            Math.PI * 2,
+            false,
+            0
+        );
+
+    const points =
+        curve.getPoints(160);
+
+    const geometry =
+        new THREE.BufferGeometry()
+            .setFromPoints(
+                points.map(
+                    point =>
+                        new THREE.Vector3(
+                            point.x,
+                                    new THREE.EllipseCurve(
             0,
             0,
             radius,
@@ -310,7 +339,8 @@ function createOrbit(radius) {
             material
         );
 
-   scene.add(line);
+    if (!targetScene) return;
+    targetScene.add(line);
 
     orbitLines.push(
         line
@@ -329,28 +359,36 @@ const orbitRadii = [
     69,
     82
 ];
-const scene = window.scene;
 
-if (scene) {
+
+function createAllOrbits(targetScene = scene) {
+
+    if (!targetScene) {
+        console.warn("Scene non inizializzata: orbite rimandate.");
+        return;
+    }
+
     orbitRadii.forEach(radius => {
-        createOrbit(radius, scene);
+        createOrbit(radius, targetScene);
     });
-} else {
-    console.error("Scene non inizializzata!");
 }
+
+
 // ============================================================
 // DEEP SPACE OBJECTS
 // ============================================================
 
 function createAllObjects() {
-   const scene = window.scene;
-if (!scene) {
-    console.error("Scene non inizializzata!");
-    return;
-}
+
+    const scene = window.scene;
+
+    if (!scene) {
+        console.error("Scene non inizializzata!");
+        return;
+    }
 
     // createDeepSpaceObjects(scene);
-   
+
     createNebulaObjects(scene);
 
     createGalaxyObjects(scene);
@@ -569,6 +607,27 @@ function createGalaxyVisual(data) {
                 opacity: 0
             })
         );
+            createGlowSprite(
+            size * 0.55,
+            0xffffff,
+            0.5
+        );
+
+    galaxy.add(core);
+
+    const hit =
+        new THREE.Mesh(
+            new THREE.SphereGeometry(
+                size * 0.85,
+                16,
+                16
+            ),
+
+            new THREE.MeshBasicMaterial({
+                transparent: true,
+                opacity: 0
+            })
+        );
 
     galaxy.add(hit);
 
@@ -632,6 +691,8 @@ function createGalaxyObjects() {
             createGalaxyVisual(data)
     );
 }
+
+
 // ============================================================
 // NEBULA
 // ============================================================
@@ -848,7 +909,7 @@ function createBlackHoleVisual(data) {
     group.add(hit);
 
     registerObject(
-        data.name,
+                data.name,
         group,
         data
     );
@@ -892,6 +953,8 @@ function createBlackHoleObjects() {
         }
     );
 }
+
+
 // ============================================================
 // COMETS
 // ============================================================
@@ -1138,6 +1201,7 @@ function createAsteroidRegion() {
         );
 
     asteroidGroup.add(hit);
+        asteroidGroup.add(hit);
 
     registerObject(
         data.name,
@@ -1240,6 +1304,8 @@ function createKuiperRegion() {
         data
     );
 }
+
+
 // ============================================================
 // OORT CLOUD
 // ============================================================
@@ -1380,8 +1446,9 @@ function initializeRaycaster() {
 
             pointer.x =
                 (
-                    (event.clientX - rect.left) /
-                    rect.width
+                    (
+                        event.clientX - rect.left
+                    ) / rect.width
                 ) * 2 - 1;
 
             pointer.y =
@@ -1389,6 +1456,26 @@ function initializeRaycaster() {
                     (
                         event.clientY - rect.top
                     ) / rect.height
+                ) * 2 + 1;
+
+            raycaster.setFromCamera(
+                pointer,
+                camera
+            );
+
+            const hits =
+                raycaster.intersectObjects(
+                    interactiveObjects,
+                    true
+                );
+
+            if (!hits.length) {
+                return;
+            }
+
+            let object =
+                hits[0].object;
+                                ) / rect.height
                 ) * 2 + 1;
 
             raycaster.setFromCamera(
@@ -1505,6 +1592,8 @@ function findObjectByName(name) {
 
     return null;
 }
+
+
 // ============================================================
 // SELECT OBJECT
 // ============================================================
@@ -1688,8 +1777,6 @@ function easeInOutCubic(value) {
                 3
             ) / 2;
 }
-
-
 function focusObject(
     object,
     duration = 1100
@@ -1794,8 +1881,7 @@ function focusObject(
     // ========================================================
 
     // La camera arriva leggermente di lato
-    // e dall'alto, evitando che l'oggetto
-    // appaia schiacciato o "storto".
+    // e dall'alto.
 
     const direction =
         new THREE.Vector3(
@@ -1877,6 +1963,8 @@ function updateCameraAnimation(now) {
             null;
     }
 }
+
+
 // ============================================================
 // EVENT-BASED FOCUS
 // ============================================================
@@ -1952,6 +2040,53 @@ window.addEventListener(
 );
 
 
+// ============================================================
+// MODE
+// ============================================================
+
+window.addEventListener(
+    "universe:modeChanged",
+    event => {
+
+        const mode =
+            event.detail?.mode;
+
+        if (!mode) {
+            return;
+        }
+
+        const normalized =
+            String(mode)
+                .toLowerCase();
+
+        if (
+            normalized === "solar-system"
+        ) {
+
+            if (solarSystemGroup) {
+                solarSystemGroup.visible = true;
+            }
+
+            if (galaxyGroup) {
+                galaxyGroup.visible = false;
+            }
+        }
+
+        if (
+            normalized === "galaxy" ||
+            normalized === "universe"
+        ) {
+
+            if (solarSystemGroup) {
+                solarSystemGroup.visible = true;
+            }
+
+            if (galaxyGroup) {
+                galaxyGroup.visible = true;
+            }
+        }
+    }
+);
 // ============================================================
 // MODE
 // ============================================================
@@ -2387,14 +2522,15 @@ window.addEventListener(
     "resize",
     () => {
 
-     if (!window.camera || !window.renderer) {
-    return;
-}
+        if (!window.camera || !window.renderer) {
+            return;
+        }
 
-window.camera.aspect =
-    window.innerWidth / window.innerHeight;
+        window.camera.aspect =
+            window.innerWidth /
+            window.innerHeight;
 
-window.camera.updateProjectionMatrix();
+        window.camera.updateProjectionMatrix();
 
         renderer.setSize(
             window.innerWidth,
@@ -2528,8 +2664,7 @@ function animate() {
 
     blackHoleGroup.children.forEach(
         blackHole => {
-
-            blackHole.rotation.y +=
+                        blackHole.rotation.y +=
                 0.0015 *
                 timeMultiplier;
 
@@ -2603,11 +2738,17 @@ function animate() {
     // RENDER
     // ========================================================
 
+    if (controls) {
+        controls.update();
+    }
+
     renderer.render(
         scene,
         camera
     );
 }
+
+
 // ============================================================
 // MODULE INITIALIZATION
 // ============================================================
@@ -2615,63 +2756,44 @@ function animate() {
 function initializeModules() {
 
     try {
-
         initializeWelcome();
-
     } catch (error) {
-
         console.warn(
             "Welcome initialization:",
             error
         );
     }
 
-
     try {
-
         initializeInterface();
-
     } catch (error) {
-
         console.warn(
             "Interface initialization:",
             error
         );
     }
 
-
     try {
-
         initializeExplorationControls();
-
     } catch (error) {
-
         console.warn(
             "Exploration controls initialization:",
             error
         );
     }
 
-
     try {
-
         initializeGuide();
-
     } catch (error) {
-
         console.warn(
             "Guide initialization:",
             error
         );
     }
 
-
     try {
-
         initializeInformation();
-
     } catch (error) {
-
         console.warn(
             "Information initialization:",
             error
@@ -2700,26 +2822,18 @@ function finishLoading() {
             "loadingPercentage"
         );
 
-
     if (progress) {
-
-        progress.style.width =
-            "100%";
+        progress.style.width = "100%";
     }
-
 
     if (percentage) {
-
-        percentage.textContent =
-            "100%";
+        percentage.textContent = "100%";
     }
-
 
     setTimeout(
         () => {
 
-            loadingScreen.style.opacity =
-                "0";
+            loadingScreen.style.opacity = "0";
 
             loadingScreen.style.pointerEvents =
                 "none";
@@ -2740,18 +2854,19 @@ function finishLoading() {
     );
 }
 
+
 // ============================================================
 // INITIALIZE 3D SCENE
 // ============================================================
 
 function initializeScene() {
 
-    // Create the Three.js scene
-window.scene = new THREE.Scene();
-const scene = window.scene;
-    scene.background = new THREE.Color(0x02030a);
+    scene = new THREE.Scene();
+    window.scene = scene;
 
-    // Create the camera
+    scene.background =
+        new THREE.Color(0x02030a);
+
     camera = new THREE.PerspectiveCamera(
         60,
         window.innerWidth / window.innerHeight,
@@ -2761,7 +2876,6 @@ const scene = window.scene;
 
     camera.position.set(0, 15, 40);
 
-    // Create the renderer
     renderer = new THREE.WebGLRenderer({
         antialias: true,
         alpha: false
@@ -2773,7 +2887,10 @@ const scene = window.scene;
     );
 
     renderer.setPixelRatio(
-        Math.min(window.devicePixelRatio, 2)
+        Math.min(
+            window.devicePixelRatio,
+            2
+        )
     );
 
     renderer.shadowMap.enabled = true;
@@ -2781,7 +2898,6 @@ const scene = window.scene;
     renderer.shadowMap.type =
         THREE.PCFSoftShadowMap;
 
-    // Add the renderer to the page
     const container =
         document.getElementById("universeContainer") ||
         document.getElementById("scene-container") ||
@@ -2797,71 +2913,109 @@ const scene = window.scene;
         renderer.domElement
     );
 
-    // Create basic lighting
+    controls = new OrbitControls(
+        camera,
+        renderer.domElement
+    );
+
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.minDistance = 0.5;
+    controls.maxDistance = 100000;
+
+    controls.target.set(0, 0, 0);
+    controls.update();
+
     const ambientLight =
-        new THREE.AmbientLight(0xffffff, 0.7);
+        new THREE.AmbientLight(
+            0xffffff,
+            0.7
+        );
 
     scene.add(ambientLight);
 
     const sunlight =
-        new THREE.PointLight(0xffffff, 3, 0);
+        new THREE.PointLight(
+            0xffffff,
+            3,
+            0
+        );
 
     sunlight.position.set(0, 0, 0);
 
     scene.add(sunlight);
 
-    // Handle window resizing
-    window.addEventListener("resize", () => {
+    createAllOrbits(scene);
 
-        camera.aspect =
-            window.innerWidth / window.innerHeight;
+    window.addEventListener(
+        "resize",
+        () => {
 
-        camera.updateProjectionMatrix();
+            camera.aspect =
+                window.innerWidth /
+                window.innerHeight;
 
-        renderer.setSize(
-            window.innerWidth,
-            window.innerHeight
-        );
+            camera.updateProjectionMatrix();
 
-    });
-
+            renderer.setSize(
+                window.innerWidth,
+                window.innerHeight
+            );
+        }
+    );
 }
+
 
 // ============================================================
 // START APPLICATION
 // ============================================================
 
 function startApplication() {
-    console.log("Universe Explorer: starting...");
+
+    console.log(
+        "Universe Explorer: starting..."
+    );
 
     try {
+
         initializeScene();
 
-        console.log("Scene initialized");
+        console.log(
+            "Scene initialized"
+        );
 
         initializeModules();
 
-        console.log("Modules initialized");
+        console.log(
+            "Modules initialized"
+        );
 
         showSolarSystem();
 
         animate();
 
-        console.log("Animation started");
+        console.log(
+            "Animation started"
+        );
 
         finishLoading();
 
     } catch (error) {
+
         console.error(
             "Universe Explorer initialization error:",
             error
         );
 
         const percentage =
-            document.getElementById("loadingPercentage");
+            document.getElementById(
+                "loadingPercentage"
+            );
 
         const loadingText =
-            document.getElementById("loadingText");
+            document.getElementById(
+                "loadingText"
+            );
 
         if (percentage) {
             percentage.textContent = "ERROR";
