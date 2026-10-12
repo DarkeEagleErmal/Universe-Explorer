@@ -1,22 +1,20 @@
 
 /* ============================================================
-   UNIVERSE EXPLORER
-   MODULE: UNIVERSE ENGINE
-   Version: 1.0
+   UNIVERSE EXPLORER — 3D UNIVERSE ENGINE
+   File: js/universe.js
 
-   Responsibilities:
-   - 3D scene and WebGL renderer
-   - Deep-space starfield
-   - Volumetric-style nebula particles
-   - Distant spiral galaxy
-   - Smooth rendering and window resizing
-
-   Planets, navigation, interface and advanced effects
-   will live in separate modules.
+   Gestisce esclusivamente:
+   - Scena 3D e renderer
+   - Stelle, nebulose e galassia distante
+   - Collegamento illuminazione e navigazione
+   - Animazione, ridimensionamento e pulizia
    ============================================================ */
 
 import * as THREE from
     "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js";
+
+import { createSpaceLighting } from "./lighting.js";
+import { createNavigation } from "./navigation.js";
 
 const instances = new WeakMap();
 
@@ -26,9 +24,7 @@ const CONFIG = {
     near: 0.1,
     far: 12000,
     starCount: 16000,
-    nebulaParticleCount: 18000,
-    galaxyParticleCount: 12000,
-    pixelRatioLimit: 2
+    pixelRatioLimit: 1.75
 };
 
 const NEBULA_SHADER = {
@@ -46,14 +42,12 @@ const NEBULA_SHADER = {
                 modelViewMatrix * vec4(position, 1.0);
 
             vDepth = -viewPosition.z;
-
-            gl_Position =
-                projectionMatrix * viewPosition;
+            gl_Position = projectionMatrix * viewPosition;
 
             gl_PointSize = clamp(
                 aSize * (260.0 / max(vDepth, 1.0)),
                 1.0,
-                36.0
+                30.0
             );
         }
     `,
@@ -63,30 +57,19 @@ const NEBULA_SHADER = {
         varying float vDepth;
 
         void main() {
-            vec2 centered =
-                gl_PointCoord - vec2(0.5);
+            vec2 centered = gl_PointCoord - vec2(0.5);
+            float d = length(centered);
 
-            float distanceFromCenter =
-                length(centered);
+            if (d > 0.5) discard;
 
-            if (distanceFromCenter > 0.5) {
-                discard;
-            }
+            float glow = exp(-d * 8.0);
+            float edge = 1.0 - smoothstep(0.04, 0.5, d);
+            float depthFade = 1.0 - smoothstep(900.0, 3000.0, vDepth);
 
-            float glow =
-                exp(-distanceFromCenter * 9.0);
-
-            float edge =
-                smoothstep(0.5, 0.04, distanceFromCenter);
-
-            float depthFade =
-                1.0 - smoothstep(900.0, 3000.0, vDepth);
-
-            float alpha =
-                glow * edge * 0.32 * depthFade;
+            float alpha = glow * edge * 0.26 * depthFade;
 
             gl_FragColor = vec4(
-                vColor * (0.65 + glow * 1.8),
+                vColor * (0.55 + glow * 1.5),
                 alpha
             );
 
@@ -114,19 +97,17 @@ function reportProgress(callback, value, message) {
     }
 }
 
+/* ------------------------------------------------------------
+   RENDERER
+   ------------------------------------------------------------ */
+
 function createRenderer(container) {
     if (!container) {
-        throw new Error(
-            "The universe container is missing."
-        );
+        throw new Error("Universe container not found.");
     }
 
-    if (!window.WebGLRenderingContext &&
-        !window.WebGL2RenderingContext) {
-        throw new Error(
-            "This browser does not support WebGL."
-        );
-    }
+    const width = Math.max(container.clientWidth, 1);
+    const height = Math.max(container.clientHeight, 1);
 
     const renderer = new THREE.WebGLRenderer({
         antialias: true,
@@ -135,21 +116,17 @@ function createRenderer(container) {
     });
 
     renderer.setPixelRatio(
-        Math.min(
-            window.devicePixelRatio || 1,
-            CONFIG.pixelRatioLimit
-        )
+        Math.min(window.devicePixelRatio || 1, CONFIG.pixelRatioLimit)
     );
 
-    renderer.setSize(
-        Math.max(container.clientWidth, 1),
-        Math.max(container.clientHeight, 1)
-    );
-
+    renderer.setSize(width, height);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.15;
+
+    // Necessario per le ombre dei futuri corpi celesti.
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     renderer.domElement.className = "universe-canvas";
     renderer.domElement.setAttribute(
@@ -167,20 +144,14 @@ function createRenderer(container) {
 }
 
 /* ------------------------------------------------------------
-   STARFIELD
-   A large three-dimensional field of distant stars.
+   STARS
    ------------------------------------------------------------ */
 
 function createStarfield() {
     const geometry = new THREE.BufferGeometry();
 
-    const positions = new Float32Array(
-        CONFIG.starCount * 3
-    );
-
-    const colors = new Float32Array(
-        CONFIG.starCount * 3
-    );
+    const positions = new Float32Array(CONFIG.starCount * 3);
+    const colors = new Float32Array(CONFIG.starCount * 3);
 
     const palette = [
         new THREE.Color(0xffffff),
@@ -200,8 +171,7 @@ function createStarfield() {
         positions[i3] =
             radius * Math.sin(phi) * Math.cos(theta);
 
-        positions[i3 + 1] =
-            radius * Math.cos(phi);
+        positions[i3 + 1] = radius * Math.cos(phi);
 
         positions[i3 + 2] =
             radius * Math.sin(phi) * Math.sin(theta);
@@ -209,7 +179,7 @@ function createStarfield() {
         const color =
             palette[Math.floor(Math.random() * palette.length)];
 
-        const brightness = randomRange(0.45, 1.4);
+        const brightness = randomRange(0.55, 1.15);
 
         colors[i3] = color.r * brightness;
         colors[i3 + 1] = color.g * brightness;
@@ -227,7 +197,7 @@ function createStarfield() {
     );
 
     const material = new THREE.PointsMaterial({
-        size: 2.0,
+        size: 1.8,
         sizeAttenuation: false,
         vertexColors: true,
         transparent: true,
@@ -236,12 +206,15 @@ function createStarfield() {
         blending: THREE.AdditiveBlending
     });
 
-    return new THREE.Points(geometry, material);
+    const stars = new THREE.Points(geometry, material);
+    stars.name = "DeepSpaceStarfield";
+
+    return stars;
 }
 
 /* ------------------------------------------------------------
    NEBULAE
-   Layered colored particles create a soft cosmic-cloud effect.
+   Separate clouds with dark space between them.
    ------------------------------------------------------------ */
 
 function createNebulaCloud({
@@ -249,8 +222,8 @@ function createNebulaCloud({
     center,
     spread,
     colors,
-    sizeMin = 5,
-    sizeMax = 18
+    sizeMin = 4,
+    sizeMax = 13
 }) {
     const geometry = new THREE.BufferGeometry();
 
@@ -258,28 +231,19 @@ function createNebulaCloud({
     const particleColors = new Float32Array(count * 3);
     const sizes = new Float32Array(count);
 
-    const colorPalette = colors.map(
-        color => new THREE.Color(color)
-    );
+    const palette = colors.map(color => new THREE.Color(color));
 
     for (let i = 0; i < count; i++) {
         const i3 = i * 3;
 
-        positions[i3] =
-            randomGaussian() * spread.x;
-
-        positions[i3 + 1] =
-            randomGaussian() * spread.y;
-
-        positions[i3 + 2] =
-            randomGaussian() * spread.z;
+        positions[i3] = randomGaussian() * spread.x;
+        positions[i3 + 1] = randomGaussian() * spread.y;
+        positions[i3 + 2] = randomGaussian() * spread.z;
 
         const color =
-            colorPalette[
-                Math.floor(Math.random() * colorPalette.length)
-            ];
+            palette[Math.floor(Math.random() * palette.length)];
 
-        const variation = randomRange(0.65, 1.25);
+        const variation = randomRange(0.65, 1.1);
 
         particleColors[i3] = color.r * variation;
         particleColors[i3 + 1] = color.g * variation;
@@ -314,44 +278,46 @@ function createNebulaCloud({
 
     const cloud = new THREE.Points(geometry, material);
 
-    cloud.position.set(
-        center.x,
-        center.y,
-        center.z
-    );
+    cloud.position.set(center.x, center.y, center.z);
+    cloud.name = "NebulaRegion";
 
     return cloud;
 }
 
 function createNebulae() {
     const group = new THREE.Group();
+    group.name = "DistantNebulae";
 
+    // Nebulosa viola: una regione lontana, non a tutto schermo.
     group.add(createNebulaCloud({
-        count: 6500,
-        center: { x: -160, y: 80, z: -340 },
-        spread: { x: 190, y: 100, z: 45 },
+        count: 4500,
+        center: { x: -330, y: 150, z: -1050 },
+        spread: { x: 115, y: 65, z: 35 },
         colors: [0x5930c8, 0x9138d5, 0x1c4cbd, 0x211052]
     }));
 
+    // Nebulosa blu: separata dalla prima.
     group.add(createNebulaCloud({
-        count: 4500,
-        center: { x: 180, y: -100, z: -470 },
-        spread: { x: 170, y: 110, z: 55 },
+        count: 3500,
+        center: { x: 390, y: -180, z: -1550 },
+        spread: { x: 120, y: 70, z: 40 },
         colors: [0x087bba, 0x2854db, 0x6638ba, 0x112c77]
     }));
 
+    // Nebulosa rossa e magenta.
     group.add(createNebulaCloud({
-        count: 4000,
-        center: { x: -40, y: -180, z: -620 },
-        spread: { x: 240, y: 80, z: 70 },
+        count: 3200,
+        center: { x: -500, y: -320, z: -2100 },
+        spread: { x: 140, y: 55, z: 45 },
         colors: [0x9c286e, 0x592fba, 0x283eaa, 0x401b70]
     }));
 
+    // Piccola regione azzurro-dorata molto distante.
     group.add(createNebulaCloud({
-        count: 3000,
-        center: { x: 280, y: 170, z: -800 },
-        spread: { x: 220, y: 130, z: 75 },
-        colors: [0x175b9e, 0x4932a3, 0x197d91, 0x241b64]
+        count: 2600,
+        center: { x: 650, y: 350, z: -2700 },
+        spread: { x: 150, y: 85, z: 50 },
+        colors: [0x175b9e, 0x4932a3, 0x197d91, 0x8b6840]
     }));
 
     return group;
@@ -359,11 +325,10 @@ function createNebulae() {
 
 /* ------------------------------------------------------------
    DISTANT SPIRAL GALAXY
-   A separate distant structure, not a navigable galaxy model.
    ------------------------------------------------------------ */
 
 function createDistantGalaxy() {
-    const count = CONFIG.galaxyParticleCount;
+    const count = 9000;
     const geometry = new THREE.BufferGeometry();
 
     const positions = new Float32Array(count * 3);
@@ -384,18 +349,13 @@ function createDistantGalaxy() {
     for (let i = 0; i < count; i++) {
         const i3 = i * 3;
 
-        const radius =
-            Math.pow(Math.random(), 0.65) * radiusMax;
-
-        const arm =
-            Math.floor(Math.random() * arms);
-
-        const spiralAngle =
-            radius * 0.055 +
-            arm * (Math.PI * 2 / arms);
+        const radius = Math.pow(Math.random(), 0.65) * radiusMax;
+        const arm = Math.floor(Math.random() * arms);
 
         const angle =
-            spiralAngle + randomGaussian() * 0.18;
+            radius * 0.055 +
+            arm * (Math.PI * 2 / arms) +
+            randomGaussian() * 0.18;
 
         positions[i3] =
             Math.cos(angle) * radius +
@@ -411,14 +371,13 @@ function createDistantGalaxy() {
         const color =
             palette[Math.floor(Math.random() * palette.length)];
 
-        const centerGlow =
-            1 - Math.min(radius / radiusMax, 1);
+        const centerGlow = 1 - Math.min(radius / radiusMax, 1);
 
         colors[i3] = color.r * (0.55 + centerGlow * 0.8);
         colors[i3 + 1] = color.g * (0.55 + centerGlow * 0.8);
         colors[i3 + 2] = color.b * (0.55 + centerGlow * 0.8);
 
-        sizes[i] = randomRange(1.5, 5.0);
+        sizes[i] = randomRange(1.5, 4.5);
     }
 
     geometry.setAttribute(
@@ -447,16 +406,16 @@ function createDistantGalaxy() {
 
     const galaxy = new THREE.Points(geometry, material);
 
-    galaxy.position.set(230, 75, -1050);
+    galaxy.position.set(800, 300, -3200);
     galaxy.rotation.z = -0.25;
     galaxy.rotation.x = 0.15;
+    galaxy.name = "DistantSpiralGalaxy";
 
     return galaxy;
 }
 
 /* ------------------------------------------------------------
-   MAIN INITIALIZATION
-   This function is called by app.js.
+   UNIVERSE INITIALIZATION
    ------------------------------------------------------------ */
 
 export async function initializeUniverse({
@@ -469,7 +428,6 @@ export async function initializeUniverse({
         );
     }
 
-    // Prevent duplicate renderers and animation loops.
     const existing = instances.get(container);
 
     if (existing) {
@@ -478,11 +436,13 @@ export async function initializeUniverse({
         return existing;
     }
 
-    reportProgress(
-        onProgress,
-        62,
-        "Creating the three-dimensional space..."
-    );
+    let renderer = null;
+    let lighting = null;
+    let navigation = null;
+    let resizeHandler = null;
+    let animationFrame = null;
+    let running = false;
+    let disposed = false;
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(CONFIG.background);
@@ -498,50 +458,48 @@ export async function initializeUniverse({
     camera.position.set(0, 0, 45);
     camera.lookAt(0, 0, -100);
 
-    let renderer;
+    const clock = new THREE.Clock();
 
     try {
+        reportProgress(
+            onProgress, 62, "Creating the 3D universe..."
+        );
+
         renderer = createRenderer(container);
 
         reportProgress(
-            onProgress,
-            70,
-            "Mapping distant stars..."
+            onProgress, 70, "Mapping distant stars..."
         );
 
         scene.add(createStarfield());
 
         reportProgress(
-            onProgress,
-            79,
-            "Forming cosmic nebulae..."
+            onProgress, 78, "Positioning distant nebulae..."
         );
 
         const nebulae = createNebulae();
         scene.add(nebulae);
 
         reportProgress(
-            onProgress,
-            88,
-            "Discovering a distant galaxy..."
+            onProgress, 85, "Discovering a distant galaxy..."
         );
 
         const galaxy = createDistantGalaxy();
         scene.add(galaxy);
 
-        // Very faint ambient light for future 3D objects.
-        const ambientLight = new THREE.AmbientLight(
-            0x8ba5ff,
-            0.15
+        reportProgress(
+            onProgress, 90, "Calibrating cosmic lighting..."
         );
 
-        scene.add(ambientLight);
+        // Collegamento al modulo lighting.js.
+        lighting = createSpaceLighting(scene);
 
-        let animationFrame = null;
-        let running = false;
-        let disposed = false;
+        reportProgress(
+            onProgress, 94, "Activating space navigation..."
+        );
 
-        const clock = new THREE.Clock();
+        // Collegamento al modulo navigation.js.
+        navigation = createNavigation(camera, renderer, scene);
 
         function resize() {
             if (disposed) return;
@@ -568,10 +526,12 @@ export async function initializeUniverse({
 
             const delta = Math.min(clock.getDelta(), 0.05);
 
-            // Extremely slow motion keeps the scene alive
-            // without making the environment feel artificial.
-            nebulae.rotation.z += delta * 0.0007;
-            galaxy.rotation.z += delta * 0.00035;
+            // Animazione quasi impercettibile delle regioni lontane.
+            nebulae.rotation.z += delta * 0.00012;
+            galaxy.rotation.z += delta * 0.0002;
+
+            // Aggiorna i controlli e il movimento della telecamera.
+            navigation.update(delta);
 
             renderer.render(scene, camera);
         }
@@ -599,12 +559,13 @@ export async function initializeUniverse({
             stop();
             disposed = true;
 
-            window.removeEventListener("resize", resize);
+            window.removeEventListener("resize", resizeHandler);
+
+            navigation?.dispose();
+            lighting?.dispose();
 
             scene.traverse(object => {
-                if (object.geometry) {
-                    object.geometry.dispose();
-                }
+                object.geometry?.dispose();
 
                 if (object.material) {
                     const materials = Array.isArray(object.material)
@@ -630,37 +591,43 @@ export async function initializeUniverse({
             scene,
             camera,
             renderer,
+            lighting,
+            navigation,
             start,
             stop,
             resize,
             dispose
         };
 
+        resizeHandler = resize;
+        window.addEventListener("resize", resizeHandler);
+
         instances.set(container, instance);
 
-        window.addEventListener("resize", resize);
-
         reportProgress(
-            onProgress,
-            96,
-            "Finalizing the cosmic environment..."
+            onProgress, 98, "Finalizing the universe..."
         );
 
         start();
 
-        reportProgress(
-            onProgress,
-            99,
-            "Preparing your journey..."
-        );
-
         console.info(
-            "[Universe Explorer] 3D universe initialized."
+            "[Universe Explorer] Universe, lighting and navigation ready."
         );
 
         return instance;
 
     } catch (error) {
+        if (animationFrame !== null) {
+            cancelAnimationFrame(animationFrame);
+        }
+
+        navigation?.dispose();
+        lighting?.dispose();
+
+        if (resizeHandler) {
+            window.removeEventListener("resize", resizeHandler);
+        }
+
         if (renderer) {
             renderer.dispose();
 
