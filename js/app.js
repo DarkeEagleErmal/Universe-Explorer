@@ -24,7 +24,7 @@ const App = (() => {
 
     const REQUIRED_ELEMENTS = [
         "loading-screen",
-        "loading-bar",
+        "loading-progress-bar",
         "loading-percentage",
         "loading-status",
         "welcome-screen",
@@ -66,7 +66,7 @@ const App = (() => {
     function setLoading(progress, message) {
         const percentage = Math.max(0, Math.min(100, progress));
 
-        elements["loading-bar"].style.width = `${percentage}%`;
+       elements["loading-progress-bar"].style.width = `${percentage}%`;
         elements["loading-percentage"].textContent =
             `${Math.round(percentage)}%`;
 
