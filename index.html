@@ -4,95 +4,106 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#020712">
-  <meta name="description" content="Explore planets, stars, galaxies and the wonders of the universe.">
-  <title>Universe Explorer — Beyond the Stars</title>
+  <meta name="theme-color" content="#020711">
+  <meta name="description" content="Explore planets, stars, galaxies and the wonders of the universe in an immersive 3D experience.">
+
+  <title>Universe Explorer | Explore the Infinite</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-  <div id="loading-screen" class="loading-screen">
+  <!-- LOADING SCREEN -->
+  <section id="loading-screen" class="loading-screen">
     <div class="loading-content">
       <div class="loading-symbol">✦</div>
       <h2>UNIVERSE EXPLORER</h2>
-      <p id="loading-status">INITIALIZING SPACE SYSTEM</p>
+      <p id="loading-message">PREPARING YOUR JOURNEY</p>
       <div class="loading-track">
-        <div id="loading-progress-bar" class="loading-progress-bar"></div>
+        <div id="loading-progress" class="loading-progress-bar"></div>
       </div>
       <span id="loading-percentage">0%</span>
     </div>
-  </div>
+  </section>
 
-  <main id="welcome-screen" class="welcome-screen">
+  <!-- WELCOME SCREEN -->
+  <main id="welcome-screen" class="welcome-screen" hidden>
     <div class="hero-background" aria-hidden="true"></div>
     <div class="hero-shade" aria-hidden="true"></div>
 
     <header class="topbar">
-      <a class="brand" href="#" aria-label="Universe Explorer home">
-        <span class="brand-planet"><i></i></span>
+      <a class="brand" href="#" id="home-link" aria-label="Universe Explorer home">
+        <span class="brand-planet" aria-hidden="true"><i></i></span>
         <span>UNIVERSE EXPLORER</span>
       </a>
 
-      <div class="topbar-track"><span></span></div>
+      <div class="topbar-track" aria-hidden="true"></div>
 
       <nav class="top-navigation" aria-label="Main navigation">
-        <a href="#welcome-screen">EXPLORE</a>
+        <a href="#explore" id="nav-explore">EXPLORE</a>
         <b>·</b>
-        <a href="#welcome-screen">DISCOVER</a>
+        <a href="#discover" id="nav-discover">DISCOVER</a>
         <b>·</b>
-        <a href="#welcome-screen">LEARN</a>
+        <a href="#learn" id="nav-learn">LEARN</a>
       </nav>
 
       <span class="system-ring" aria-hidden="true">✦</span>
     </header>
 
-    <section class="hero-content">
+    <section class="hero-content" aria-labelledby="hero-title">
       <div class="hero-eyebrow">
-        <span></span>A JOURNEY BEYOND THE STARS<span></span>
+        <span></span>
+        A JOURNEY BEYOND THE STARS
+        <span></span>
       </div>
 
-      <h1>
+      <h1 id="hero-title">
         <span class="title-main">UNIVERSE</span>
         <span class="title-sub">EXPLORER</span>
       </h1>
 
-      <div class="orbit-line" aria-hidden="true"><span></span></div>
+      <div class="orbit-line" aria-hidden="true">
+        <span></span>
+      </div>
 
       <p class="hero-description">
         REAL PLANETS. REAL GALAXIES. A REAL JOURNEY.
       </p>
 
       <button id="explore-button" class="explore-button" type="button">
-        <span class="button-chevron left"></span>
+        <span class="button-chevron left" aria-hidden="true"></span>
         <span>EXPLORE</span>
-        <b>→</b>
-        <span class="button-chevron right"></span>
+        <b aria-hidden="true">→</b>
+        <span class="button-chevron right" aria-hidden="true"></span>
       </button>
 
-      <p class="hero-footnote">
-        AN IMMERSIVE 3D UNIVERSE EXPERIENCE
-      </p>
+      <p class="hero-footnote">AN IMMERSIVE 3D UNIVERSE EXPERIENCE</p>
     </section>
 
-    <div class="corner-card corner-left">
-      <span class="corner-star">✦</span>
+    <aside class="corner-card corner-left" id="discover">
+      <span class="corner-star" aria-hidden="true">✦</span>
       <div>
         <b>OUR UNIVERSE</b>
         <small>1,000,000,000+ STARS</small>
       </div>
-    </div>
+    </aside>
 
-    <div class="scroll-indicator">
-      <span class="mouse-shape"><i></i></span>
-      <small>SCROLL TO EXPLORE</small>
-      <span class="scroll-line"></span>
-    </div>
-
-    <div class="corner-card corner-right">
-      <span class="mini-planet"><i></i></span>
+    <aside class="corner-card corner-right" id="learn">
+      <span class="mini-planet" aria-hidden="true"><i></i></span>
       <div>
         <b>INFINITE POSSIBILITIES</b>
         <small>JUST ONE CLICK AWAY</small>
       </div>
+    </aside>
+
+    <div class="scroll-indicator" aria-hidden="true">
+      <span class="mouse-shape"><i></i></span>
+      <small>SCROLL TO EXPLORE</small>
+      <span class="scroll-line"></span>
     </div>
 
     <footer class="bottom-bar">
@@ -101,79 +112,86 @@
     </footer>
   </main>
 
-  <section id="universe-screen" class="universe-screen" hidden
-    aria-label="Interactive 3D universe">
-
+  <!-- 3D UNIVERSE -->
+  <main id="universe-screen" class="universe-screen" hidden>
     <div id="universe-container" class="universe-container"></div>
 
     <header class="universe-topbar">
-      <button id="home-button" class="ui-button" type="button">
-        ← HOME
-      </button>
-
       <div class="universe-brand">
         <span class="live-dot"></span>
-        DEEP SPACE EXPLORATION
+        UNIVERSE EXPLORER / 3D SPACE
       </div>
 
-      <button id="orbits-button" class="ui-button" type="button">
-        ORBIT LINES: ON
-      </button>
+      <div class="universe-actions">
+        <button id="home-button" class="ui-button" type="button">
+          ← HOME
+        </button>
+        <button id="orbits-button" class="ui-button" type="button">
+          ORBITS: ON
+        </button>
+        <button id="tour-button" class="ui-button" type="button">
+          GUIDED TOUR
+        </button>
+      </div>
     </header>
 
-    <aside class="universe-panel panel-left">
-      <small class="panel-kicker">SOLAR SYSTEM / 001</small>
-      <h2 id="selected-name">THE SUN</h2>
-      <p id="selected-description">
-        The star at the heart of our solar system.
+    <aside id="universe-panel" class="universe-panel panel-left">
+      <span class="panel-kicker">MISSION CONTROL</span>
+      <h2 id="selected-object-name">Solar System</h2>
+      <p id="selected-object-description">
+        Begin your journey through our cosmic neighbourhood.
       </p>
 
       <div class="panel-divider"></div>
 
       <div class="data-row">
         <span>OBJECT TYPE</span>
-        <b id="selected-type">STAR</b>
+        <b id="selected-object-type">Planetary system</b>
       </div>
 
       <div class="data-row">
-        <span>POSITION</span>
-        <b id="selected-position">CENTER</b>
+        <span>LOCATION</span>
+        <b id="selected-object-location">Milky Way</b>
       </div>
 
-      <div class="object-list" id="object-list">
-        <button data-body="Sun" class="object-choice active">☼ <span>Sun</span></button>
-        <button data-body="Mercury" class="object-choice">◉ <span>Mercury</span></button>
-        <button data-body="Venus" class="object-choice">◉ <span>Venus</span></button>
-        <button data-body="Earth" class="object-choice">◉ <span>Earth</span></button>
-        <button data-body="Mars" class="object-choice">◉ <span>Mars</span></button>
-        <button data-body="Jupiter" class="object-choice">◉ <span>Jupiter</span></button>
-        <button data-body="Saturn" class="object-choice">◉ <span>Saturn</span></button>
-        <button data-body="Uranus" class="object-choice">◉ <span>Uranus</span></button>
-        <button data-body="Neptune" class="object-choice">◉ <span>Neptune</span></button>
-      </div>
+      <div class="panel-divider"></div>
+
+      <label class="panel-kicker" for="object-search">FIND AN OBJECT</label>
+      <input
+        id="object-search"
+        class="object-search"
+        type="search"
+        placeholder="Search planets..."
+        autocomplete="off"
+      >
+
+      <div id="object-list" class="object-list"></div>
     </aside>
 
     <div class="universe-hint">
-      DRAG TO ROTATE <span>·</span> SCROLL TO ZOOM
+      <span>DRAG</span> ROTATE
+      <span>SCROLL</span> ZOOM
     </div>
+  </main>
 
-    <div id="error-screen" class="error-screen" hidden>
-      <div class="error-content">
-        <span class="error-symbol">!</span>
-        <h2 id="error-title">SYSTEM ERROR</h2>
-        <p id="error-message">
-          The universe could not be initialized.
-        </p>
-        <button id="retry-button" class="ui-button" type="button">
-          TRY AGAIN
-        </button>
-        <button id="return-home-error-button" class="ui-button" type="button">
-          RETURN HOME
-        </button>
-      </div>
+  <!-- ERROR SCREEN -->
+  <section id="error-screen" class="error-screen" hidden>
+    <div class="error-content">
+      <span class="error-symbol">!</span>
+      <h2>MISSION INTERRUPTED</h2>
+      <p id="error-message">
+        The universe could not be loaded. Please try again.
+      </p>
+      <button id="retry-button" class="ui-button" type="button">
+        TRY AGAIN
+      </button>
+      <button id="error-home-button" class="ui-button" type="button">
+        BACK HOME
+      </button>
     </div>
   </section>
 
+  <!-- APPLICATION ENTRY POINT -->
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
