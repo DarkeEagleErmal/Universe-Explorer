@@ -1,54 +1,23 @@
 
-/* =========================================================
-   UNIVERSE EXPLORER
-   Futuristic visual system
-   Version 1.0
-   ========================================================= */
-
-/* 01. DESIGN TOKENS */
+/* ==========================================================
+   UNIVERSE EXPLORER — CINEMATIC LANDING PAGE
+   ========================================================== */
 
 :root {
-    color-scheme: dark;
-
-    --space-black: #02040b;
-    --space-deep: #050a18;
-    --space-blue: #09152b;
-
-    --neon-blue: #63d4ff;
-    --neon-cyan: #8be9ff;
-    --neon-purple: #a78bfa;
-    --neon-violet: #7557ff;
-
-    --text-primary: #f2f7ff;
-    --text-secondary: #a8b8d1;
-    --text-muted: #71839f;
-
-    --glass: rgba(7, 15, 32, 0.82);
-    --glass-light: rgba(13, 27, 51, 0.75);
-
-    --border: rgba(117, 190, 255, 0.19);
-    --border-active: rgba(99, 212, 255, 0.65);
-
-    --glow-blue: 0 0 24px rgba(65, 174, 255, 0.15);
-    --glow-purple: 0 0 30px rgba(117, 87, 255, 0.14);
-
-    --radius-small: 4px;
-    --radius-medium: 8px;
-    --radius-large: 14px;
-
-    --transition-fast: 180ms ease;
-    --transition-normal: 300ms ease;
-    --transition-slow: 600ms ease;
-
-    --panel-padding: 20px;
-    --header-height: 72px;
+    --space-black: #02050c;
+    --space-blue: #07162c;
+    --cyan: #69dcff;
+    --cyan-bright: #b9f1ff;
+    --blue: #278bff;
+    --text-white: #f2f8ff;
+    --text-muted: #7892ac;
+    --line-color: rgba(111, 198, 255, 0.22);
 }
-
-
-/* 02. RESET AND BASE */
 
 * {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 html {
@@ -60,32 +29,15 @@ html {
 
 body {
     width: 100%;
-    min-width: 320px;
     min-height: 100vh;
-    min-height: 100dvh;
-
-    margin: 0;
-    overflow: hidden;
-
+    overflow-x: hidden;
     background: var(--space-black);
-    color: var(--text-primary);
-
-    font-family:
-        "Segoe UI",
-        Roboto,
-        Helvetica,
-        Arial,
-        sans-serif;
-
-    font-size: 14px;
-    line-height: 1.5;
-
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
+    color: var(--text-white);
+    font-family: "Segoe UI", Arial, sans-serif;
 }
 
 button,
-input {
+a {
     font: inherit;
 }
 
@@ -93,1443 +45,1203 @@ button {
     color: inherit;
 }
 
-button:focus-visible,
-input:focus-visible,
-a:focus-visible {
-    outline: 2px solid var(--neon-cyan);
-    outline-offset: 4px;
-}
-
-button:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
 a {
     color: inherit;
     text-decoration: none;
-}
-
-button,
-input {
-    -webkit-tap-highlight-color: transparent;
 }
 
 [hidden] {
     display: none !important;
 }
 
-::selection {
-    background: rgba(99, 212, 255, 0.28);
-    color: white;
-}
+/* ==========================================================
+   LOADING SCREEN
+   ========================================================== */
 
-#app {
-    position: relative;
-    width: 100%;
-    min-height: 100vh;
-    min-height: 100dvh;
-    overflow: hidden;
-    isolation: isolate;
-    background: var(--space-black);
-}
-
-
-/* 03. SCREEN SYSTEM */
-
-.screen {
-    position: absolute;
+.loading-screen {
+    position: fixed;
     inset: 0;
-
-    width: 100%;
-    height: 100%;
-    height: 100dvh;
-
-    overflow: hidden;
-}
-
-#welcome-screen {
-    display: grid;
-    grid-template-rows: auto 1fr auto;
-    isolation: isolate;
-
-    background:
-        radial-gradient(
-            ellipse at 50% 45%,
-            rgba(37, 71, 139, 0.22),
-            transparent 43%
-        ),
-        radial-gradient(
-            ellipse at 16% 78%,
-            rgba(86, 35, 147, 0.17),
-            transparent 37%
-        ),
-        radial-gradient(
-            ellipse at 86% 17%,
-            rgba(14, 112, 161, 0.13),
-            transparent 32%
-        ),
-        linear-gradient(
-            145deg,
-            #02040b 0%,
-            #071126 48%,
-            #030611 100%
-        );
-}
-
-
-/* 04. SPACE BACKGROUND */
-
-.space-background {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-
-    overflow: hidden;
-    pointer-events: none;
-
-    background-image:
-        radial-gradient(
-            1px 1px at 8% 18%,
-            white 50%,
-            transparent 100%
-        ),
-        radial-gradient(
-            1.5px 1.5px at 72% 13%,
-            #c3e7ff 50%,
-            transparent 100%
-        ),
-        radial-gradient(
-            1px 1px at 83% 72%,
-            white 50%,
-            transparent 100%
-        ),
-        radial-gradient(
-            2px 2px at 23% 81%,
-            #a7baff 50%,
-            transparent 100%
-        ),
-        radial-gradient(
-            1px 1px at 55% 31%,
-            white 50%,
-            transparent 100%
-        ),
-        radial-gradient(
-            1px 1px at 43% 65%,
-            #b7ddff 50%,
-            transparent 100%
-        ),
-        radial-gradient(
-            1px 1px at 92% 45%,
-            white 50%,
-            transparent 100%
-        );
-
-    background-size:
-        280px 260px,
-        370px 330px,
-        410px 360px,
-        340px 290px,
-        290px 310px,
-        390px 370px,
-        350px 300px;
-
-    animation: star-drift 100s linear infinite;
-}
-
-.space-background::before {
-    content: "";
-
-    position: absolute;
-    left: 50%;
-    top: 48%;
-
-    width: min(90vw, 1000px);
-    aspect-ratio: 1;
-
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-
-    background:
-        radial-gradient(
-            ellipse at center,
-            rgba(55, 103, 207, 0.16),
-            rgba(92, 44, 160, 0.09) 32%,
-            rgba(20, 71, 134, 0.04) 53%,
-            transparent 72%
-        );
-
-    filter: blur(28px);
-
-    animation: nebula-pulse 14s ease-in-out infinite alternate;
-}
-
-.space-background::after {
-    content: "";
-
-    position: absolute;
-    inset: -30%;
-
-    opacity: 0.12;
-
-    background:
-        repeating-linear-gradient(
-            115deg,
-            transparent 0,
-            transparent 110px,
-            rgba(103, 168, 255, 0.08) 111px,
-            transparent 112px,
-            transparent 220px
-        );
-
-    transform: rotate(-8deg);
-}
-
-
-/* 05. WELCOME HEADER */
-
-.welcome-header {
-    position: relative;
-    z-index: 2;
-
+    z-index: 1000;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 24px;
-
-    min-height: var(--header-height);
-    padding: 0 clamp(22px, 5vw, 76px);
-
-    border-bottom: 1px solid rgba(137, 181, 255, 0.08);
-
-    background: rgba(3, 7, 17, 0.22);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-}
-
-.brand,
-.exploration-brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 11px;
-
-    color: var(--text-primary);
-
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.18em;
-    white-space: nowrap;
-}
-
-.brand-symbol {
-    display: inline-flex;
-    align-items: center;
     justify-content: center;
-
-    color: var(--neon-blue);
-    font-size: 24px;
-
-    text-shadow: 0 0 18px rgba(99, 212, 255, 0.65);
-}
-
-.system-status,
-.exploration-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-
-    color: var(--text-muted);
-
-    font-size: 9px;
-    font-weight: 600;
-    letter-spacing: 0.16em;
-}
-
-.status-indicator {
-    flex: 0 0 auto;
-
-    width: 6px;
-    height: 6px;
-
-    border-radius: 50%;
-    background: #69edbb;
-
-    box-shadow: 0 0 12px rgba(105, 237, 187, 0.65);
-}
-
-
-/* 06. WELCOME CONTENT */
-
-.welcome-content {
-    position: relative;
-    z-index: 1;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-
-    width: min(100% - 40px, 1120px);
-    margin: 0 auto;
-
-    padding: 48px 0;
-
-    text-align: center;
-
-    animation: content-arrive 1.1s ease both;
-}
-
-.eyebrow,
-.panel-eyebrow {
-    color: var(--neon-blue);
-
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.3em;
-    line-height: 1.8;
-}
-
-.eyebrow {
-    margin: 0 0 25px;
-
-    text-shadow: 0 0 20px rgba(99, 212, 255, 0.4);
-}
-
-.welcome-content h1 {
-    max-width: 100%;
-    margin: 0;
-
-    color: var(--text-primary);
-
-    font-size: clamp(38px, 7.5vw, 96px);
-    font-weight: 300;
-    letter-spacing: clamp(2px, 0.9vw, 12px);
-    line-height: 1.15;
-
-    text-wrap: balance;
-
-    text-shadow:
-        0 0 30px rgba(91, 166, 255, 0.14),
-        0 0 80px rgba(93, 105, 255, 0.1);
-}
-
-.title-highlight {
-    display: block;
-
-    color: transparent;
-
-    background: linear-gradient(
-        100deg,
-        #eaf6ff 5%,
-        #80d8ff 43%,
-        #a6a0ff 75%,
-        #e5d8ff 100%
-    );
-
-    background-clip: text;
-    -webkit-background-clip: text;
-
-    filter: drop-shadow(0 0 24px rgba(99, 212, 255, 0.12));
-}
-
-.welcome-description {
-    max-width: 590px;
-
-    margin: 27px 0 0;
-
-    color: var(--text-secondary);
-
-    font-size: clamp(14px, 1.5vw, 17px);
-    font-weight: 300;
-    letter-spacing: 0.025em;
-    line-height: 1.95;
-}
-
-.welcome-caption {
-    margin: 24px 0 0;
-
-    color: var(--text-muted);
-
-    font-size: 9px;
-    font-weight: 500;
-    letter-spacing: 0.2em;
-}
-
-
-/* 07. BUTTON SYSTEM */
-
-.primary-button,
-.secondary-button {
-    position: relative;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 25px;
-
-    min-height: 58px;
-    padding: 0 28px;
-
-    border-radius: var(--radius-small);
-
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.18em;
-
-    cursor: pointer;
-
-    transition:
-        color var(--transition-normal),
-        background var(--transition-normal),
-        border-color var(--transition-normal),
-        box-shadow var(--transition-normal),
-        transform var(--transition-normal);
-}
-
-.primary-button {
-    min-width: 245px;
-    margin-top: 39px;
-
-    overflow: hidden;
-
-    border: 1px solid rgba(99, 212, 255, 0.65);
-
     background:
-        linear-gradient(
-            110deg,
-            rgba(26, 72, 130, 0.68),
-            rgba(18, 29, 67, 0.8)
-        );
-
-    color: white;
-
-    box-shadow:
-        0 0 24px rgba(54, 150, 255, 0.08),
-        inset 0 0 22px rgba(67, 151, 255, 0.04);
-}
-
-.primary-button::before {
-    content: "";
-
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: -130%;
-
-    width: 80%;
-
-    transform: skewX(-25deg);
-
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.16),
-        transparent
-    );
-
-    transition: left 650ms ease;
-}
-
-.primary-button:hover {
-    transform: translateY(-3px);
-
-    border-color: var(--neon-cyan);
-
-    background:
-        linear-gradient(
-            110deg,
-            rgba(32, 92, 160, 0.8),
-            rgba(30, 43, 91, 0.9)
-        );
-
-    box-shadow:
-        0 0 30px rgba(54, 150, 255, 0.2),
-        0 0 65px rgba(87, 103, 255, 0.08);
-}
-
-.primary-button:hover::before {
-    left: 145%;
-}
-
-.primary-button:active,
-.secondary-button:active {
-    transform: translateY(-1px) scale(0.99);
-}
-
-.button-arrow {
-    color: var(--neon-cyan);
-    font-size: 22px;
-    font-weight: 300;
-
-    transition: transform var(--transition-normal);
-}
-
-.primary-button:hover .button-arrow {
-    transform: translateX(5px);
-}
-
-.secondary-button {
-    border: 1px solid var(--border);
-    background: rgba(10, 21, 42, 0.65);
-    color: var(--text-secondary);
-}
-
-.secondary-button:hover {
-    border-color: var(--border-active);
-    color: white;
-}
-
-
-/* 08. WELCOME FOOTER */
-
-.welcome-footer {
-    position: relative;
-    z-index: 2;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-
-    min-height: 48px;
-    padding: 12px clamp(22px, 5vw, 76px);
-
-    border-top: 1px solid rgba(137, 181, 255, 0.08);
-
-    color: var(--text-muted);
-
-    font-size: 9px;
-    font-weight: 500;
-    letter-spacing: 0.15em;
-}
-
-
-/* 09. LOADING SCREEN */
-
-#loading-screen {
-    z-index: 100;
-
-    display: grid;
-    place-items: center;
-
-    background:
-        radial-gradient(
-            ellipse at center,
-            rgba(25, 57, 119, 0.25),
-            transparent 55%
-        ),
-        #02040b;
+        radial-gradient(ellipse at center, #0b1b35, #02050c 70%);
 }
 
 .loading-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    width: min(380px, calc(100% - 40px));
+    width: min(340px, 85vw);
     text-align: center;
 }
 
 .loading-symbol {
-    width: 50px;
-    height: 50px;
-
-    margin-bottom: 28px;
-
-    border: 1px solid rgba(99, 212, 255, 0.25);
-    border-top-color: var(--neon-cyan);
-    border-right-color: var(--neon-purple);
-
-    border-radius: 50%;
-
-    box-shadow: 0 0 30px rgba(99, 212, 255, 0.1);
-
-    animation: loading-spin 1.8s linear infinite;
+    margin-bottom: 22px;
+    color: var(--cyan);
+    font-size: 38px;
+    animation: loadingPulse 2s ease-in-out infinite;
 }
 
-.loading-brand {
-    margin: 0;
-
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.24em;
+.loading-content h2 {
+    font-size: 15px;
+    letter-spacing: 5px;
 }
 
-#loading-status {
-    margin: 15px 0 23px;
-
-    color: var(--text-secondary);
-    font-size: 12px;
+.loading-content p {
+    margin-top: 18px;
+    color: var(--text-muted);
+    font-size: 10px;
+    letter-spacing: 2px;
 }
 
-.loading-progress-track {
+.loading-track {
     width: 100%;
-    height: 3px;
-
+    height: 2px;
+    margin-top: 24px;
     overflow: hidden;
-
-    border-radius: 3px;
-    background: rgba(125, 164, 216, 0.14);
+    background: rgba(255, 255, 255, 0.1);
 }
 
-#loading-progress-bar {
-    width: 0%;
+.loading-progress-bar {
+    width: 0;
     height: 100%;
-
-    border-radius: inherit;
-
-    background: linear-gradient(
-        90deg,
-        var(--neon-violet),
-        var(--neon-blue)
-    );
-
-    box-shadow: 0 0 12px rgba(99, 212, 255, 0.55);
-
-    transition: width 250ms ease;
+    background: var(--cyan);
+    box-shadow: 0 0 14px var(--cyan);
+    transition: width 0.3s ease;
 }
 
 #loading-percentage {
-    align-self: flex-end;
-
-    margin: 9px 0 0;
-
-    color: var(--neon-blue);
-    font-size: 10px;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.1em;
-}
-
-
-/* 10. 3D EXPLORATION SCREEN */
-
-#universe-screen {
-    background: #02040b;
-}
-
-#universe-container {
-    position: absolute;
-    inset: 0;
-
-    width: 100%;
-    height: 100%;
-
-    overflow: hidden;
-    touch-action: none;
-}
-
-#universe-container canvas {
     display: block;
-    width: 100%;
-    height: 100%;
-}
-
-
-/* 11. HUD GLASS PANELS */
-
-.hud-panel {
-    position: absolute;
-    z-index: 5;
-
-    border: 1px solid var(--border);
-    border-radius: var(--radius-medium);
-
-    background: var(--glass);
-
-    box-shadow:
-        var(--glow-blue),
-        inset 0 1px 0 rgba(255, 255, 255, 0.025);
-
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-}
-
-#exploration-header {
-    position: absolute;
-    top: 16px;
-    right: 18px;
-    left: 18px;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-
-    min-height: 58px;
-    padding: 9px 15px;
-}
-
-.exploration-brand {
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.exploration-brand .brand-symbol {
-    font-size: 21px;
-}
-
-.exploration-status {
-    flex-shrink: 0;
-    letter-spacing: 0.1em;
-}
-
-
-/* 12. ICON BUTTONS */
-
-.icon-button {
-    display: inline-flex;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-
-    width: 38px;
-    height: 38px;
-
-    border: 1px solid var(--border);
-    border-radius: var(--radius-small);
-
-    background: rgba(12, 26, 49, 0.72);
-
-    color: var(--neon-cyan);
-    font-size: 21px;
-
-    cursor: pointer;
-
-    transition:
-        background var(--transition-fast),
-        border-color var(--transition-fast),
-        box-shadow var(--transition-fast);
-}
-
-.icon-button:hover {
-    border-color: var(--border-active);
-
-    background: rgba(35, 77, 121, 0.65);
-
-    box-shadow: 0 0 18px rgba(99, 212, 255, 0.12);
-}
-
-
-/* 13. SEARCH PANEL */
-
-.search-panel {
-    top: 91px;
-    left: 18px;
-
-    width: min(330px, calc(100% - 36px));
-    padding: 17px;
-}
-
-.search-panel > label {
-    display: block;
-    margin-bottom: 12px;
-
-    color: var(--text-muted);
-
-    font-size: 9px;
-    font-weight: 600;
-    letter-spacing: 0.17em;
-}
-
-.search-controls {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-#object-search {
-    min-width: 0;
-    flex: 1;
-
-    height: 40px;
-    padding: 0 11px;
-
-    border: 1px solid var(--border);
-    border-radius: var(--radius-small);
-
-    background: rgba(2, 7, 17, 0.75);
-    color: var(--text-primary);
-
-    font-size: 12px;
-
-    transition: border-color var(--transition-fast);
-}
-
-#object-search::placeholder {
-    color: var(--text-muted);
-}
-
-#object-search:focus {
-    border-color: var(--border-active);
-    outline: none;
-}
-
-.search-results {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-
-    max-height: 220px;
     margin-top: 10px;
-
-    overflow-y: auto;
+    color: var(--cyan);
+    font-size: 11px;
+    letter-spacing: 2px;
 }
 
+/* ==========================================================
+   WELCOME SCREEN
+   ========================================================== */
 
-/* 14. OBJECT INFORMATION PANEL */
-
-.object-panel {
-    top: 91px;
-    right: 18px;
-
-    width: min(360px, calc(100% - 36px));
-    max-height: calc(100% - 180px);
-
-    padding: var(--panel-padding);
-
-    overflow-y: auto;
-    overscroll-behavior: contain;
-}
-
-.panel-heading {
+.welcome-screen {
+    position: relative;
+    isolation: isolate;
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.panel-heading h2 {
-    margin: 5px 0 0;
-
-    font-size: 25px;
-    font-weight: 400;
-    letter-spacing: 0.015em;
-
-    overflow-wrap: anywhere;
-}
-
-.panel-eyebrow {
-    margin: 0;
-    font-size: 9px;
-    letter-spacing: 0.17em;
-}
-
-.object-category {
-    margin: 14px 0;
-
-    color: var(--neon-blue);
-
-    font-size: 9px;
-    font-weight: 600;
-    letter-spacing: 0.16em;
-}
-
-#object-description {
-    color: var(--text-secondary);
-
-    font-size: 12px;
-    line-height: 1.8;
-}
-
-.object-facts {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-
-    margin: 20px 0 0;
-}
-
-.object-facts > div {
-    min-width: 0;
-    padding: 12px;
-
-    border: 1px solid rgba(117, 190, 255, 0.12);
-    border-radius: var(--radius-small);
-
-    background: rgba(13, 27, 51, 0.42);
-}
-
-.object-facts dt {
-    margin-bottom: 5px;
-
-    color: var(--text-muted);
-    font-size: 9px;
-    letter-spacing: 0.06em;
-}
-
-.object-facts dd {
-    margin: 0;
-
-    color: var(--text-primary);
-    font-size: 12px;
-
-    overflow-wrap: anywhere;
-}
-
-.object-navigation {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-
-    margin-top: 20px;
-    padding-top: 14px;
-
-    border-top: 1px solid var(--border);
-}
-
-.object-navigation button,
-.navigation-panel button {
-    border: 1px solid var(--border);
-    border-radius: var(--radius-small);
-
-    background: rgba(13, 27, 51, 0.56);
-
-    color: var(--text-secondary);
-    font-size: 10px;
-    letter-spacing: 0.06em;
-
-    cursor: pointer;
-
-    transition:
-        border-color var(--transition-fast),
-        background var(--transition-fast),
-        color var(--transition-fast);
-}
-
-.object-navigation button {
-    min-height: 36px;
-    padding: 0 10px;
-}
-
-.object-navigation button:hover,
-.navigation-panel button:hover {
-    border-color: var(--border-active);
-    background: rgba(31, 70, 113, 0.58);
-    color: white;
-}
-
-
-/* 15. NAVIGATION PANEL */
-
-.navigation-panel {
-    bottom: 65px;
-    left: 18px;
-
-    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100svh;
     flex-direction: column;
-    gap: 8px;
-
-    width: 210px;
-    padding: 16px;
+    overflow: hidden;
+    background:
+        radial-gradient(
+            ellipse at 73% 46%,
+            rgba(14, 53, 105, 0.35),
+            transparent 42%
+        ),
+        radial-gradient(
+            ellipse at 28% 42%,
+            rgba(14, 40, 85, 0.28),
+            transparent 48%
+        ),
+        linear-gradient(110deg, #02050c, #061021 58%, #02050c);
 }
 
-.navigation-panel .panel-eyebrow {
-    margin-bottom: 4px;
+/* ==========================================================
+   TOP NAVIGATION
+   ========================================================== */
+
+.topbar {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    min-height: 84px;
+    align-items: center;
+    gap: 32px;
+    padding: 0 6%;
+    border-bottom: 1px solid rgba(108, 183, 255, 0.12);
+    background: rgba(2, 6, 15, 0.35);
+    backdrop-filter: blur(8px);
 }
 
-.navigation-panel button {
+.brand {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 12px;
+    color: #eaf8ff;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+}
+
+.brand-icon {
+    color: var(--cyan);
+    font-size: 27px;
+    text-shadow: 0 0 18px rgba(80, 190, 255, 0.8);
+}
+
+.topbar-line {
+    height: 1px;
+    flex: 1;
+    background: linear-gradient(
+        90deg,
+        var(--line-color),
+        transparent
+    );
+}
+
+.top-navigation {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    gap: 9px;
-
-    width: 100%;
-    min-height: 36px;
-
-    padding: 8px 10px;
-
-    text-align: left;
+    gap: 22px;
+    color: #a3b6cc;
+    font-size: 10px;
+    letter-spacing: 2px;
 }
 
-.navigation-panel button[aria-pressed="true"] {
-    border-color: rgba(99, 212, 255, 0.5);
-
-    background: rgba(26, 75, 117, 0.48);
-
-    color: var(--neon-cyan);
+.top-navigation a {
+    transition: color 0.25s ease;
 }
 
+.top-navigation a:hover {
+    color: var(--cyan);
+}
 
-/* 16. CONTROLS HELP */
+.top-navigation > span {
+    color: #385775;
+}
 
-.controls-hint {
-    right: 18px;
-    bottom: 16px;
-    left: 245px;
-
+.system-indicator {
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-wrap: wrap;
-    gap: 12px 26px;
-
-    min-height: 34px;
-    padding: 8px 14px;
-
-    color: var(--text-muted);
-
-    font-size: 9px;
-    letter-spacing: 0.08em;
-    text-align: center;
+    width: 24px;
+    height: 24px;
+    border: 1px solid var(--line-color);
+    border-radius: 50%;
 }
 
-.controls-hint span + span {
-    position: relative;
+.indicator-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #60e5bb;
+    box-shadow: 0 0 10px rgba(96, 229, 187, 0.75);
 }
 
-.controls-hint span + span::before {
-    content: "";
+/* ==========================================================
+   SPACE BACKGROUND
+   ========================================================== */
 
+.space-background {
     position: absolute;
-    top: 50%;
-    left: -14px;
-
-    width: 1px;
-    height: 12px;
-
-    transform: translateY(-50%);
-
-    background: var(--border);
+    z-index: -1;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    background:
+        radial-gradient(
+            ellipse at 72% 48%,
+            rgba(14, 48, 95, 0.22),
+            transparent 43%
+        ),
+        #02050c;
 }
 
+/* Nebula: subtle clouds of interstellar gas. */
 
-/* 17. NOTIFICATIONS */
-
-.notification {
+.space-nebula {
     position: absolute;
-    z-index: 20;
-
-    top: 90px;
-    left: 50%;
-
-    width: max-content;
-    max-width: calc(100% - 36px);
-
-    padding: 12px 18px;
-
-    transform: translateX(-50%);
-
-    border: 1px solid var(--border-active);
-    border-radius: var(--radius-medium);
-
-    background: rgba(5, 15, 31, 0.94);
-
-    color: var(--text-primary);
-    font-size: 12px;
-    text-align: center;
-
-    box-shadow: var(--glow-blue);
+    top: 10%;
+    left: -14%;
+    width: 83%;
+    height: 75%;
+    opacity: 0.78;
+    filter: blur(38px);
+    background:
+        radial-gradient(
+            ellipse at 36% 47%,
+            rgba(39, 88, 164, 0.32),
+            transparent 32%
+        ),
+        radial-gradient(
+            ellipse at 53% 39%,
+            rgba(76, 39, 151, 0.2),
+            transparent 36%
+        ),
+        radial-gradient(
+            ellipse at 57% 62%,
+            rgba(20, 114, 184, 0.2),
+            transparent 32%
+        );
+    animation: nebulaDrift 22s ease-in-out infinite alternate;
 }
 
+/* Spiral galaxy on the left. */
 
-/* 18. ERROR SCREEN */
-
-#error-screen {
-    z-index: 110;
-
-    display: grid;
-    place-items: center;
-
-    padding: 24px;
-
+.space-galaxy {
+    position: absolute;
+    top: 18%;
+    left: -7%;
+    width: min(66vw, 880px);
+    height: min(66vw, 880px);
+    border-radius: 50%;
+    opacity: 0.68;
+    transform: rotate(-23deg) scaleY(0.67);
     background:
         radial-gradient(
             ellipse at center,
-            rgba(65, 30, 77, 0.2),
-            transparent 60%
+            rgba(255, 241, 218, 0.95) 0,
+            rgba(149, 193, 255, 0.58) 2%,
+            rgba(79, 127, 255, 0.22) 7%,
+            transparent 19%
         ),
-        #02040b;
+        repeating-conic-gradient(
+            from 0deg at 50% 50%,
+            transparent 0deg 9deg,
+            rgba(93, 161, 255, 0.06) 11deg,
+            rgba(185, 120, 255, 0.16) 13deg,
+            transparent 19deg 35deg
+        ),
+        radial-gradient(
+            ellipse,
+            transparent 13%,
+            rgba(40, 110, 225, 0.24) 26%,
+            transparent 42%,
+            rgba(73, 90, 210, 0.14) 55%,
+            transparent 70%
+        );
+    filter: blur(1px);
+    mask-image: radial-gradient(
+        ellipse,
+        black 0%,
+        rgba(0, 0, 0, 0.85) 40%,
+        transparent 72%
+    );
+    animation: galaxyRotate 100s linear infinite;
+}
+
+/* Large planet on the right. */
+
+.space-planet {
+    position: absolute;
+    top: 9%;
+    right: -14%;
+    width: min(67vw, 930px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background:
+        radial-gradient(
+            ellipse at 28% 30%,
+            rgba(84, 135, 185, 0.32),
+            transparent 22%
+        ),
+        repeating-linear-gradient(
+            172deg,
+            transparent 0 24px,
+            rgba(111, 162, 211, 0.07) 27px 32px,
+            transparent 36px 62px
+        ),
+        radial-gradient(
+            circle at 28% 37%,
+            #29466d 0%,
+            #172c4b 25%,
+            #0b172d 51%,
+            #030813 72%
+        );
+    box-shadow:
+        inset 36px 0 90px rgba(0, 0, 0, 0.94),
+        inset -10px 0 70px rgba(71, 155, 255, 0.13),
+        0 0 80px rgba(30, 102, 196, 0.08);
+    animation: planetFloat 14s ease-in-out infinite alternate;
+}
+
+/* Blue atmospheric rim around the planet. */
+
+.planet-atmosphere {
+    position: absolute;
+    top: 7%;
+    right: -15%;
+    width: min(69vw, 960px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1px solid rgba(106, 197, 255, 0.13);
+    box-shadow:
+        inset -8px 0 16px rgba(81, 179, 255, 0.18),
+        0 0 20px rgba(69, 164, 255, 0.13);
+    opacity: 0.75;
+}
+
+/* Light coming from beyond the planet. */
+
+.space-sunlight {
+    position: absolute;
+    top: 22%;
+    right: 3%;
+    width: 48%;
+    height: 56%;
+    background: radial-gradient(
+        ellipse at 100% 45%,
+        rgba(91, 165, 255, 0.2),
+        rgba(34, 101, 198, 0.06) 26%,
+        transparent 67%
+    );
+    filter: blur(14px);
+}
+
+/* Star field. */
+
+.space-stars {
+    position: absolute;
+    inset: 0;
+    opacity: 0.8;
+    background-image:
+        radial-gradient(1px 1px at 5% 12%, #ffffff 90%, transparent),
+        radial-gradient(1px 1px at 17% 38%, #8fcaff 90%, transparent),
+        radial-gradient(2px 2px at 31% 17%, #ffffff 90%, transparent),
+        radial-gradient(1px 1px at 46% 32%, #b6dcff 90%, transparent),
+        radial-gradient(2px 2px at 59% 14%, #ffffff 90%, transparent),
+        radial-gradient(1px 1px at 72% 28%, #9bcfff 90%, transparent),
+        radial-gradient(1px 1px at 87% 18%, #ffffff 90%, transparent),
+        radial-gradient(2px 2px at 94% 44%, #b9d9ff 90%, transparent),
+        radial-gradient(1px 1px at 12% 65%, #ffffff 90%, transparent),
+        radial-gradient(1px 1px at 28% 78%, #a9d4ff 90%, transparent),
+        radial-gradient(2px 2px at 41% 67%, #ffffff 90%, transparent),
+        radial-gradient(1px 1px at 57% 83%, #8dc9ff 90%, transparent),
+        radial-gradient(1px 1px at 75% 71%, #ffffff 90%, transparent),
+        radial-gradient(1px 1px at 89% 89%, #a6d2ff 90%, transparent);
+    background-size: 370px 290px;
+    animation: starsDrift 100s linear infinite;
+}
+
+/* Small distant asteroid silhouettes. */
+
+.space-asteroids {
+    position: absolute;
+    right: 2%;
+    bottom: 8%;
+    width: 36%;
+    height: 22%;
+    opacity: 0.22;
+    background:
+        radial-gradient(
+            circle at 20% 55%,
+            #8199ad 0 2px,
+            transparent 3px
+        ),
+        radial-gradient(
+            circle at 48% 30%,
+            #8199ad 0 3px,
+            transparent 4px
+        ),
+        radial-gradient(
+            circle at 70% 70%,
+            #8199ad 0 2px,
+            transparent 3px
+        ),
+        radial-gradient(
+            circle at 88% 38%,
+            #8199ad 0 4px,
+            transparent 5px
+        );
+}
+
+/* Dark edges create a cinematic frame. */
+
+.space-vignette {
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(
+            90deg,
+            rgba(2, 5, 12, 0.45),
+            transparent 40%,
+            rgba(2, 5, 12, 0.12)
+        ),
+        linear-gradient(
+            0deg,
+            rgba(2, 5, 12, 0.95),
+            transparent 23%,
+            transparent 80%,
+            rgba(2, 5, 12, 0.25)
+        );
+}
+
+/* ==========================================================
+   HERO CONTENT
+   ========================================================== */
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    width: 100%;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 65px 20px 100px;
+    text-align: center;
+    animation: heroAppear 1.4s ease both;
+}
+
+.hero-eyebrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 25px;
+    color: #9ac9e9;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 5px;
+}
+
+.eyebrow-line {
+    width: 35px;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--cyan)
+    );
+}
+
+.eyebrow-line:last-child {
+    transform: rotate(180deg);
+}
+
+.hero-title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-weight: 300;
+    line-height: 0.98;
+}
+
+.title-main {
+    color: #f0f8ff;
+    font-size: clamp(46px, 8.1vw, 112px);
+    font-weight: 300;
+    letter-spacing: clamp(5px, 1.3vw, 19px);
+    text-shadow:
+        0 0 35px rgba(113, 193, 255, 0.14),
+        0 0 80px rgba(56, 126, 255, 0.1);
+}
+
+.title-sub {
+    margin-top: 15px;
+    color: #8ddaff;
+    font-size: clamp(25px, 4.2vw, 53px);
+    font-weight: 300;
+    letter-spacing: clamp(9px, 2.5vw, 34px);
+    text-indent: clamp(9px, 2.5vw, 34px);
+    text-shadow:
+        0 0 12px rgba(79, 192, 255, 0.7),
+        0 0 36px rgba(52, 140, 255, 0.35);
+}
+
+/* Orbital line beneath the title. */
+
+.title-orbit {
+    position: relative;
+    width: min(390px, 70vw);
+    height: 20px;
+    margin-top: 25px;
+    border-top: 1px solid rgba(94, 192, 255, 0.45);
+    border-radius: 50%;
+    transform: perspective(100px) rotateX(18deg);
+}
+
+.title-orbit::before {
+    position: absolute;
+    top: -4px;
+    left: 20%;
+    width: 60%;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(61, 154, 255, 0.13);
+    filter: blur(7px);
+    content: "";
+}
+
+.orbit-light {
+    position: absolute;
+    top: -3px;
+    left: 15%;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #d9f7ff;
+    box-shadow:
+        0 0 8px #ffffff,
+        0 0 20px #42c5ff,
+        0 0 35px #168dff;
+    animation: orbitLight 6s ease-in-out infinite alternate;
+}
+
+.hero-description {
+    margin-top: 5px;
+    color: #b3c9dd;
+    font-size: clamp(9px, 1.2vw, 12px);
+    letter-spacing: clamp(2px, 0.55vw, 5px);
+}
+
+/* ==========================================================
+   EXPLORE BUTTON
+   ========================================================== */
+
+.explore-button {
+    position: relative;
+    display: flex;
+    width: 220px;
+    min-height: 58px;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    margin-top: 48px;
+    overflow: hidden;
+    border: 1px solid rgba(108, 209, 255, 0.7);
+    background:
+        linear-gradient(
+            100deg,
+            rgba(16, 53, 94, 0.3),
+            rgba(25, 115, 177, 0.18),
+            rgba(16, 53, 94, 0.3)
+        );
+    color: #effaff;
+    cursor: pointer;
+    transition:
+        border-color 0.3s ease,
+        background 0.3s ease,
+        box-shadow 0.3s ease,
+        transform 0.3s ease;
+    clip-path: polygon(
+        10px 0,
+        100% 0,
+        100% calc(100% - 10px),
+        calc(100% - 10px) 100%,
+        0 100%,
+        0 10px
+    );
+}
+
+.explore-button::before {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        110deg,
+        transparent 20%,
+        rgba(120, 220, 255, 0.17) 50%,
+        transparent 80%
+    );
+    transform: translateX(-100%);
+    transition: transform 0.7s ease;
+    content: "";
+}
+
+.explore-button:hover::before {
+    transform: translateX(100%);
+}
+
+.explore-button:hover {
+    border-color: #b5efff;
+    background: rgba(22, 100, 170, 0.32);
+    box-shadow:
+        0 0 18px rgba(63, 177, 255, 0.18),
+        inset 0 0 22px rgba(63, 177, 255, 0.08);
+    transform: translateY(-2px);
+}
+
+.explore-button:focus-visible,
+.top-navigation a:focus-visible,
+.brand:focus-visible {
+    outline: 2px solid var(--cyan-bright);
+    outline-offset: 5px;
+}
+
+.button-label {
+    position: relative;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 5px;
+    text-indent: 5px;
+}
+
+.button-arrow {
+    position: relative;
+    color: var(--cyan);
+    font-size: 19px;
+    transition: transform 0.3s ease;
+}
+
+.explore-button:hover .button-arrow {
+    transform: translateX(5px);
+}
+
+.button-bracket {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    border-color: var(--cyan);
+    border-style: solid;
+}
+
+.bracket-left {
+    top: 0;
+    left: 0;
+    border-width: 1px 0 0 1px;
+}
+
+.bracket-right {
+    right: 0;
+    bottom: 0;
+    border-width: 0 1px 1px 0;
+}
+
+.hero-footnote {
+    margin-top: 20px;
+    color: #718aa3;
+    font-size: 9px;
+    letter-spacing: 3px;
+}
+
+/* ==========================================================
+   CORNER INFORMATION
+   ========================================================== */
+
+.corner-info {
+    position: absolute;
+    z-index: 3;
+    bottom: 70px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.corner-info-left {
+    left: 6%;
+}
+
+.corner-info-right {
+    right: 6%;
+    text-align: right;
+}
+
+.corner-icon {
+    color: var(--cyan);
+    font-size: 22px;
+    text-shadow: 0 0 12px rgba(77, 184, 255, 0.5);
+}
+
+.corner-info > div {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.corner-title {
+    color: #c9e6fa;
+    font-size: 10px;
+    letter-spacing: 2px;
+}
+
+.corner-description {
+    color: #718ba6;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+}
+
+.scroll-indicator {
+    position: absolute;
+    z-index: 3;
+    bottom: 71px;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 11px;
+    color: #7d9ab5;
+    font-size: 8px;
+    letter-spacing: 2px;
+    transform: translateX(-50%);
+}
+
+.scroll-mouse {
+    display: flex;
+    width: 18px;
+    height: 28px;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 5px;
+    border: 1px solid rgba(132, 197, 238, 0.55);
+    border-radius: 10px;
+}
+
+.scroll-mouse span {
+    width: 2px;
+    height: 5px;
+    border-radius: 2px;
+    background: var(--cyan);
+    animation: scrollMove 1.6s ease-in-out infinite;
+}
+
+/* ==========================================================
+   BOTTOM BAR
+   ========================================================== */
+
+.bottom-bar {
+    position: absolute;
+    z-index: 5;
+    right: 6%;
+    bottom: 0;
+    left: 6%;
+    display: flex;
+    min-height: 38px;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid rgba(108, 183, 255, 0.12);
+    color: #58738f;
+    font-size: 8px;
+    letter-spacing: 2px;
+}
+
+/* ==========================================================
+   3D UNIVERSE INTERFACE
+   ========================================================== */
+
+.universe-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    overflow: hidden;
+    background: #02050c;
+}
+
+.universe-container {
+    position: absolute;
+    inset: 0;
+}
+
+.universe-container canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.universe-topbar {
+    position: absolute;
+    z-index: 5;
+    top: 0;
+    right: 0;
+    left: 0;
+    display: flex;
+    min-height: 65px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    border-bottom: 1px solid var(--line-color);
+    background: rgba(2, 6, 15, 0.72);
+    backdrop-filter: blur(12px);
+}
+
+.interface-button,
+#error-screen button {
+    padding: 12px 18px;
+    border: 1px solid var(--line-color);
+    background: rgba(20, 65, 110, 0.2);
+    color: #c7eaff;
+    font-size: 11px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.interface-button:hover,
+#error-screen button:hover {
+    background: rgba(36, 121, 192, 0.35);
+}
+
+.universe-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #a5c6df;
+    font-size: 10px;
+    letter-spacing: 2px;
+}
+
+/* ==========================================================
+   ERROR SCREEN
+   ========================================================== */
+
+.error-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background:
+        radial-gradient(ellipse at center, #111d32, #02050c 75%);
 }
 
 .error-content {
-    width: min(460px, 100%);
-    padding: clamp(24px, 5vw, 42px);
-
-    border: 1px solid rgba(255, 121, 150, 0.24);
-    border-radius: var(--radius-large);
-
-    background: rgba(8, 13, 27, 0.85);
-
+    width: min(480px, 100%);
+    padding: 38px;
+    border: 1px solid var(--line-color);
+    background: rgba(4, 13, 27, 0.85);
     text-align: center;
-    box-shadow: 0 0 50px rgba(116, 34, 75, 0.1);
+}
+
+.error-symbol {
+    display: inline-flex;
+    width: 38px;
+    height: 38px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ff8181;
+    border-radius: 50%;
+    color: #ff9292;
+    font-size: 20px;
 }
 
 .error-content h2 {
-    margin: 14px 0;
-
-    font-size: clamp(23px, 4vw, 32px);
-    font-weight: 400;
+    margin-top: 22px;
+    font-size: 18px;
+    letter-spacing: 4px;
 }
 
-#error-message {
-    margin: 0 0 22px;
-
-    color: var(--text-secondary);
+.error-content p {
+    margin: 18px 0 24px;
+    color: #a0b3c8;
     font-size: 13px;
-    line-height: 1.8;
-
-    overflow-wrap: anywhere;
+    line-height: 1.7;
 }
 
-.error-content .primary-button {
-    width: 100%;
-    margin-top: 0;
+.error-content button {
+    margin: 5px;
 }
 
-.error-content .secondary-button {
-    width: 100%;
-    margin-top: 10px;
+/* ==========================================================
+   ANIMATIONS
+   ========================================================== */
+
+@keyframes loadingPulse {
+    0%, 100% { opacity: 0.45; transform: scale(0.94); }
+    50% { opacity: 1; transform: scale(1.08); }
 }
 
-
-/* 19. CUSTOM SCROLLBARS */
-
-.object-panel,
-.search-results {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(99, 212, 255, 0.35) transparent;
+@keyframes nebulaDrift {
+    from { transform: translate3d(-2%, 0, 0) scale(1); }
+    to { transform: translate3d(3%, 2%, 0) scale(1.06); }
 }
 
-.object-panel::-webkit-scrollbar,
-.search-results::-webkit-scrollbar {
-    width: 5px;
+@keyframes galaxyRotate {
+    from { rotate: 0deg; }
+    to { rotate: 360deg; }
 }
 
-.object-panel::-webkit-scrollbar-track,
-.search-results::-webkit-scrollbar-track {
-    background: transparent;
+@keyframes planetFloat {
+    from { transform: translateY(-1%) rotate(-1deg); }
+    to { transform: translateY(1%) rotate(1deg); }
 }
 
-.object-panel::-webkit-scrollbar-thumb,
-.search-results::-webkit-scrollbar-thumb {
-    border-radius: 5px;
-    background: rgba(99, 212, 255, 0.35);
+@keyframes starsDrift {
+    from { background-position: 0 0; }
+    to { background-position: 370px 290px; }
 }
 
+@keyframes orbitLight {
+    from { left: 15%; }
+    to { left: 82%; }
+}
 
-/* 20. ANIMATIONS */
+@keyframes scrollMove {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(8px); opacity: 0.15; }
+}
 
-@keyframes star-drift {
-    from {
-        background-position:
-            0 0,
-            0 0,
-            0 0,
-            0 0,
-            0 0,
-            0 0,
-            0 0;
+@keyframes heroAppear {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================
+   RESPONSIVE DESIGN
+   ========================================================== */
+
+@media (min-width: 1500px) {
+    .hero-content {
+        padding-bottom: 115px;
     }
 
-    to {
-        background-position:
-            280px 260px,
-            -370px 330px,
-            410px -360px,
-            -340px 290px,
-            290px -310px,
-            -390px 370px,
-            350px 300px;
+    .space-planet {
+        right: -8%;
+    }
+
+    .planet-atmosphere {
+        right: -9%;
     }
 }
-
-@keyframes nebula-pulse {
-    from {
-        opacity: 0.55;
-        transform: translate(-50%, -50%) scale(0.94);
-    }
-
-    to {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1.06);
-    }
-}
-
-@keyframes content-arrive {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes loading-spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-
-/* 21. TABLET LAYOUT */
 
 @media (max-width: 900px) {
-    :root {
-        --header-height: 62px;
-        --panel-padding: 16px;
+    .topbar {
+        gap: 18px;
+        padding: 0 4%;
     }
 
-    .welcome-header {
-        padding-right: 24px;
-        padding-left: 24px;
+    .brand {
+        font-size: 10px;
+        letter-spacing: 1.5px;
     }
 
-    .welcome-footer {
-        padding-right: 24px;
-        padding-left: 24px;
+    .top-navigation {
+        gap: 12px;
+        font-size: 9px;
     }
 
-    .system-status {
-        font-size: 8px;
-        letter-spacing: 0.08em;
+    .space-planet {
+        top: 16%;
+        right: -35%;
+        width: 85vw;
+        opacity: 0.8;
     }
 
-    .object-panel {
-        width: min(320px, calc(100% - 36px));
+    .planet-atmosphere {
+        top: 14%;
+        right: -36%;
+        width: 87vw;
     }
 
-    .navigation-panel {
-        width: 190px;
+    .space-galaxy {
+        top: 25%;
+        left: -27%;
+        width: 85vw;
+        height: 85vw;
     }
 
-    .controls-hint {
-        left: 225px;
-        gap: 10px 20px;
+    .corner-info {
+        bottom: 58px;
     }
 
-    .controls-hint span + span::before {
-        left: -11px;
+    .scroll-indicator {
+        bottom: 60px;
     }
 }
 
-
-/* 22. MOBILE LAYOUT */
-
 @media (max-width: 600px) {
-    .welcome-header {
-        min-height: 58px;
-        padding: 0 16px;
+    .topbar {
+        min-height: 68px;
+        gap: 12px;
     }
 
-    .brand,
-    .exploration-brand {
-        gap: 7px;
+    .brand {
+        gap: 8px;
         font-size: 9px;
-        letter-spacing: 0.1em;
+        letter-spacing: 1px;
     }
 
-    .brand-symbol {
-        font-size: 19px;
+    .brand-icon {
+        font-size: 22px;
     }
 
-    .system-status {
-        gap: 6px;
-        font-size: 0;
+    .topbar-line,
+    .system-indicator,
+    .top-navigation > span,
+    .top-navigation a:not(:first-child) {
+        display: none;
     }
 
-    .system-status .status-indicator {
-        width: 7px;
-        height: 7px;
-    }
-
-    .welcome-content {
-        width: calc(100% - 32px);
-        padding: 35px 0;
-    }
-
-    .eyebrow {
-        margin-bottom: 20px;
+    .top-navigation {
+        margin-left: auto;
         font-size: 9px;
-        letter-spacing: 0.2em;
+        letter-spacing: 1px;
     }
 
-    .welcome-content h1 {
-        font-size: clamp(33px, 9vw, 48px);
+    .space-planet {
+        top: 19%;
+        right: -48%;
+        width: 110vw;
+        opacity: 0.65;
+    }
+
+    .planet-atmosphere {
+        top: 17%;
+        right: -49%;
+        width: 112vw;
+    }
+
+    .space-galaxy {
+        top: 20%;
+        left: -48%;
+        width: 115vw;
+        height: 115vw;
+        opacity: 0.5;
+    }
+
+    .space-nebula {
+        top: 10%;
+        left: -30%;
+        width: 120%;
+    }
+
+    .hero-content {
+        padding: 45px 16px 125px;
+    }
+
+    .hero-eyebrow {
+        gap: 8px;
+        margin-bottom: 24px;
+        font-size: 8px;
         letter-spacing: 2px;
     }
 
-    .welcome-description {
-        max-width: 370px;
-        margin-top: 20px;
-
-        font-size: 13px;
-        line-height: 1.85;
+    .eyebrow-line {
+        width: 18px;
     }
 
-    .primary-button {
-        min-width: 220px;
-        min-height: 54px;
-        margin-top: 29px;
+    .title-main {
+        font-size: clamp(36px, 10vw, 60px);
+        letter-spacing: 5px;
     }
 
-    .welcome-caption {
-        font-size: 8px;
-        letter-spacing: 0.12em;
-    }
-
-    .welcome-footer {
-        min-height: 42px;
-        padding: 10px 16px;
-        font-size: 7px;
-        letter-spacing: 0.07em;
-    }
-
-    #exploration-header {
-        top: 8px;
-        right: 8px;
-        left: 8px;
-
-        min-height: 48px;
-        gap: 8px;
-        padding: 6px 8px;
-    }
-
-    #home-button {
-        width: 32px;
-        height: 32px;
-    }
-
-    .exploration-brand {
-        flex: 1;
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .exploration-status {
-        gap: 6px;
-        font-size: 0;
-    }
-
-    .exploration-status .status-indicator {
-        width: 7px;
-        height: 7px;
-    }
-
-    .search-panel {
-        top: 66px;
-        left: 8px;
-
-        width: min(290px, calc(100% - 16px));
-        padding: 12px;
-    }
-
-    .object-panel {
-        top: auto;
-        right: 8px;
-        bottom: 55px;
-        left: 8px;
-
-        width: auto;
-        max-height: 43%;
-        padding: 13px;
-    }
-
-    .panel-heading h2 {
-        font-size: 20px;
-    }
-
-    .object-facts {
-        gap: 7px;
+    .title-sub {
         margin-top: 12px;
+        font-size: clamp(23px, 6.2vw, 37px);
+        letter-spacing: 8px;
+        text-indent: 8px;
     }
 
-    .object-facts > div {
-        padding: 8px;
-    }
-
-    .navigation-panel {
-        top: 66px;
-        right: 8px;
-        bottom: auto;
-        left: auto;
-
-        width: 142px;
-        gap: 5px;
-        padding: 9px;
-    }
-
-    .navigation-panel button {
-        min-height: 32px;
-        padding: 6px;
-        font-size: 9px;
-    }
-
-    .navigation-panel .panel-eyebrow {
-        font-size: 8px;
-    }
-
-    .controls-hint {
-        right: 8px;
-        bottom: 8px;
-        left: 8px;
-
-        gap: 5px 12px;
-        min-height: 34px;
-        padding: 7px;
-
-        font-size: 7px;
-        letter-spacing: 0.04em;
-    }
-
-    .controls-hint span + span::before {
-        left: -7px;
-        height: 9px;
-    }
-
-    .notification {
-        top: 122px;
-    }
-
-    .error-content {
-        padding: 24px 18px;
-    }
-}
-
-
-/* 23. SHORT SCREENS */
-
-@media (max-height: 650px) and (min-width: 601px) {
-    .welcome-content {
-        padding-top: 20px;
-        padding-bottom: 20px;
-    }
-
-    .welcome-content h1 {
-        font-size: clamp(36px, 6vw, 68px);
-    }
-
-    .welcome-description {
-        margin-top: 16px;
-    }
-
-    .primary-button {
-        min-height: 50px;
+    .title-orbit {
         margin-top: 22px;
     }
 
-    .welcome-caption {
-        margin-top: 14px;
+    .hero-description {
+        max-width: 310px;
+        line-height: 1.8;
+        letter-spacing: 2px;
     }
 
-    .object-panel {
-        max-height: calc(100% - 170px);
+    .explore-button {
+        width: 205px;
+        min-height: 54px;
+        margin-top: 38px;
+    }
+
+    .hero-footnote {
+        font-size: 8px;
+        letter-spacing: 1.5px;
+    }
+
+    .corner-info {
+        bottom: 55px;
+        gap: 7px;
+    }
+
+    .corner-info-left {
+        left: 4%;
+    }
+
+    .corner-info-right {
+        right: 4%;
+    }
+
+    .corner-icon {
+        font-size: 16px;
+    }
+
+    .corner-title {
+        font-size: 7px;
+        letter-spacing: 0.6px;
+    }
+
+    .corner-description {
+        font-size: 7px;
+        letter-spacing: 0.5px;
+    }
+
+    .scroll-indicator {
+        bottom: 57px;
+        font-size: 6px;
+        letter-spacing: 1px;
+    }
+
+    .scroll-mouse {
+        width: 15px;
+        height: 23px;
+    }
+
+    .bottom-bar {
+        right: 4%;
+        left: 4%;
+        min-height: 34px;
+        font-size: 6px;
+        letter-spacing: 0.7px;
+    }
+
+    .universe-topbar {
+        min-height: 58px;
+        padding: 0 12px;
+    }
+
+    .universe-label {
+        font-size: 8px;
+        letter-spacing: 1px;
+    }
+
+    .interface-button {
+        padding: 10px;
+        font-size: 9px;
     }
 }
 
+@media (max-height: 650px) and (min-width: 601px) {
+    .topbar {
+        min-height: 60px;
+    }
 
-/* 24. REDUCED MOTION */
+    .hero-content {
+        padding-top: 25px;
+        padding-bottom: 80px;
+    }
+
+    .hero-eyebrow {
+        margin-bottom: 15px;
+    }
+
+    .title-main {
+        font-size: clamp(42px, 7vw, 78px);
+    }
+
+    .title-sub {
+        margin-top: 8px;
+        font-size: clamp(26px, 3.5vw, 40px);
+    }
+
+    .title-orbit {
+        margin-top: 15px;
+    }
+
+    .explore-button {
+        min-height: 48px;
+        margin-top: 25px;
+    }
+
+    .corner-info,
+    .scroll-indicator {
+        bottom: 48px;
+    }
+}
 
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
-        scroll-behavior: auto !important;
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
         transition-duration: 0.01ms !important;
     }
 }
